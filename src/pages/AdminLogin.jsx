@@ -1,37 +1,47 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, InputAdornment, IconButton } from '@mui/material';
+import {
+  TextField, Button, Box, Typography,
+  InputAdornment, IconButton, ToggleButtonGroup, ToggleButton
+} from '@mui/material';
 import { Visibility, VisibilityOff, Person, Lock } from '@mui/icons-material';
-import { adminLogin } from '../services/allApi';
+import { adminLogin, subAdminLogin } from '../services/allApi';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('admin');
   const navigate = useNavigate();
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
 
   const handleLogin = async () => {
-    const reqBody = {
-      mobile_number: mobileNumber,
-      password: password,
-    };
+    const reqBody = { mobile_number: mobileNumber, password };
 
     try {
-      const response = await adminLogin(reqBody);
+      const response = role === 'admin' ? await adminLogin(reqBody) : await subAdminLogin(reqBody);
+      console.log(response);
 
-      // Store tokens in localStorage if login is successful
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
       localStorage.setItem('user_id', response.user_id);
+      localStorage.setItem('role', role); // 'admin' or 'subadmin'
 
-      toast.success('Login successful!');
-      navigate('/');
+      if (role === 'subadmin' && response.permissions) {
+        localStorage.setItem('permissions', JSON.stringify(response.permissions));
+      }
+
+      toast.success(`${role === 'admin' ? 'Admin' : 'Sub-Admin'} login successful!`);
+
+      // Wait a bit so toast can show before navigating
+      
+        navigate('/');
+     
+
     } catch (error) {
-      if (error.response && error.response.status === 401) {
+      if (error.response?.status === 401) {
         toast.error('Username or password is incorrect.');
       } else {
         toast.error('Login failed. Please try again.');
@@ -49,7 +59,6 @@ function LoginPage() {
         backgroundColor: '#f5f6fa',
       }}
     >
-      <ToastContainer />
       <Box
         sx={{
           display: 'flex',
@@ -58,13 +67,13 @@ function LoginPage() {
           borderRadius: '10px',
           overflow: 'hidden',
           backgroundColor: 'white',
+          position: 'relative',
         }}
       >
-        {/* Left Section with Image */}
+        {/* Left Image Section */}
         <Box
           sx={{
             flex: 1,
-            backgroundColor: '#ffffff',
             display: { xs: 'none', md: 'flex' },
             justifyContent: 'center',
             alignItems: 'center',
@@ -72,19 +81,41 @@ function LoginPage() {
           }}
         >
           <img
-            src="https://i.postimg.cc/9M4B3t14/6343825.jpg" // Replace this with your image URL
+            src="https://i.postimg.cc/9M4B3t14/6343825.jpg"
             alt="Login illustration"
             style={{ width: '100%', maxWidth: '350px' }}
           />
         </Box>
 
-        {/* Right Section with Form */}
-        <Box sx={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        {/* Right Form Section */}
+        <Box
+          sx={{
+            flex: 1,
+            padding: '32px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            position: 'relative',
+          }}
+        >
+          {/* Role Toggle */}
+          <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+            <ToggleButtonGroup
+              value={role}
+              exclusive
+              onChange={(e, newRole) => newRole && setRole(newRole)}
+              size="small"
+              color="primary"
+            >
+              <ToggleButton value="admin">Admin</ToggleButton>
+              <ToggleButton value="subadmin">Staff</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
           <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
-            Admin Login
+            {role === 'admin' ? 'Admin Login' : 'Sub Admin/Staff Login'}
           </Typography>
 
-          {/* Mobile Number Input */}
           <TextField
             fullWidth
             placeholder="Username"
@@ -101,7 +132,6 @@ function LoginPage() {
             sx={{ mb: 2, backgroundColor: '#F6F6F9', borderRadius: '5px' }}
           />
 
-          {/* Password Input */}
           <TextField
             fullWidth
             type={showPassword ? 'text' : 'password'}
@@ -126,7 +156,6 @@ function LoginPage() {
             sx={{ mb: 2, backgroundColor: '#F6F6F9', borderRadius: '5px' }}
           />
 
-          {/* Login Button */}
           <Button
             fullWidth
             variant="contained"
