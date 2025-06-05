@@ -24,7 +24,7 @@ const ReviewSection = ({ reviews, categoryName }) => {
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 {review.user_name || "Anonymous"} |{" "}
-                {new Date(review.created_at).toLocaleDateString()}
+                {review.created_at}
               </Typography>
               <Rating
                 name={`rating-${review.id}`}
@@ -63,7 +63,10 @@ const ReviewPage = () => {
       }
     };
     fetchReviews();
+    
   }, []);
+          // console.log(reviewsData)
+
 
   const handleTabChange = (event, newValue) => {
     setValue(newValue);

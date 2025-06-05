@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, IconButton, TablePagination,
-    CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle
+    Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+    IconButton, TablePagination, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle
 } from '@mui/material';
-import { Edit, Delete, Visibility } from '@mui/icons-material';
+import { Edit, Delete } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodProducts, deleteFoodProduct } from '../../services/allApi';
 import EditFoodProductModal from './EditFood';
@@ -13,10 +13,10 @@ const FoodProductList = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [loading, setLoading] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState(null); // State for selected product
+    const [selectedProduct, setSelectedProduct] = useState(null);
     const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete confirmation modal
-    const [productToDelete, setProductToDelete] = useState(null); // State to store the product to delete
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -67,7 +67,7 @@ const FoodProductList = () => {
 
     const handleDeleteProduct = async () => {
         try {
-            await deleteFoodProduct(null, productToDelete.id); // Pass formData as null if not needed for delete
+            await deleteFoodProduct(null, productToDelete.id);
             setProducts(products.filter(product => product.id !== productToDelete.id));
             setDeleteModalOpen(false);
         } catch (error) {
@@ -85,20 +85,14 @@ const FoodProductList = () => {
             </Box>
 
             {/* Breadcrumb and Add Product Button */}
-            <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={3}
-            >
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Typography variant="body2" color="textSecondary">
                     Dashboard &gt; Product List
                 </Typography>
                 <Button
                     variant="contained"
-                    
                     onClick={handleAddProduct}
-                    sx={{ textTransform: 'none',backgroundColor:"#1e1e2d" }}
+                    sx={{ textTransform: 'none', backgroundColor: "#1e1e2d" }}
                 >
                     + Add Product
                 </Button>
@@ -115,7 +109,6 @@ const FoodProductList = () => {
                         {/* Table Header */}
                         <TableHead>
                             <TableRow>
-                                
                                 <TableCell><b>Product</b></TableCell>
                                 <TableCell><b>Category</b></TableCell>
                                 <TableCell><b>Subcategory</b></TableCell>
@@ -130,11 +123,10 @@ const FoodProductList = () => {
 
                         {/* Table Body */}
                         <TableBody>
-                            {products
+                            {Array.isArray(products) && products
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((product) => (
                                     <TableRow key={product.id}>
-                                        
                                         <TableCell>
                                             <Typography variant="body1">{product.name}</Typography>
                                             <Typography variant="body2" color="textSecondary">
@@ -144,14 +136,18 @@ const FoodProductList = () => {
                                         <TableCell>{product.category_name}</TableCell>
                                         <TableCell>{product.subcategory_name}</TableCell>
                                         <TableCell>
-                                            {product.image_urls.map((img) => (
-                                                <img
-                                                    key={img.id}
-                                                    src={img.image}
-                                                    alt={product.name}
-                                                    style={{ width: 50, height: 50, marginRight: 5 }}
-                                                />
-                                            ))}
+                                            {product.image_urls?.length > 0 ? (
+                                                product.image_urls.map((img) => (
+                                                    <img
+                                                        key={img.id}
+                                                        src={img.image}
+                                                        alt={product.name}
+                                                        style={{ width: 50, height: 50, marginRight: 5 }}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">No images</Typography>
+                                            )}
                                         </TableCell>
                                         <TableCell>₹{product.price}</TableCell>
                                         <TableCell>₹{product.offer_price}</TableCell>
@@ -190,10 +186,10 @@ const FoodProductList = () => {
 
             {/* Edit Product Modal */}
             <EditFoodProductModal
-               open={isEditModalOpen}
-               onClose={() => setEditModalOpen(false)}
-               productData={selectedProduct}
-               onSave={handleSaveProduct}
+                open={isEditModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                productData={selectedProduct}
+                onSave={handleSaveProduct}
             />
 
             {/* Delete Confirmation Modal */}
@@ -201,7 +197,6 @@ const FoodProductList = () => {
                 open={isDeleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 aria-labelledby="delete-product-dialog-title"
-                aria-describedby="delete-product-dialog-description"
             >
                 <DialogTitle id="delete-product-dialog-title">{"Confirm Deletion"}</DialogTitle>
                 <DialogContent>

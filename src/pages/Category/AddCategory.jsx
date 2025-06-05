@@ -12,7 +12,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import { CloudUploadOutlined } from "@mui/icons-material";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { addCategory } from "../../services/allApi";
 import { viewStores } from "../../services/allApi";
@@ -40,6 +40,8 @@ const AddCategory = () => {
 
     fetchStores();
   }, []);
+      console.log(storeTypes)
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -177,7 +179,6 @@ const AddCategory = () => {
       </Box>
 
       {/* Toast Notifications */}
-      <ToastContainer />
     </Box>
   );
 };

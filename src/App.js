@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import Header from './components/Header';
-import Sidebar from './components/Siedebar';
+import Sidebar from './components/Siedebar';  // Make sure this path is correct
 import Dashboard from './pages/Dashboard';
 import OrderList from './pages/Orders/Orders';
 import OrderDetails from './pages/Orders/OrderDetails';
@@ -31,11 +31,21 @@ import AddGroceryProduct from './pages/Products/AddGroceryProduct';
 import GroceryProductList from './pages/Products/GroceryProductList';
 import FoodProductList from './pages/Products/FoodProductList';
 import NotificationPage from './pages/Notifications/ViewNotifications';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import BigBuyOrders from './pages/BigBuyOrders/BigBuyOrders';
+import DeliveryBoyList from './pages/Delivery/DeliveryBoyList';
+import DeliveryBoyDetails from './pages/Delivery/DeliveryBoyDetails';
 
 const App = () => {
   const location = useLocation(); // Get current route
 
   const isLoginPage = location.pathname === '/admin-login';
+
+  // Simple test function to show a toast notification
+  const handleTestToast = () => {
+    toast.success('Toast is working!');
+  };
 
   return (
     <div style={appStyle}>
@@ -49,7 +59,7 @@ const App = () => {
             <Route path="/product-list" element={<ProductList />} />
             <Route path="/add-product" element={<AddProduct />} />
             <Route path="/order-list" element={<OrderList />} />
-            <Route path="/order-details" element={<OrderDetails />} />
+            <Route path="/order-details/:orderId" element={<OrderDetails />} />
             <Route path="/category-list" element={<CategoryPage />} />
             <Route path="/add-category" element={<AddCategory />} />
             <Route path="/customers-list" element={<CustomersList />} />
@@ -74,9 +84,25 @@ const App = () => {
             <Route path="/view-groceryproducts" element={<GroceryProductList />} />
             <Route path="/view-foodproducts" element={<FoodProductList />} />
             <Route path="/view-notifications" element={<NotificationPage />} />
-
-
+            <Route path="/view-bigbuyorders" element={<BigBuyOrders />} />
+            <Route path="/view-deliveryboyslist" element={<DeliveryBoyList />} />
+            <Route path="/view-deliveryboydetails/:id" element={<DeliveryBoyDetails />} />
           </Routes>
+
+         
+
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
         </div>
       </div>
     </div>
@@ -85,20 +111,20 @@ const App = () => {
 
 const appStyle = {
   display: 'flex',
-  height: '100vh', 
+  height: '100vh',
 };
 
 const contentStyle = {
   display: 'flex',
   flexDirection: 'column',
-  flexGrow: 1, 
+  flexGrow: 1,
 };
 
 const mainStyle = {
   padding: '20px',
-  flexGrow: 1, 
-  overflowY: 'auto', 
-  backgroundColor: '#f5f5f5', 
+  flexGrow: 1,
+  overflowY: 'auto',
+  backgroundColor: '#f5f5f5',
 };
 
 export default App;

@@ -63,7 +63,8 @@ const ReportPage = () => {
       try {
         setLoading(true);
         const data = await viewReports();
-        setReportsData(data); // Assuming the API response matches the dummy structure
+        console.log(data)
+        setReportsData(data.data); // Assuming the API response matches the dummy structure
         setLoading(false);
       } catch (error) {
         console.error("Error fetching reports:", error);
@@ -72,6 +73,8 @@ const ReportPage = () => {
     };
     fetchReports();
   }, []);
+      // console.log(reportsData)
+
 
   if (loading) {
     return (

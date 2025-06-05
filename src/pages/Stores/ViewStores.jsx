@@ -12,10 +12,15 @@ import {
   CircularProgress,
   Alert,
   Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { deleteStore, viewStores, editStore } from "../../services/allApi";
+import { toast } from "react-toastify";
 
 const ViewStores = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +29,8 @@ const ViewStores = () => {
   const [error, setError] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [currentStore, setCurrentStore] = useState({ id: null, name: "", description: "" });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [storeToDelete, setStoreToDelete] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,24 +79,39 @@ const ViewStores = () => {
           store.id === currentStore.id ? { ...store, ...updatedStore } : store
         )
       );
-      alert("Store updated successfully!");
+      toast.success("Store updated successfully!");
       handleModalClose();
     } catch (error) {
       console.error("Failed to update store:", error);
-      alert("Failed to update the store. Please try again.");
+      toast.error("Failed to update the store. Please try again.");
     }
   };
 
-  const handleDelete = async (id) => {
+  // Open delete confirmation dialog
+  const openDeleteDialog = (store) => {
+    setStoreToDelete(store);
+    setDeleteDialogOpen(true);
+  };
+
+  // Close delete confirmation dialog
+  const closeDeleteDialog = () => {
+    setStoreToDelete(null);
+    setDeleteDialogOpen(false);
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!storeToDelete) return;
+
     try {
-      console.log("Deleting store with ID:", id);
-      await deleteStore(id);
-      setStores((prevStores) => prevStores.filter((store) => store.id !== id));
-      console.log("Store deleted successfully");
+      await deleteStore(storeToDelete.id);
+      setStores((prevStores) => prevStores.filter((s) => s.id !== storeToDelete.id));
+      toast.success("Store deleted successfully!");
     } catch (error) {
       console.error("Error while deleting store:", error);
-      alert("Failed to delete the store. Please try again.");
+      toast.error("Failed to delete the store. Please try again.");
     }
+    closeDeleteDialog();
   };
 
   const filteredStores = stores.filter((store) =>
@@ -113,7 +135,7 @@ const ViewStores = () => {
           variant="outlined"
           sx={{ width: "70%" }}
         />
-        <Button variant="contained" sx={{backgroundColor:"#1e1e2d"}} onClick={handleAddStore}>
+        <Button variant="contained" sx={{ backgroundColor: "#1e1e2d" }} onClick={handleAddStore}>
           Add Store
         </Button>
       </Box>
@@ -138,16 +160,10 @@ const ViewStores = () => {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <IconButton
-                    onClick={() => handleEdit(store)}
-                    color="primary"
-                  >
+                  <IconButton onClick={() => handleEdit(store)} color="primary">
                     <Edit />
                   </IconButton>
-                  <IconButton
-                    onClick={() => handleDelete(store.id)}
-                    color="error"
-                  >
+                  <IconButton onClick={() => openDeleteDialog(store)} color="error">
                     <Delete />
                   </IconButton>
                 </CardActions>
@@ -185,18 +201,14 @@ const ViewStores = () => {
             fullWidth
             margin="normal"
             value={currentStore.name}
-            onChange={(e) =>
-              setCurrentStore({ ...currentStore, name: e.target.value })
-            }
+            onChange={(e) => setCurrentStore({ ...currentStore, name: e.target.value })}
           />
           <TextField
             label="Store Description"
             fullWidth
             margin="normal"
             value={currentStore.description}
-            onChange={(e) =>
-              setCurrentStore({ ...currentStore, description: e.target.value })
-            }
+            onChange={(e) => setCurrentStore({ ...currentStore, description: e.target.value })}
           />
           <Box
             sx={{
@@ -214,6 +226,24 @@ const ViewStores = () => {
           </Box>
         </Box>
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete store "{storeToDelete?.name}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={confirmDelete} variant="contained" color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

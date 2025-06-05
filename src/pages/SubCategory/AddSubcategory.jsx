@@ -15,7 +15,7 @@ import {
   Select,
 } from "@mui/material";
 import { CloudUploadOutlined } from "@mui/icons-material";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { addsubCategory, viewCategory, viewVendors } from "../../services/allApi";
 
@@ -23,28 +23,24 @@ const AddSubCategory = () => {
   const [formData, setFormData] = useState({
     name: "",
     subcategory_image: null,
-    enable_subcategory: "true",
     category: "",
-    vendor_id: "",
+    is_active:true
   });
   const [categories, setCategories] = useState([]);
-  const [vendors, setVendors] = useState([]);
 
   useEffect(() => {
-    const fetchCategoriesAndVendors = async () => {
+    const fetchCategories = async () => {
       try {
         // Fetch categories
         const categoryData = await viewCategory();
         setCategories(categoryData);
 
-        // Fetch vendors
-        const vendorData = await viewVendors();
-        setVendors(vendorData);
+       
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    fetchCategoriesAndVendors();
+    fetchCategories();
   }, []);
 
   const handleInputChange = (e) => {
@@ -62,11 +58,13 @@ const AddSubCategory = () => {
       const reqBody = new FormData();
       reqBody.append("name", formData.name);
       reqBody.append("subcategory_image", formData.subcategory_image);
-      reqBody.append("enable_subcategory", formData.enable_subcategory);
       reqBody.append("category", formData.category);
-      reqBody.append("vendor_id", formData.vendor_id);
 
-      await addsubCategory(reqBody);
+    const res=   await addsubCategory(reqBody);
+
+   console.log(res)
+
+      console.log(formData)
 
       // Display success toast
       toast.success("Subcategory added successfully!");
@@ -75,9 +73,8 @@ const AddSubCategory = () => {
       setFormData({
         name: "",
         subcategory_image: null,
-        enable_subcategory: "true",
+        is_active:true,
         category: "",
-        vendor_id: "",
       });
     } catch (error) {
       console.error("Error adding subcategory:", error);
@@ -161,11 +158,11 @@ const AddSubCategory = () => {
               <FormLabel component="legend">Is Active</FormLabel>
               <RadioGroup
                 name="enable_subcategory"
-                value={formData.enable_subcategory}
+                value={formData.is_active}
                 onChange={handleInputChange}
                 row
               >
-                <FormControlLabel value="true" control={<Radio />} label="Yes" />
+                <FormControlLabel checked value="true" control={<Radio />} label="Yes" />
                 <FormControlLabel value="false" control={<Radio />} label="No" />
               </RadioGroup>
             </FormControl>
@@ -187,7 +184,7 @@ const AddSubCategory = () => {
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth sx={{ marginBottom: 3 }}>
+            {/* <FormControl fullWidth sx={{ marginBottom: 3 }}>
               <FormLabel>Vendor</FormLabel>
               <Select
                 name="vendor_id"
@@ -204,7 +201,7 @@ const AddSubCategory = () => {
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl>
+            </FormControl> */}
           </Paper>
         </Grid>
       </Grid>
@@ -218,7 +215,6 @@ const AddSubCategory = () => {
       </Box>
 
       {/* Toast Notifications */}
-      <ToastContainer />
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Stack,
 } from "@mui/material";
 import { Search, FilterList, FileDownload, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +35,10 @@ const ViewVendors = () => {
   const [loading, setLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [vendorToDelete, setVendorToDelete] = useState(null);
+
+  // Search & Filter States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all"); // all, enabled, disabled, approved, not_approved
 
   // Fetch Vendors
   const fetchVendorsData = async () => {
@@ -48,6 +57,52 @@ const ViewVendors = () => {
     fetchVendorsData();
   }, []);
 
+  // Filter & Search Logic (memoized)
+  const filteredVendors = useMemo(() => {
+    return vendors.filter((vendor) => {
+      // Search check (business_name, owner_name, store_type_name)
+      const searchMatch =
+        vendor.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendor.owner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendor.store_type_name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Filter by status
+      let filterMatch = true;
+      if (filterStatus === "enabled") filterMatch = vendor.is_active === true;
+      else if (filterStatus === "disabled") filterMatch = vendor.is_active === false;
+      else if (filterStatus === "approved") filterMatch = vendor.is_approved === true;
+      else if (filterStatus === "not_approved") filterMatch = vendor.is_approved === false;
+
+      return searchMatch && filterMatch;
+    });
+  }, [vendors, searchTerm, filterStatus]);
+
+  // Export CSV helper
+  const exportToCSV = () => {
+    if (filteredVendors.length === 0) return;
+
+    const headers = ["Business Name", "Owner Name", "Store Type", "Active", "Approved"];
+    const rows = filteredVendors.map((v) => [
+      v.business_name,
+      v.owner_name,
+      v.store_type_name,
+      v.is_active ? "Enabled" : "Disabled",
+      v.is_approved ? "Approved" : "Not Approved",
+    ]);
+
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.href = encodedUri;
+    link.download = "vendors_export.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleViewVendor = (vendorId) => {
     if (vendorId) {
       navigate(`/vendors/${vendorId}`);
@@ -63,7 +118,7 @@ const ViewVendors = () => {
   const handleAcceptReject = async (vendorId, action) => {
     try {
       setLoading(true);
-      const updatedVendor = await acceptRejectVendor(vendorId, action);
+      await acceptRejectVendor(vendorId, action);
 
       setVendors((prevVendors) =>
         prevVendors.map((vendor) =>
@@ -81,18 +136,15 @@ const ViewVendors = () => {
     }
   };
 
-  // Handle enable/disable vendor
   const handleEnableDisable = async (vendorId, isActive) => {
     try {
       setLoading(true);
-      const action = isActive ? "disable" : "enable"; // Toggle between enable and disable
-      const updatedVendor = await enableDisableVendor(vendorId, action);
+      const action = isActive ? "disable" : "enable";
+      await enableDisableVendor(vendorId, action);
 
       setVendors((prevVendors) =>
         prevVendors.map((vendor) =>
-          vendor.id === vendorId
-            ? { ...vendor, is_active: !isActive }
-            : vendor
+          vendor.id === vendorId ? { ...vendor, is_active: !isActive } : vendor
         )
       );
       console.log(`Vendor ${action}d successfully.`);
@@ -103,26 +155,22 @@ const ViewVendors = () => {
     }
   };
 
-  // Open Delete Dialog
   const handleOpenDeleteDialog = (vendor) => {
     setVendorToDelete(vendor);
     setOpenDeleteDialog(true);
   };
 
-  // Close Delete Dialog
   const handleCloseDeleteDialog = () => {
     setVendorToDelete(null);
     setOpenDeleteDialog(false);
   };
 
-  // Delete Vendor
   const handleDeleteVendor = async () => {
     if (vendorToDelete) {
       try {
         setLoading(true);
         await deleteVendor({}, vendorToDelete.id);
 
-        // Remove vendor from the list
         setVendors((prevVendors) =>
           prevVendors.filter((vendor) => vendor.id !== vendorToDelete.id)
         );
@@ -139,38 +187,87 @@ const ViewVendors = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      {/* Top Section: Search Field and Buttons */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      {/* Header */}
+      <Typography variant="h4" mb={3} sx={{ fontWeight: "bold", color: "#1e1e2d" }}>
+        Vendors 
+      </Typography>
+
+      {/* Top Controls */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
         <TextField
           variant="outlined"
-          placeholder="Search vendor..."
+          placeholder="Search vendors by name, owner or store type..."
           size="small"
-          sx={{ width: "300px" }}
+          sx={{ width: { xs: "100%", sm: 300 } }}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <Search sx={{ mr: 1 }} />,
+            startAdornment: <Search sx={{ mr: 1, color: "#777" }} />,
           }}
         />
-        <Box display="flex" gap={2}>
-          <Button variant="outlined" startIcon={<FileDownload />} disabled={loading}>
-            Export
+
+        <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Status Filter</InputLabel>
+            <Select
+              value={filterStatus}
+              label="Status Filter"
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="enabled">Enabled</MenuItem>
+              <MenuItem value="disabled">Disabled</MenuItem>
+              <MenuItem value="approved">Approved</MenuItem>
+              <MenuItem value="not_approved">Not Approved</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="outlined"
+            startIcon={<FileDownload />}
+            onClick={exportToCSV}
+            disabled={filteredVendors.length === 0}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            Export 
           </Button>
-          <Button variant="outlined" startIcon={<FilterList />}>
-            Filters
-          </Button>
-          <Button variant="contained" sx={{backgroundColor:"#1e1e2d"}} onClick={handleAddVendor}>
+
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#1e1e2d", whiteSpace: "nowrap" }}
+            onClick={handleAddVendor}
+          >
             + Add Vendor
           </Button>
         </Box>
-      </Box>
+      </Stack>
 
-      {/* Vendor Cards */}
+      {/* Vendors Grid */}
       {loading ? (
-        <Typography variant="h6" align="center">
+        <Typography variant="h6" align="center" sx={{ mt: 10 }}>
           Loading vendors...
         </Typography>
+      ) : filteredVendors.length === 0 ? (
+        <Typography variant="h6" align="center" sx={{ mt: 10 }}>
+          No vendors found.
+        </Typography>
       ) : (
-        <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={3}>
-          {vendors.map((vendor) => (
+        <Box
+          display="grid"
+          gridTemplateColumns={{
+            xs: "repeat(1, 1fr)",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          }}
+          gap={3}
+        >
+          {filteredVendors.map((vendor) => (
             <Card
               key={vendor.id}
               sx={{
@@ -178,17 +275,32 @@ const ViewVendors = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 p: 2,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: 3,
                 position: "relative",
+                backgroundColor: "#fff",
+                transition: "transform 0.2s",
+                "&:hover": {
+                  transform: "scale(1.03)",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+                },
               }}
+              elevation={2}
             >
               {/* Enable/Disable Toggle */}
-              <Box display="flex" alignItems="center">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                sx={{ mb: 1 }}
+              >
                 <Typography variant="body2" sx={{ mr: 1 }}>
                   {vendor.is_active ? "Enabled" : "Disabled"}
                 </Typography>
                 <Switch
                   checked={vendor.is_active}
                   onChange={() => handleEnableDisable(vendor.id, vendor.is_active)}
+                  color="primary"
                 />
               </Box>
 
@@ -197,23 +309,47 @@ const ViewVendors = () => {
                 component="img"
                 image={vendor.store_logo || "https://via.placeholder.com/150"}
                 alt={`${vendor.business_name}'s logo`}
-                sx={{ width: 150, height: 150, borderRadius: "50%", mb: 2 }}
+                sx={{ width: 140, height: 140, borderRadius: "50%", mb: 2 }}
               />
+
               {/* Vendor Info */}
-              <CardContent sx={{ textAlign: "center" }}>
-                <Typography variant="h6">{vendor.business_name}</Typography>
-                <Typography variant="body2" color="textSecondary">
+              <CardContent sx={{ textAlign: "center", p: 1, pt: 0 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#1e1e2d",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                  }}
+                  title={vendor.business_name}
+                >
+                  {vendor.business_name}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontStyle: "italic" }}
+                >
                   Owner: {vendor.owner_name}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="text.secondary" mt={0.5}>
                   Store Type: {vendor.store_type_name}
                 </Typography>
               </CardContent>
 
               {/* Action Buttons */}
-              <Box display="flex" flexDirection="column" gap={1} width="100%" px={2}>
+              <Box
+                display="flex"
+                flexDirection="column"
+                gap={1}
+                width="100%"
+                px={2}
+                mt={1}
+              >
                 {vendor.is_approved === false ? (
-                  <Box display="flex" justifyContent="space-between" mb={1}>
+                  <Box display="flex" justifyContent="space-between" mb={1} gap={1}>
                     <Button
                       variant="contained"
                       color="success"
@@ -226,7 +362,6 @@ const ViewVendors = () => {
                       variant="contained"
                       color="error"
                       fullWidth
-                      sx={{ ml: 1 }}
                       onClick={() => handleAcceptReject(vendor.id, "reject")}
                     >
                       Reject
@@ -261,7 +396,8 @@ const ViewVendors = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete vendor{" "}
-            <strong>{vendorToDelete?.business_name}</strong>? This action cannot be undone.
+            <strong>{vendorToDelete?.business_name}</strong>? This action cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

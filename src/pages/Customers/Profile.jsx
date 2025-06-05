@@ -23,7 +23,12 @@ const UserDetails = () => {
       }
     };
     fetchUserDetails();
+
   }, [id]);
+              // console.log(user)
+
+              
+
 
   if (loading) {
     return (
@@ -74,7 +79,7 @@ const UserDetails = () => {
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <CalendarToday sx={{ mr: 1 }} />
-          <Typography variant="body2">Joined: {new Date(user.date_joined).toLocaleDateString()}</Typography>
+          <Typography variant="body2">Joined: {user.date_joined}</Typography>
         </Box>
       </Box>
     </Paper>

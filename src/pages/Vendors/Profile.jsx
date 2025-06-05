@@ -1,7 +1,47 @@
 import React, { useState, useEffect } from "react";
-import { Box, Paper, Avatar, Typography, Link, IconButton, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, } from "@mui/material";
-import { LocationOn, Phone, Email, AccessTime, Business, Store, Description, Article, Edit, Delete, } from "@mui/icons-material";
-import { viewSingleVendor, updateVendor } from "../../services/allApi";
+import {
+  Box,
+  Paper,
+  Avatar,
+  Typography,
+  Link,
+  IconButton,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from "@mui/material";
+import {
+  LocationOn,
+  Phone,
+  Email,
+  AccessTime,
+  Business,
+  Store,
+  Article,
+  Edit,
+  Description,
+} from "@mui/icons-material";
+import { viewSingleVendor, updateVendor, viewStores } from "../../services/allApi";
+
+const FileInput = ({ label, name, onChange }) => (
+  <Button
+    variant="outlined"
+    component="label"
+    fullWidth
+    sx={{
+      mb: 2,
+      borderColor: "primary.main",
+      "&:hover": { borderColor: "primary.dark" },
+    }}
+  >
+    {label}
+    <input type="file" name={name} onChange={onChange} hidden />
+  </Button>
+);
 
 const ProfileSection = ({ vendorId }) => {
   const [storeDetails, setStoreDetails] = useState(null);
@@ -9,6 +49,7 @@ const ProfileSection = ({ vendorId }) => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [storeTypes, setStoreTypes] = useState([]);
 
   useEffect(() => {
     const fetchVendorDetails = async () => {
@@ -23,12 +64,25 @@ const ProfileSection = ({ vendorId }) => {
         setLoading(false);
       }
     };
+
+    const fetchStoreTypes = async () => {
+      try {
+        const data = await viewStores();
+        setStoreTypes(data);
+      } catch (err) {
+        console.error("Failed to load store types", err);
+      }
+    };
+
     fetchVendorDetails();
+    fetchStoreTypes();
   }, [vendorId]);
 
   const handleEditClick = () => {
     setIsEditing(true);
   };
+
+  console.log(storeDetails)
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +98,6 @@ const ProfileSection = ({ vendorId }) => {
     try {
       const updatedData = new FormData();
 
-      // Append only fields that are not null or have been updated
       Object.keys(formData).forEach((key) => {
         if (
           key === "store_logo" ||
@@ -53,43 +106,37 @@ const ProfileSection = ({ vendorId }) => {
           key === "display_image"
         ) {
           if (formData[key] instanceof File) {
-            updatedData.append(key, formData[key]); // Append only if it's a new file
+            updatedData.append(key, formData[key]);
           }
         } else {
           updatedData.append(key, formData[key]);
         }
       });
 
-      await updateVendor(updatedData, vendorId);
+for (let pair of updatedData.entries()) {
+  console.log(`${pair[0]}:`, pair[1]);
+}
+      const res=await updateVendor(updatedData, vendorId);
       setIsEditing(false);
 
-      // Fetch the updated vendor details
       const updatedVendor = await viewSingleVendor(vendorId);
+       console.log(res)
       setStoreDetails(updatedVendor);
+      setFormData(updatedVendor);
     } catch (error) {
       console.error("Error updating vendor:", error);
     }
   };
 
-
-  if (loading) {
-    return <CircularProgress />;
-  }
-
-  if (error) {
-    return <Typography color="error">{error}</Typography>;
-  }
+  if (loading) return <CircularProgress />;
+  if (error) return <Typography color="error">{error}</Typography>;
 
   return (
     <Paper sx={{ p: 3, position: "relative" }}>
       <IconButton
         onClick={handleEditClick}
-        sx={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          color: "text.secondary",
-        }}
+        sx={{ position: "absolute", top: 16, right: 16, color: "text.secondary" }}
+        aria-label="edit vendor details"
       >
         <Edit />
       </IconButton>
@@ -101,10 +148,10 @@ const ProfileSection = ({ vendorId }) => {
       <Typography variant="h6" align="center" sx={{ mt: 2 }}>
         {storeDetails.business_name}
       </Typography>
-      <Typography variant="body2" align="center" color="textSecondary">
+      <Typography variant="body2" align="center" color="text.secondary">
         Store ID: {storeDetails.store_id}
       </Typography>
-      <Typography variant="body2" align="center" color="textSecondary" sx={{ mb: 2 }}>
+      <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 2 }}>
         Store Type: {storeDetails.store_type_name}
       </Typography>
 
@@ -133,21 +180,25 @@ const ProfileSection = ({ vendorId }) => {
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Business sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Landmark</b>: {storeDetails.business_landmark}
-          </Typography>
+          <Typography variant="body2"><b>Landmark</b>: {storeDetails.business_landmark}</Typography>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+          <LocationOn sx={{ mr: 1 }} />
+          <Typography variant="body2"><b>Latitude</b>: {storeDetails.latitude || "N/A"}</Typography>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+          <LocationOn sx={{ mr: 1 }} />
+          <Typography variant="body2"><b>Longitude</b>: {storeDetails.longitude || "N/A"}</Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <AccessTime sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Operating Hours</b>: {storeDetails.opening_time} - {storeDetails.closing_time}
-          </Typography>
+          <Typography variant="body2"><b>Operating Hours</b>: {storeDetails.opening_time} - {storeDetails.closing_time}</Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Article sx={{ mr: 1 }} />
           <Typography variant="body2">
-            <b>FSSAI No</b>: {storeDetails.fssai_no}{" "}
-            <Link href={storeDetails.fssai_certificate} target="_blank" rel="noopener">
+            <b>FSSAI No</b>: {storeDetails.fssai_no}
+            <Link href={storeDetails.fssai_certificate} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
               (View Certificate)
             </Link>
           </Typography>
@@ -155,8 +206,8 @@ const ProfileSection = ({ vendorId }) => {
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Article sx={{ mr: 1 }} />
           <Typography variant="body2">
-            <b>License</b>:{" "}
-            <Link href={storeDetails.license} target="_blank" rel="noopener">
+            <b>License</b>:
+            <Link href={storeDetails.license} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
               (View License)
             </Link>
           </Typography>
@@ -164,17 +215,15 @@ const ProfileSection = ({ vendorId }) => {
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Article sx={{ mr: 1 }} />
           <Typography variant="body2">
-            <b>Dsiplay Image</b>:{" "}
-            <Link href={storeDetails.display_image} target="_blank" rel="noopener">
+            <b>Display Image</b>:
+            <Link href={storeDetails.display_image} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
               (View Image)
             </Link>
           </Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Description sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Description</b>: {storeDetails.store_description}
-          </Typography>
+          <Typography variant="body2"><b>Description</b>: {storeDetails.store_description}</Typography>
         </Box>
       </Box>
 
@@ -182,255 +231,33 @@ const ProfileSection = ({ vendorId }) => {
       <Dialog open={isEditing} onClose={() => setIsEditing(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Vendor Details</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField
-              label="Business Name"
-              name="business_name"
-              value={formData.business_name || ""}
-              onChange={handleFormChange}
-              style={{marginTop:"5px"}}
-            />
-            <TextField
-              label="Owner Name"
-              name="owner_name"
-              value={formData.owner_name || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Email"
-              name="email"
-              value={formData.email || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Alternative Email"
-              name="alternate_email"
-              value={formData.alternate_email || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Contact Number"
-              name="contact_number"
-              value={formData.contact_number || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Address"
-              name="address"
-              value={formData.address || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="City"
-              name="city"
-              value={formData.city || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="State"
-              name="state"
-              value={formData.state || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Pincode"
-              name="pincode"
-              value={formData.pincode || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Landmark"
-              name="business_landmark"
-              value={formData.business_landmark || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Opening Time"
-              name="opening_time"
-              value={formData.opening_time || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Closing Time"
-              name="closing_time"
-              value={formData.closing_time || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="Description"
-              name="store_description"
-              multiline
-              rows={4}
-              value={formData.store_description || ""}
-              onChange={handleFormChange}
-            />
-            <TextField
-              label="FSSAI Number"
-              name="fssai_no"
-              value={formData.fssai_no || ""}
-              onChange={handleFormChange}
-            />
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                Store Logo:
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {formData.store_logo && (
-                  <Box sx={{ position: "relative", width: 100, height: 100 }}>
-                    <img
-                      src={typeof formData.store_logo === "string" ? formData.store_logo : URL.createObjectURL(formData.store_logo)}
-                      alt="Store Logo"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-                    />
-                    <IconButton
-                      onClick={() => setFormData({ ...formData, store_logo: null })}
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        color: "red",
-                        backgroundColor: "white",
-                        "&:hover": { backgroundColor: "white" },
-                      }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Box>
-                )}
-                <input
-                  type="file"
-                  name="store_logo"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  style={{ marginTop: "8px" }}
-                />
-              </Box>
-            </Box>
-
-            {/* FSSAI Certificate */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                FSSAI Certificate:
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {formData.fssai_certificate && (
-                  <Box sx={{ position: "relative", width: 100, height: 100 }}>
-                    <img
-                      src={typeof formData.fssai_certificate === "string" ? formData.fssai_certificate : URL.createObjectURL(formData.fssai_certificate)}
-                      alt="FSSAI Certificate"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-                    />
-                    <IconButton
-                      onClick={() => setFormData({ ...formData, fssai_certificate: null })}
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        color: "red",
-                        backgroundColor: "white",
-                        "&:hover": { backgroundColor: "white" },
-                      }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Box>
-                )}
-                <input
-                  type="file"
-                  name="fssai_certificate"
-                  onChange={handleFileChange}
-                  accept=".pdf, image/*"
-                  style={{ marginTop: "8px" }}
-                />
-              </Box>
-            </Box>
-
-            {/* License */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                License:
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {formData.license && (
-                  <Box sx={{ position: "relative", width: 100, height: 100 }}>
-                    <img
-                      src={typeof formData.license === "string" ? formData.license : URL.createObjectURL(formData.license)}
-                      alt="License"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-                    />
-                    <IconButton
-                      onClick={() => setFormData({ ...formData, license: null })}
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        color: "red",
-                        backgroundColor: "white",
-                        "&:hover": { backgroundColor: "white" },
-                      }}>
-                      <Delete />
-                    </IconButton>
-                  </Box>
-                )}
-                <input
-                  type="file"
-                  name="license"
-                  onChange={handleFileChange}
-                  accept=".pdf, image/*"
-                  style={{ marginTop: "8px" }}
-                />
-              </Box>
-            </Box>
-
-            {/* Display Image */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                Display Image:
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {formData.display_image && (
-                  <Box sx={{ position: "relative", width: 100, height: 100 }}>
-                    <img
-                      src={
-                        typeof formData.display_image === "string"
-                          ? formData.display_image
-                          : URL.createObjectURL(formData.display_image)
-                      }
-                      alt="Display Image"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-                    />
-                    <IconButton
-                      onClick={() => setFormData({ ...formData, display_image: null })}
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        color: "red",
-                        backgroundColor: "white",
-                        "&:hover": { backgroundColor: "white" },
-                      }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Box>
-                )}
-                <input
-                  type="file"
-                  name="display_image"
-                  onChange={handleFileChange}
-                  accept=".pdf, image/*"
-                  style={{ marginTop: "8px" }}
-                />
-              </Box>
-            </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField label="Business Name" name="business_name" value={formData.business_name || ""} onChange={handleFormChange} fullWidth />
+           
+            <TextField label="Owner Name" name="owner_name" value={formData.owner_name || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Email" name="email" value={formData.email || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Alternative Email" name="alternate_email" value={formData.alternate_email || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Contact Number" type="text" name="contact_number" value={formData.contact_number || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Address" name="address" value={formData.address || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="City" name="city" value={formData.city || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="State" name="state" value={formData.state || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Pincode" name="pincode" value={formData.pincode || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Business Landmark" name="business_landmark" value={formData.business_landmark || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Latitude" name="latitude" value={formData.latitude || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Longitude" name="longitude" value={formData.longitude || ""} onChange={handleFormChange} fullWidth />
+            <TextField label="Opening Time" name="opening_time" type="time" value={formData.opening_time || ""} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} />
+            <TextField label="Closing Time" name="closing_time" type="time" value={formData.closing_time || ""} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} />
+            <TextField label="FSSAI Number" name="fssai_no" value={formData.fssai_no || ""} onChange={handleFormChange} fullWidth />
+            <FileInput label="Store Logo" name="store_logo" onChange={handleFileChange} />
+            <FileInput label="FSSAI Certificate" name="fssai_certificate" onChange={handleFileChange} />
+            <FileInput label="License" name="license" onChange={handleFileChange} />
+            <FileInput label="Display Image" name="display_image" onChange={handleFileChange} />
+            <TextField label="Store Description" name="store_description" value={formData.store_description || ""} onChange={handleFormChange} multiline rows={3} fullWidth />
           </Box>
-
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleFormSubmit}>
-            Save
-          </Button>
+          <Button variant="contained" onClick={handleFormSubmit}>Save</Button>
         </DialogActions>
       </Dialog>
     </Paper>

@@ -299,8 +299,8 @@ export const addsubCategory = async (reqBody) => {
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("POST", `${BASE_URL}/fashion/clothing-subcategories/`, reqBody, headers);
-    return response.data;
+    const response = await commonApi("POST", `${BASE_URL}/vendors/admin/subcategories/create/`, reqBody, headers);
+    return response;
   } catch (error) {
     console.error("Failed to add category:", error);
     throw error;
@@ -317,10 +317,10 @@ export const viewsubCategory = async () => {
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("GET", `${BASE_URL}/vendors/subcategories/admin/`, headers);
+    const response = await commonApi("GET", `${BASE_URL}/vendors/admin/subcategories/`, headers);
     return response.data;
   } catch (error) {
-    console.error("Failed to view category:", error);
+    console.error("Failed to view subcategory:", error);
     throw error;
   }
 };
@@ -335,13 +335,199 @@ export const updateSubCategory = async (reqBody,id) => {
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("PATCH", `${BASE_URL}/fashion/clothing-subcategories/${id}/`, reqBody, headers);
-    return response.data;
+    const response = await commonApi("PATCH", `${BASE_URL}/vendors/admin/subcategories/${id}/`, reqBody, headers);
+    return response;
   } catch (error) {
-    console.error("Failed to edit category:", error);
+    console.error("Failed to edit subcategory:", error);
+    throw error;
+  }
+}
+//delete subcat
+;export const deleteSubCategory = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}/vendors/admin/subcategories/${id}/`, "", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete subcategory:", error);
     throw error;
   }
 };
+//view orders
+
+export const viewOrders = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/cart/order-list-admin/`, headers);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to view Orders:", error);
+    throw error;
+  }
+};
+
+//view specific orderdetails
+export const viewSpecificOrder=async(id)=>{
+  try {
+    const token=localStorage.getItem("access_token");
+    if(!token){
+      throw new Error("Authentication token is missing") 
+    };
+     const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/cart/orders/admin/${id}/`, headers);
+    return response.data;
+  } catch (error) {
+    console.log("failed to view specific order details:",error);
+    throw error;
+    
+  }
+}
+//update order status
+
+export const updateOrderStatus = async (reqBody, id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      // DO NOT set 'Content-Type' here when sending FormData
+    };
+
+    // Pass headers inside options object
+    const response = await commonApi(
+      "POST",
+      `${BASE_URL}/cart/orders/update-status/${id}/`,
+      reqBody,
+      { headers }
+    );
+
+    return response;
+  } catch (error) {
+    console.log("Failed to update order status:", error);
+    throw error;
+  }
+};
+// delete all orders
+export const deleteAllOrders = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}cart/delete-all-orders/`, "", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete all orders:", error);
+    throw error;
+  }
+};
+//get specific user orders
+export const viewSpecificUserOrders=async(id)=>{
+  try {
+    const token=localStorage.getItem("access_token");
+    if(!token){
+      throw new Error("Authentication token is missing") 
+    };
+     const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/cart/admin/users/${id}/orders/`, headers);
+    return response.data;
+  } catch (error) {
+    console.log("failed to view specific order details:",error);
+    throw error;
+    
+  }
+}
+
+// create coupon
+export const addCoupon = async (reqBody) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("POST", `${BASE_URL}/users/coupons/`, reqBody, headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to add coupon:", error);
+    throw error;
+  }
+//view coupons
+};export const viewCoupons = async (reqBody) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/users/coupons/view/`, reqBody, headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to get coupon:", error);
+    throw error;
+  }
+};
+
+//edit coupons
+export const editCoupons = async (reqBody,id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("PATCH", `${BASE_URL}/users/coupons/${id}/`, reqBody, headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to edit coupon:", error);
+    throw error;
+  }
+}
+//delete coupon
+export const deleteCoupon = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}/users/coupons/${id}/`, "", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to edit coupon:", error);
+    throw error;
+  }
+}
 
 // add colours
 export const addColour = async (formData, token) => {
@@ -358,6 +544,8 @@ export const addColour = async (formData, token) => {
     throw error;
   }
 };
+
+
 
 // view colours
 export const viewColours = async () => {
@@ -476,40 +664,40 @@ export const viewUsersById = async (id) => {
 };
 
 // add coupons
-export const addCoupons = async (reqBody) => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-    const response = await commonApi("POST", `${BASE_URL}/fashion/coupons/`, reqBody, headers);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to add coupons:", error);
-    throw error;
-  }
-};
+// export const addCoupons = async (reqBody) => {
+//   try {
+//     const token = localStorage.getItem("access_token");
+//     if (!token) {
+//       throw new Error("Authentication token is missing");
+//     }
+//     const headers = {
+//       Authorization: `Bearer ${token}`,
+//     };
+//     const response = await commonApi("POST", `${BASE_URL}/fashion/coupons/`, reqBody, headers);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Failed to add coupons:", error);
+//     throw error;
+//   }
+// };
 
 // view coupons
-export const viewCoupons = async (reqBody) => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-    const response = await commonApi("GET", `${BASE_URL}/fashion/coupons/`, reqBody, headers);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to view coupons:", error);
-    throw error;
-  }
-};
+// export const viewCoupons = async (reqBody) => {
+//   try {
+//     const token = localStorage.getItem("access_token");
+//     if (!token) {
+//       throw new Error("Authentication token is missing");
+//     }
+//     const headers = {
+//       Authorization: `Bearer ${token}`,
+//     };
+//     const response = await commonApi("GET", `${BASE_URL}/fashion/coupons/`, reqBody, headers);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Failed to view coupons:", error);
+//     throw error;
+//   }
+// };
 
 // user wishlist view
 export const viewWishlist = async (id) => {
@@ -540,7 +728,7 @@ export const viewReports = async (id) => {
       Authorization: `Bearer ${token}`,
     };
     const response = await commonApi("GET", `${BASE_URL}/users/reports/`, headers);
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Failed to view users reports:", error);
     throw error;
@@ -632,7 +820,7 @@ export const editSubadmin = async (reqBody , phoneNumber) => {
     const response = await commonApi("PATCH", `${BASE_URL}/users/staff/${phoneNumber}/update/`, reqBody, headers);
     return response.data;
   } catch (error) {
-    console.error("Failed to add coupons:", error);
+    console.error("Failed to add subadmin:", error);
     throw error;
   }
 };
@@ -650,7 +838,78 @@ export const deleteSubadmin = async (reqBody , phoneNumber) => {
     const response = await commonApi("DELETE", `${BASE_URL}/users/staff/${phoneNumber}/delete/`, reqBody, headers);
     return response.data;
   } catch (error) {
-    console.error("Failed to add coupons:", error);
+    console.error("Failed to delete subadmin:", error);
+    throw error;
+  }
+};
+//sub admin login
+export const subAdminLogin = async (reqBody) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/users/staff-login/`, reqBody, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to login', error);
+    throw error;
+  }
+};
+
+//view bigbuyorders
+
+export const viewBigBuyOrders = async ( ) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/users/admin/big-buy-orders/`, "", headers);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to get big buy orders:", error);
+    throw error;
+  }
+};
+
+//edit bigbuyorders
+
+export const editBigBuyOrders = async (reqBody,id ) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("PATCH", `${BASE_URL}/users/admin/big-buy-order/${id}/update/`, reqBody, headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to edit big buy orders:", error);
+    throw error;
+  }
+};
+
+//delete bigbuyorders
+
+export const deleteBigBuyOrders = async (id ) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}/users/admin/big-buy-order/${id}/`, "", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete big buy orders:", error);
     throw error;
   }
 };
@@ -970,6 +1229,108 @@ export const getNotificationCounts = async () => {
       },
     });
     return response.data;
+  } catch (error) {
+    console.error('Failed to add product', error);
+    throw error;
+  }
+};
+
+//get delivery boys
+
+export const getDeliveryBoys = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/delivery/delivery_boys/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get delivery boys', error);
+    throw error;
+  }
+};
+export const getDeliveryBoy = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/delivery/delivery_boys/${id}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to get delivery boy details', error);
+    throw error;
+  }
+};
+//add deliveryboy
+
+
+export const addDeliveryBoy = async (formData) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi('POST', `${BASE_URL}/delivery/delivery_boys/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Failed to add product', error);
+    throw error;
+  }
+
+//delete deliveryboy
+};export const deleteDeliveryBoy = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi('DELETE', `${BASE_URL}/delivery/delivery_boys/${id}/`, "", {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Failed to add product', error);
+    throw error;
+  }
+};
+//edit deliveryBoy
+export const updateDeliveryBoy = async (id,reqBody) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi('PATCH', `${BASE_URL}/delivery/delivery_boys/${id}/`, reqBody, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Paper, Typography, Box, Button, Modal, IconButton } from '@mui/material';
 import { AccountBalanceWallet, ShoppingCart, Star, Close } from '@mui/icons-material';
-import { viewWishlist } from '../../services/allApi'; // Replace with actual API path
+import { viewSpecificUserOrders, viewWishlist } from '../../services/allApi'; // Replace with actual API path
 import { useParams } from 'react-router-dom';
 
 const Stats = () => {
   const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
   const [wishlistData, setWishlistData] = useState(null);
+  const[orders,setOrders]=useState()
   const [loadingWishlist, setLoadingWishlist] = useState(false);
   const [wishlistError, setWishlistError] = useState(null);
   const [totalWishlistCount, setTotalWishlistCount] = useState(0);
@@ -23,6 +24,19 @@ const Stats = () => {
     };
     fetchWishlistCount();
   }, []);
+   useEffect(() => {
+      const fetchOrders = async () => {
+        try {
+          const data = await viewSpecificUserOrders(id);
+          setOrders(data);
+        } catch (err) {
+          console.error('Failed to fetch orders', err);
+        }
+      };
+      fetchOrders();
+    }, [id]);
+          const totalOrders=orders?.length
+
 
   const handleViewWishlist = async () => {
     try {
@@ -45,15 +59,14 @@ const Stats = () => {
 
   const stats = [
     { title: 'Total Wishlist', value: totalWishlistCount, icon: AccountBalanceWallet, color: 'primary' },
-    { title: 'Total Orders', value: '1,296', icon: ShoppingCart, color: 'primary', change: '+10%' },
-    { title: 'Rewards Point', value: '1,400', icon: Star, color: 'primary', change: '+10%' },
+    { title: 'Total Orders', value: totalOrders, icon: ShoppingCart, color: 'primary', change: '+10%' },
   ];
 
   return (
     <>
       <Grid container spacing={2}>
         {stats.map((stat, index) => (
-          <Grid item xs={4} key={index}>
+          <Grid item xs={6} key={index}>
             <Paper sx={{ p: 2 }}>
               <Box display="flex" alignItems="center">
                 <stat.icon sx={{ fontSize: 30, mr: 1 }} />

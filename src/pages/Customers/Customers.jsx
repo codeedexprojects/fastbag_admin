@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Checkbox,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, TablePagination, CircularProgress
+  Paper, TablePagination, CircularProgress, MenuItem, Select, InputLabel, FormControl
 } from '@mui/material';
 import { Search, Visibility, Edit, Delete, FilterList } from '@mui/icons-material';
 import { viewUsers } from '../../services/allApi';
@@ -10,10 +10,12 @@ import { useNavigate } from 'react-router-dom';
 
 const CustomersList = () => {
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [sortType, setSortType] = useState('newest'); // newest on top by default
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +24,7 @@ const CustomersList = () => {
         setLoading(true);
         const data = await viewUsers();
         setUsers(data);
+        console.log(users)
       } catch (err) {
         setError('Failed to load customers');
       } finally {
@@ -31,17 +34,95 @@ const CustomersList = () => {
     fetchUsers();
   }, []);
 
+  // Parse dd/MM/yyyy string to Date object
+  const parseDateDMY = (dateStr) => {
+    if (!dateStr) return new Date(0);
+    const [day, month, year] = dateStr.split('/');
+    return new Date(`${year}-${month}-${day}`);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const handleViewClick = (id) => {
     navigate(`/customer-details/${id}`);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const highlightMatch = (text, query) => {
+    if (!query) return text;
+    const parts = text?.toString().split(new RegExp(`(${query})`, 'gi'));
+    return parts?.map((part, index) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <span key={index} style={{ backgroundColor: 'lightblue' }}>{part}</span>
+      ) : (
+        <span key={index}>{part}</span>
+      )
+    );
+  };
+
+  // Filter users by search term
+  const filteredUsers = users.filter((user) =>
+    (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+    (user.email?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+    (user.mobile_number?.toString().includes(searchTerm) || '')
+  );
+
+  // Sort users according to sortType
+  const sortedUsers = filteredUsers.sort((a, b) => {
+    if (sortType === 'name_asc') {
+      return (a.name || '').localeCompare(b.name || '');
+    }
+    if (sortType === 'name_desc') {
+      return (b.name || '').localeCompare(a.name || '');
+    }
+    if (sortType === 'newest') {
+      return parseDateDMY(b.date_joined) - parseDateDMY(a.date_joined);
+    }
+    if (sortType === 'oldest') {
+      return parseDateDMY(a.date_joined) - parseDateDMY(b.date_joined);
+    }
+    return 0;
+  });
+
+  // Pagination slice
+  const paginatedUsers = sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // Export to CSV (only filtered & sorted data)
+  const exportToCSV = () => {
+    const headers = ['Name', 'Email', 'Phone', 'Status', 'Joined Date'];
+    const rows = sortedUsers.map(u => [
+      u.name,
+      u.email,
+      u.mobile_number,
+      u.is_active ? 'Active' : 'Blocked',
+      u.date_joined,
+    ]);
+
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += headers.join(',') + '\r\n';
+    rows.forEach(rowArray => {
+      const row = rowArray.map(field => `"${field}"`).join(',');
+      csvContent += row + '\r\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'customers.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
@@ -72,23 +153,40 @@ const CustomersList = () => {
           Dashboard &gt; Customers List
         </Typography>
         <Box display="flex" gap={2}>
-          <Button variant="outlined">Export</Button>
-          <Button variant="contained" sx={{backgroundColor:"#1e1e2d"}}>+ Add Customer</Button>
+          <Button variant="outlined" onClick={exportToCSV}>Export</Button>
         </Box>
       </Box>
 
-      {/* Search and Filter Row */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      {/* Search and Sort Row */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <TextField
           variant="outlined"
           placeholder="Search customer..."
           size="small"
+          value={searchTerm}
+          onChange={handleSearchChange}
           sx={{ width: '300px' }}
           InputProps={{
             startAdornment: <Search sx={{ mr: 1 }} />
           }}
         />
-        <Button variant="outlined" startIcon={<FilterList />}>Filters</Button>
+
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="sort-label">Sort By</InputLabel>
+          <Select
+            labelId="sort-label"
+            id="sort-select"
+            value={sortType}
+            label="Sort By"
+            onChange={(e) => { setSortType(e.target.value); setPage(0); }}
+          >
+            <MenuItem value="newest">Newest Added</MenuItem>
+            <MenuItem value="oldest">Oldest Added</MenuItem>
+            <MenuItem value="name_asc">Name A-Z</MenuItem>
+            <MenuItem value="name_desc">Name Z-A</MenuItem>
+          </Select>
+        </FormControl>
+
       </Box>
 
       {/* Users Table */}
@@ -108,25 +206,34 @@ const CustomersList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => (
+            {paginatedUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell padding="checkbox">
                   <Checkbox />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="subtitle1">{user.name}</Typography>
+                  <Typography variant="subtitle1">
+                    {highlightMatch(user.name || '', searchTerm)}
+                  </Typography>
                 </TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.mobile_number}</TableCell>
+                <TableCell>{highlightMatch(user.email || '', searchTerm)}</TableCell>
+                <TableCell>{highlightMatch(user.mobile_number || '', searchTerm)}</TableCell>
                 <TableCell>{user.is_active ? 'Active' : 'Blocked'}</TableCell>
-                <TableCell>{new Date(user.date_joined).toLocaleDateString()}</TableCell>
+                <TableCell>{user.date_joined}</TableCell>
                 <TableCell>
-                <IconButton onClick={() => handleViewClick(user.id)}><Visibility /></IconButton>
-                                  <IconButton><Edit /></IconButton>
+                  <IconButton onClick={() => handleViewClick(user.id)}><Visibility /></IconButton>
+                  <IconButton><Edit /></IconButton>
                   <IconButton><Delete /></IconButton>
                 </TableCell>
               </TableRow>
             ))}
+            {paginatedUsers.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  No customers found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -134,7 +241,7 @@ const CustomersList = () => {
       {/* Pagination */}
       <TablePagination
         component="div"
-        count={users.length}
+        count={sortedUsers.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}

@@ -6,13 +6,15 @@ import { useParams } from "react-router-dom";
 
 
 
-const StatsAndTransactions = () => {
+const StatsAndTransactions = ({onApprove}) => {
   const [open, setOpen] = useState(false); // To control modal visibility
   const [pendingDetails, setPendingDetails] = useState(null); // Store API data
   const [loading, setLoading] = useState(false); // Loading state for API call
   const [error, setError] = useState(null); // Error state
   const [approveLoading, setApproveLoading] = useState(false); // Approve button loading state
   const { vendorId } = useParams();
+
+
 
   const handleOpen = async () => {
     setLoading(true);
@@ -43,6 +45,8 @@ const StatsAndTransactions = () => {
     try {
       await approvePendingDetails(vendorId);
       alert("Vendor details approved successfully!");
+      if (onApprove) onApprove();
+
       handleClose();
     } catch (error) {
       alert("Failed to approve vendor details. Please try again.");
@@ -86,7 +90,7 @@ const StatsAndTransactions = () => {
       </Box>
 
       {/* Stats cards */}
-      <Grid container spacing={2}>
+      {/* <Grid container spacing={2}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Paper sx={{ p: 2 }}>
@@ -105,7 +109,7 @@ const StatsAndTransactions = () => {
             </Paper>
           </Grid>
         ))}
-      </Grid>
+      </Grid> */}
 
       {/* Modal for Pending Details */}
      {/* Modal for Pending Details */}
