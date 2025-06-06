@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Button,
   Paper,
   Table,
   TableBody,
@@ -15,9 +14,7 @@ import {
   Select,
   MenuItem,
   TableSortLabel,
-  Link
 } from '@mui/material';
-import { CalendarToday, FilterList } from '@mui/icons-material';
 import { getVendorsProducts } from '../../services/allApi';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +24,7 @@ const Products = ({ vendorId }) => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+  const [error, setError] = useState(false);
 
   const navigate = useNavigate();
 
@@ -34,9 +32,21 @@ const Products = ({ vendorId }) => {
     const fetchVendorProducts = async () => {
       try {
         const data = await getVendorsProducts(vendorId);
-        setProductsData(data.results);
+        if (data?.response?.data?.detail === "No products found for the given vendor ID.") {
+          setProductsData([]);
+        } else {
+          setProductsData(data.data.results || []);
+        }
       } catch (error) {
         console.error('Error fetching vendor products:', error);
+        if (
+          error?.response?.status === 404 &&
+          error?.response?.data?.detail === "No products found for the given vendor ID."
+        ) {
+          setProductsData([]);
+        } else {
+          setError(true);
+        }
       }
     };
 
@@ -44,8 +54,6 @@ const Products = ({ vendorId }) => {
       fetchVendorProducts();
     }
   }, [vendorId]);
-
-  console.log(productsData)
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -69,15 +77,23 @@ const Products = ({ vendorId }) => {
     setSortConfig({ key, direction });
   };
 
-  if (!productsData) {
+  if (error) {
+    return <Typography color="error">Failed to load vendor products.</Typography>;
+  }
+
+  if (productsData === null) {
     return <Typography>Loading vendor products...</Typography>;
   }
 
-  // Assuming productsData is a flat array of products now
+  // Filter products by categoryFilter (matching both string or object category keys)
   const filteredProducts = categoryFilter
-    ? productsData.filter((p) => p.category_name === categoryFilter)
+    ? productsData.filter((p) => {
+        const catName = typeof p.category === 'string' ? p.category : p.category_name || '';
+        return catName === categoryFilter;
+      })
     : productsData;
 
+  // Sorting products by name or price
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortConfig.key === 'name') {
       return sortConfig.direction === 'asc'
@@ -91,13 +107,19 @@ const Products = ({ vendorId }) => {
     return 0;
   });
 
-  const uniqueCategories = [...new Set(productsData.map((p) => p.category_name))];
+  // Collect unique categories (handle different category keys)
+  const uniqueCategories = [
+    ...new Set(
+      productsData.map((p) =>
+        typeof p.category === 'string' ? p.category : p.category_name || ''
+      )
+    ),
+  ].filter((c) => c !== '');
 
   return (
     <Box sx={{ mt: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6">Vendor Products</Typography>
-
         <Box sx={{ mb: 2, maxWidth: 200 }}>
           <Select
             fullWidth
@@ -115,17 +137,7 @@ const Products = ({ vendorId }) => {
             ))}
           </Select>
         </Box>
-        {/* <Box>
-          <Button variant="outlined" startIcon={<CalendarToday />} sx={{ mr: 1 }}>
-            Select Date
-          </Button>
-          <Button variant="outlined" startIcon={<FilterList />}>
-            Filters
-          </Button>
-        </Box> */}
       </Box>
-
-
 
       <TableContainer component={Paper}>
         <Table>
@@ -141,7 +153,6 @@ const Products = ({ vendorId }) => {
                 </TableSortLabel>
               </TableCell>
               <TableCell>Image</TableCell>
-
               <TableCell>Category</TableCell>
               <TableCell>Sub Category</TableCell>
               <TableCell>
@@ -158,58 +169,64 @@ const Products = ({ vendorId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedProducts
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((product) => (
-                <TableRow key={product.id}>
-
-                  <TableCell>
-                    {/* <Link
-                      component="button"
-                      variant="body2"
-                      onClick={() => navigate(`/product/${product.id}`)}
-                      sx={{ cursor: 'pointer' }}
-                    > */}
-                      {product.name}
-                    {/* </Link> */}
-                  </TableCell>
-                  <TableCell>
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={product.images[0].image}
-                        alt={product.name}
-                        style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
+            {sortedProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  No products added yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              sortedProducts
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>
+                      {product.images && product.images.length > 0 ? (
+                        <img
+                          src={product.images[0].image}
+                          alt={product.name}
+                          style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: 60,
+                            height: 60,
+                            bgcolor: '#e0e0e0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 4,
+                            color: '#9e9e9e',
+                            fontSize: 12,
+                          }}
+                        >
+                          No Image
+                        </Box>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {typeof product.category === 'string'
+                        ? product.category
+                        : product.category_name || ''}
+                    </TableCell>
+                    <TableCell>
+                      {typeof product.subcategory === 'string'
+                        ? product.subcategory
+                        : product.sub_category_name || ''}
+                    </TableCell>
+                    <TableCell>Rs.{product.price}</TableCell>
+                    <TableCell>Rs.{product.offer_price || product.price}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={product.is_available ? 'In Stock' : 'Out of Stock'}
+                        color={product.is_available ? 'success' : 'error'}
                       />
-                    ) : (
-                      <Box
-                        sx={{
-                          width: 60,
-                          height: 60,
-                          bgcolor: '#e0e0e0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 4,
-                          color: '#9e9e9e',
-                          fontSize: 12,
-                        }}
-                      >
-                        No Image
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>{product.category_name}</TableCell>
-                  <TableCell>{product.sub_category_name}</TableCell>
-                  <TableCell>Rs.{product.price}</TableCell>
-                  <TableCell>Rs.{product.offer_price || product.price}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={product.is_available ? 'In Stock' : 'Out of Stock'}
-                      color={product.is_available ? 'success' : 'error'}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

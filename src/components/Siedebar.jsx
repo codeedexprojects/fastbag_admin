@@ -26,6 +26,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import { getNotificationCounts } from '../services/allApi';
 
 const Sidebar = () => {
@@ -148,7 +149,7 @@ const Sidebar = () => {
         { text: 'Grocery', icon: <InventoryIcon />, path: '/view-groceryproducts' },
         { text: 'Fashion', icon: <InventoryIcon />, path: '/product-list' },
         { text: 'Food', icon: <InventoryIcon />, path: '/view-foodproducts' },
-        { text: 'Colours', icon: <InventoryIcon />, path: '/colours' },
+        // { text: 'Colours', icon: <InventoryIcon />, path: '/colours' },
       ],
       isOpen: openVendorsProduct,
       handleClick: handleVendorsProductClick,
@@ -162,7 +163,7 @@ const Sidebar = () => {
     },{
       key: 'Delivery',
       text: 'Delivery',
-      icon: <WarehouseIcon />,   // <-- Updated icon here
+      icon: <DeliveryDiningIcon />,   // <-- Updated icon here
       path: '/view-deliveryboyslist',
     },
     //  {

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Container, Typography, Grid, Card, CardMedia, CardContent,
-  Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Box, MenuItem, Select, InputLabel, FormControl, CardActions
+  Container, Typography, Button, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Paper, IconButton, Box,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+  MenuItem, Select, InputLabel, FormControl
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 import { addDeliveryBoy, getDeliveryBoys, deleteDeliveryBoy, updateDeliveryBoy } from '../../services/allApi';
 import { toast } from 'react-toastify';
@@ -110,7 +112,7 @@ const DeliveryBoyList = () => {
     };
 
     try {
-      await updateDeliveryBoy(id, updatedData); // PATCH request
+      await updateDeliveryBoy(id, updatedData);
       toast.success("Delivery boy updated successfully");
       setEditOpen(false);
       fetchDeliveryBoys();
@@ -126,29 +128,61 @@ const DeliveryBoyList = () => {
         <Button variant="contained" onClick={() => setOpen(true)}>Add Delivery Boy</Button>
       </Box>
 
-      <Grid container spacing={3}>
-  {deliveryBoys.map(boy => (
-    <Grid item xs={12} sm={6} md={3} key={boy.id}>
-      <Card elevation={4} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Box onClick={() => navigate(`/view-deliveryboydetails/${boy.id}`)} sx={{ cursor: 'pointer', flexGrow: 1 }}>
-          {boy.photo && (
-            <CardMedia component="img" height="200" image={boy.photo} alt={boy.name} />
-          )}
-          <CardContent>
-            <Typography variant="h6">{boy.name}</Typography>
-            <Typography variant="body2">Mobile: {boy.mobile_number}</Typography>
-            <Typography variant="body2">Vehicle: {boy.vehicle_number}</Typography>
-          </CardContent>
-        </Box>
-        <CardActions sx={{ justifyContent: 'flex-end', mt: 'auto', px: 2, pb: 2 }}>
-          <Button size="medium" color="primary" startIcon={<EditIcon />} onClick={() => handleEdit(boy)} />
-          <Button size="medium" color="error" startIcon={<DeleteIcon />} onClick={() => handleDeleteConfirm(boy.id)} />
-        </CardActions>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
+      <TableContainer component={Paper} elevation={4}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong>Name</strong></TableCell>
+              <TableCell><strong>Mobile</strong></TableCell>
+              <TableCell><strong>Email</strong></TableCell>
+              <TableCell><strong>Vehicle</strong></TableCell>
+              <TableCell><strong>Vehicle Type</strong></TableCell>
+              <TableCell><strong>Gender</strong></TableCell>
+              <TableCell><strong>DOB</strong></TableCell>
+              <TableCell><strong>Status</strong></TableCell>
+              <TableCell align="center"><strong>Actions</strong></TableCell>
+            </TableRow>
+          </TableHead>
 
+          <TableBody>
+            {deliveryBoys.map((boy) => (
+              <TableRow key={boy.id} hover>
+                <TableCell>{boy.name}</TableCell>
+                <TableCell>{boy.mobile_number}</TableCell>
+                <TableCell>{boy.email}</TableCell>
+                <TableCell>{boy.vehicle_number}</TableCell>
+                <TableCell>{boy.vehicle_type}</TableCell>
+                <TableCell>{boy.gender === 'M' ? 'Male' : boy.gender === 'F' ? 'Female' : 'Other'}</TableCell>
+                <TableCell>{boy.dob}</TableCell>
+                <TableCell>{boy.is_active ? 'Active' : 'Inactive'}</TableCell>
+                <TableCell align="center" sx={{ minWidth: 140 }}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => navigate(`/view-deliveryboydetails/${boy.id}`)}
+                    title="View Details"
+                  >
+                    <VisibilityIcon />
+                  </IconButton>
+                  <IconButton
+                    color="info"
+                    onClick={() => handleEdit(boy)}
+                    title="Edit Delivery Boy"
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteConfirm(boy.id)}
+                    title="Delete Delivery Boy"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* Add Modal */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

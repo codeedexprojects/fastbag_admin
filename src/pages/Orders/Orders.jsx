@@ -18,11 +18,9 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
 import { viewOrders, deleteAllOrders } from "../../services/allApi";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -206,55 +204,64 @@ const OrderList = () => {
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            p: 1,
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            backgroundColor: '#f9fafb',
-          }}
-        >
-          {filterOptions.map((option) => (
-            <Button
-              key={option}
-              variant="outlined"
-              sx={{
-                mr: 1,
-                borderColor: activeButton === option ? '#4f46e5' : 'transparent',
-                color: activeButton === option ? '#4f46e5' : '#000',
-                backgroundColor: activeButton === option ? '#e0e7ff' : 'transparent',
-                '&:hover': {
-                  backgroundColor: activeButton === option ? '#e0e7ff' : '#f3f4f6',
-                },
-              }}
-              onClick={() => {
-                setActiveButton(option);
-                if (option !== 'All Time') {
-                  setSelectedDate(null);
-                }
-              }}
-            >
-              {option}
-            </Button>
-          ))}
-        </Box>
-
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            label="Select Date"
-            value={selectedDate}
-            onChange={(newValue) => {
-              setSelectedDate(newValue);
-              setActiveButton('All Time');
+    <Box sx={{padding:'20px'}}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              p: 1,
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor: '#f9fafb',
             }}
-            renderInput={(params) => <TextField {...params} />}
-            maxDate={dayjs()}
-            clearable
-          />
-        </LocalizationProvider>
-      </Box>
+          >
+            {filterOptions.map((option) => (
+              <Button
+                key={option}
+                variant="outlined"
+                sx={{
+                  mr: 1,
+                  borderColor: activeButton === option ? '#4f46e5' : 'transparent',
+                  color: activeButton === option ? '#4f46e5' : '#000',
+                  backgroundColor: activeButton === option ? '#e0e7ff' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: activeButton === option ? '#e0e7ff' : '#f3f4f6',
+                  },
+                }}
+                onClick={() => {
+                  setActiveButton(option);
+                  if (option !== 'All Time') {
+                    setSelectedDate(null);
+                  }
+                }}
+              >
+                {option}
+              </Button>
+            ))}
+          </Box>
+  
+          <DatePicker
+    label="Select Date"
+    value={selectedDate}
+    onChange={(newValue) => {
+      setSelectedDate(newValue);
+      setActiveButton('All Time');
+    }}
+    slotProps={{
+            textField: {
+              size: 'small',
+              variant: 'outlined',
+              sx: { mr: 2, backgroundColor: 'white' },
+            },
+          }}
+    maxDate={dayjs()}
+    
+  />
+  
+  
+  
+        </Box>
+    </Box>
 
       <Table>
         <TableHead>
@@ -309,7 +316,6 @@ const OrderList = () => {
               </TableCell>
               <TableCell>
                 <IconButton onClick={() => { nav(`/order-details/${order.id}`) }}><VisibilityIcon /></IconButton>
-                <IconButton><EditIcon /></IconButton>
               </TableCell>
             </TableRow>
           ))}

@@ -66,7 +66,7 @@ const DeliveryBoyDetails = () => {
                             boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
                             '&:hover': {
                                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                                height: '75vh',      
+                                height: '75vh',
                                 overflowY: 'auto',
                             },
                         }}
@@ -104,12 +104,34 @@ const DeliveryBoyDetails = () => {
                             <Divider sx={{ my: 2 }} />
 
                             <Typography variant="h6" gutterBottom>Documents</Typography>
-                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                                 {deliveryBoy.aadhar_card_image && (
-                                    <img src={deliveryBoy.aadhar_card_image} alt="Aadhar" width="120" style={{ borderRadius: 8 }} />
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        <Typography variant="subtitle2" gutterBottom>Aadhar Card</Typography>
+                                        <a href={deliveryBoy.aadhar_card_image} download={`aadhar_${deliveryBoy.name}.jpg`}>
+                                            <img
+                                                src={deliveryBoy.aadhar_card_image}
+                                                alt="Aadhar"
+                                                width="120"
+                                                style={{ borderRadius: 8, cursor: 'pointer' }}
+                                                title="Click to download Aadhar"
+                                            />
+                                        </a>
+                                    </Box>
                                 )}
                                 {deliveryBoy.driving_license_image && (
-                                    <img src={deliveryBoy.driving_license_image} alt="License" width="120" style={{ borderRadius: 8 }} />
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        <Typography variant="subtitle2" gutterBottom>Driving License</Typography>
+                                        <a href={deliveryBoy.driving_license_image} download={`license_${deliveryBoy.name}.jpg`}>
+                                            <img
+                                                src={deliveryBoy.driving_license_image}
+                                                alt="License"
+                                                width="120"
+                                                style={{ borderRadius: 8, cursor: 'pointer' }}
+                                                title="Click to download License"
+                                            />
+                                        </a>
+                                    </Box>
                                 )}
                             </Box>
                         </CardContent>

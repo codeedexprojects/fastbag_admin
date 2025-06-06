@@ -434,7 +434,7 @@ export const deleteAllOrders = async (id) => {
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("DELETE", `${BASE_URL}cart/delete-all-orders/`, "", headers);
+    const response = await commonApi("DELETE", `${BASE_URL}/cart/delete-all-orders/`, "", headers);
     return response;
   } catch (error) {
     console.error("Failed to delete all orders:", error);
@@ -662,7 +662,24 @@ export const viewUsersById = async (id) => {
     throw error;
   }
 };
+// delete user
 
+export const deleteUser = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}/users/users/${id}/`, headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    throw error;
+  }
+};
 // add coupons
 // export const addCoupons = async (reqBody) => {
 //   try {
@@ -1008,7 +1025,7 @@ export const getVendorsProducts = async (id) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to get vendors product', error);
     throw error;
@@ -1333,6 +1350,84 @@ export const updateDeliveryBoy = async (id,reqBody) => {
     return response;
   } catch (error) {
     console.error('Failed to add product', error);
+    throw error;
+  }
+};
+//get dashboard graph data
+export const getGraphData = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/cart/stats/monthly-orders/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get graph data', error);
+    throw error;
+  }
+};
+//get dashboard sales progress
+export const getSalesProgress = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/cart/stats/daily-revenue/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get sales progress', error);
+    throw error;
+  }
+};
+// get dashboard stats overview
+export const getStatsOverview = async (date = '') => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const url = date
+      ? `${BASE_URL}/cart/stats/overview/?date=${date}`
+      : `${BASE_URL}/cart/stats/overview/`;
+
+    const response = await commonApi('GET', url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get stats overview', error);
+    throw error;
+  }
+};
+
+export const getProduct_Vendor_Count = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/cart/stats/product-vendor-count/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get product and vendors count', error);
     throw error;
   }
 };

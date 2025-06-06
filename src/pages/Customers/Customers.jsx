@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, TextField, IconButton, Checkbox,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, TablePagination, CircularProgress, MenuItem, Select, InputLabel, FormControl
+  Paper, TablePagination, CircularProgress, MenuItem, Select, InputLabel, FormControl,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
-import { Search, Visibility, Edit, Delete, FilterList } from '@mui/icons-material';
-import { viewUsers } from '../../services/allApi';
+import { Search, Visibility, Edit, Delete } from '@mui/icons-material';
+import { viewUsers, deleteUser } from '../../services/allApi'; // Make sure deleteUser exists here
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const CustomersList = () => {
   const [users, setUsers] = useState([]);
@@ -16,24 +18,28 @@ const CustomersList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortType, setSortType] = useState('newest'); // newest on top by default
+
+  // Delete dialog states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    
+    fetchUsers();
+  }, []);
+const fetchUsers = async () => {
       try {
         setLoading(true);
         const data = await viewUsers();
         setUsers(data);
-        console.log(users)
       } catch (err) {
         setError('Failed to load customers');
       } finally {
         setLoading(false);
       }
     };
-    fetchUsers();
-  }, []);
-
   // Parse dd/MM/yyyy string to Date object
   const parseDateDMY = (dateStr) => {
     if (!dateStr) return new Date(0);
@@ -57,6 +63,37 @@ const CustomersList = () => {
 
   const handleViewClick = (id) => {
     navigate(`/customer-details/${id}`);
+  };
+
+  // Delete handlers
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setUserToDelete(null);
+    setDeleteDialogOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+    try {
+      const res = await deleteUser(userToDelete.id);
+      console.log(res)
+      if (res.status == 204) {
+        toast.success("Customer deleted successfully!")
+        fetchUsers()
+      } else {
+        toast.error("Failed to delete the customer")
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      // Optionally show error message here
+    } finally {
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
   };
 
   const highlightMatch = (text, query) => {
@@ -186,7 +223,6 @@ const CustomersList = () => {
             <MenuItem value="name_desc">Name Z-A</MenuItem>
           </Select>
         </FormControl>
-
       </Box>
 
       {/* Users Table */}
@@ -223,7 +259,7 @@ const CustomersList = () => {
                 <TableCell>
                   <IconButton onClick={() => handleViewClick(user.id)}><Visibility /></IconButton>
                   <IconButton><Edit /></IconButton>
-                  <IconButton><Delete /></IconButton>
+                  <IconButton onClick={() => handleDeleteClick(user)}><Delete /></IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -248,6 +284,20 @@ const CustomersList = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[5, 10, 15]}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete user <strong>{userToDelete?.name}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
