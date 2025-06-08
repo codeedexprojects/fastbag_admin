@@ -32,7 +32,7 @@ import { viewSubadmins, editSubadmin, deleteSubadmin } from "../../services/allA
 
 const permissionOptions = [
   // Removed "Dashboard" from dropdown options
-  "Orders",
+   "Orders",
   "Customers",
   "Coupons",
   "Notifications",
@@ -40,7 +40,8 @@ const permissionOptions = [
   "Sellers",
   "Vendors Product",
   "Big Buy Orders",
-  "Analytics",
+  "Delivery",
+  "Carousel",
 ];
 
 const ViewSubAdmin = () => {

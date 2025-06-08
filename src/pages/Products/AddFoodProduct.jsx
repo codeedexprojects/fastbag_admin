@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from "react";
-import {Box,Button,TextField,Typography,Grid,Switch,FormControlLabel,Select,MenuItem,InputLabel,FormControl,} from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Grid,
+  Switch,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  IconButton
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { addProduct, viewCategory, viewsubCategory, viewVendors } from "../../services/allApi";
 
-// Styled preview container
 const PreviewContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   gap: theme.spacing(2),
@@ -28,43 +41,36 @@ const AddFoodProduct = () => {
   const [isOfferProduct, setIsOfferProduct] = useState(false);
   const [isPopularProduct, setIsPopularProduct] = useState(false);
   const [filteredSubcategories, setFilteredSubcategories] = useState([]);
+  const [variants, setVariants] = useState([
+    { name: "", price: "", is_in_stock: true },
+  ]);
 
-  // Fetch Vendors, Categories, and Subcategories
   useEffect(() => {
-    const initializeData = async () => {
+    const fetchData = async () => {
       try {
-        const vendorsData = await viewVendors();
-        const categoriesData = await viewCategory();
-        const subcategoriesData = await viewsubCategory();
-  
-        const allSubcategories = [
-          ...subcategoriesData.clothing_subcategories,
-          ...subcategoriesData.grocery_subcategories,
-          ...subcategoriesData.food_subcategories,
-        ];
-  
-        setVendors(vendorsData);
-        setCategories(categoriesData);
-        setSubcategories(allSubcategories);
+        const [vendorsData, categoriesData, subcategoriesData] = await Promise.all([
+          viewVendors(),
+          viewCategory(),
+          viewsubCategory(),
+        ]);
+        setVendors(vendorsData.filter((v) => v.store_type === 1));
+        setCategories(categoriesData.filter((c) => c.store_type === 1));
+        setSubcategories(subcategoriesData);
       } catch (error) {
-        console.error("Error initializing data:", error);
+        console.error("Error loading data:", error);
       }
     };
-  
-    initializeData();
+    fetchData();
   }, []);
-  
+
   const handleCategoryChange = (e) => {
     const selectedCategory = e.target.value;
     setCategory(selectedCategory);
-  
+
     if (Array.isArray(subcategories)) {
-      const filtered = subcategories.filter(
-        (sc) => sc.category === selectedCategory
-      );
+      const filtered = subcategories.filter((sc) => sc.category === selectedCategory);
       setFilteredSubcategories(filtered);
     } else {
-      console.error("Subcategories is not an array:", subcategories);
       setFilteredSubcategories([]);
     }
     setSubcategory("");
@@ -79,7 +85,28 @@ const AddFoodProduct = () => {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  const handleVariantChange = (index, field, value) => {
+    const updated = [...variants];
+    updated[index][field] = field === "is_in_stock" ? value : value;
+    setVariants(updated);
+  };
+
+  const handleAddVariant = () => {
+    setVariants([...variants, { name: "", price: "", is_in_stock: true }]);
+  };
+
+  const handleRemoveVariant = (index) => {
+    const updated = [...variants];
+    updated.splice(index, 1);
+    setVariants(updated);
+  };
+
   const handleSubmit = async () => {
+    if (!vendor || !category || !subcategory || !productName) {
+      alert("Please fill all required fields.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("vendor", vendor);
     formData.append("category", category);
@@ -92,13 +119,21 @@ const AddFoodProduct = () => {
     formData.append("is_available", isAvailable);
     formData.append("is_offer_product", isOfferProduct);
     formData.append("is_popular_product", isPopularProduct);
-    images.forEach((image) => formData.append("images", image));
-  
+
+    images.forEach((image) => {
+      formData.append("image_files", image);
+    });
+
+    formData.append("variants", JSON.stringify(variants));
+      for (const pair of formData.entries()) {
+    console.log(pair[0], ":", pair[1]);}
+
     try {
-      await addProduct(formData);
+    const res=   await addProduct(formData);
+    console.log(res)
       alert("Product added successfully");
-  
-      // Reset all form fields
+
+      // Reset
       setVendor("");
       setCategory("");
       setSubcategory("");
@@ -112,7 +147,7 @@ const AddFoodProduct = () => {
       setIsPopularProduct(false);
       setImages([]);
       setFilteredSubcategories([]);
-  
+      setVariants([{ name: "", price: "", is_in_stock: true }]);
     } catch (error) {
       console.error("Failed to add product:", error);
       alert("Error adding product");
@@ -121,51 +156,19 @@ const AddFoodProduct = () => {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      {/* Header Section */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" fontWeight="bold">
-          Add Product
-        </Typography>
-        <Box>
-          <Button variant="outlined" sx={{ mr: 2 }}>
-            Cancel
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Add Product
-          </Button>
-        </Box>
-      </Box>
+      <Typography variant="h5" fontWeight="bold" mb={3}>
+        Add Product
+      </Typography>
 
-      {/* Form Section */}
-      <Box
-        sx={{
-          backgroundColor: "#ECF4EE",
-          borderRadius: 2,
-          p: 3,
-        }}
-      >
+      <Box sx={{ backgroundColor: "#ECF4EE", borderRadius: 2, p: 3 }}>
         <Grid container spacing={3}>
-          {/* General Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              General Information
-            </Typography>
-          </Grid>
+          {/* General Info */}
           <Grid item xs={6}>
             <FormControl fullWidth>
               <InputLabel>Vendor</InputLabel>
               <Select value={vendor} onChange={(e) => setVendor(e.target.value)}>
                 {vendors.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>
-                    {v.business_name}
-                  </MenuItem>
+                  <MenuItem key={v.id} value={v.id}>{v.business_name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -173,20 +176,13 @@ const AddFoodProduct = () => {
           <Grid item xs={6}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
-              <Select
-                value={category}
-                onChange={handleCategoryChange}
-              >
+              <Select value={category} onChange={handleCategoryChange}>
                 {categories.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.name}
-                  </MenuItem>
+                  <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
-
-          {/* Subcategory Selection */}
           <Grid item xs={6}>
             <FormControl fullWidth>
               <InputLabel>Subcategory</InputLabel>
@@ -196,127 +192,45 @@ const AddFoodProduct = () => {
                 disabled={!category}
               >
                 {filteredSubcategories.map((sc) => (
-                  <MenuItem key={sc.id} value={sc.id}>
-                    {sc.name}
-                  </MenuItem>
+                  <MenuItem key={sc.id} value={sc.id}>{sc.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Product Name"
-              variant="outlined"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-            />
+            <TextField fullWidth label="Product Name" value={productName} onChange={(e) => setProductName(e.target.value)} />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              multiline
-              rows={4}
-              variant="outlined"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <TextField fullWidth label="Description" multiline rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
           </Grid>
 
           {/* Pricing */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Pricing
-            </Typography>
+          <Grid item xs={4}>
+            <TextField fullWidth label="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
           </Grid>
           <Grid item xs={4}>
-            <TextField
-              fullWidth
-              label="Price"
-              type="number"
-              variant="outlined"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
+            <TextField fullWidth label="Offer Price" type="number" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
           </Grid>
           <Grid item xs={4}>
-            <TextField
-              fullWidth
-              label="Offer Price"
-              type="number"
-              variant="outlined"
-              value={offerPrice}
-              onChange={(e) => setOfferPrice(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              fullWidth
-              label="Discount (%)"
-              type="number"
-              variant="outlined"
-              value={discount}
-              onChange={(e) => setDiscount(e.target.value)}
-            />
+            <TextField fullWidth label="Discount (%)" type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} />
           </Grid>
 
-          {/* Inventory */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Inventory
-            </Typography>
+          {/* Toggles */}
+          <Grid item xs={4}>
+            <FormControlLabel control={<Switch checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />} label="Available" />
           </Grid>
           <Grid item xs={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isAvailable}
-                  onChange={(e) => setIsAvailable(e.target.checked)}
-                />
-              }
-              label="Available"
-            />
+            <FormControlLabel control={<Switch checked={isOfferProduct} onChange={(e) => setIsOfferProduct(e.target.checked)} />} label="Offer Product" />
           </Grid>
           <Grid item xs={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isOfferProduct}
-                  onChange={(e) => setIsOfferProduct(e.target.checked)}
-                />
-              }
-              label="Offer Product"
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPopularProduct}
-                  onChange={(e) => setIsPopularProduct(e.target.checked)}
-                />
-              }
-              label="Popular Product"
-            />
+            <FormControlLabel control={<Switch checked={isPopularProduct} onChange={(e) => setIsPopularProduct(e.target.checked)} />} label="Popular Product" />
           </Grid>
 
-          {/* Media */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Media
-            </Typography>
-          </Grid>
+          {/* Image Upload */}
           <Grid item xs={12}>
             <Button variant="outlined" component="label">
               Upload Images
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-              />
+              <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
             </Button>
             <PreviewContainer>
               {images.map((image, index) => (
@@ -324,24 +238,66 @@ const AddFoodProduct = () => {
                   <img
                     src={URL.createObjectURL(image)}
                     alt={`Preview ${index}`}
-                    style={{
-                      width: 100,
-                      height: 100,
-                      objectFit: "cover",
-                      borderRadius: 4,
-                      marginRight: 10,
-                    }}
+                    style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 4 }}
                   />
-                  <Button
-                    variant="text"
-                    color="error"
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    Remove
-                  </Button>
+                  <Button color="error" onClick={() => handleRemoveImage(index)}>Remove</Button>
                 </Box>
               ))}
             </PreviewContainer>
+          </Grid>
+
+          {/* Variants */}
+          <Grid item xs={12}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Variants
+            </Typography>
+            {variants.map((variant, index) => (
+              <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
+                <Grid item xs={3}>
+                  <TextField
+                    fullWidth
+                    label="Variant Name"
+                    value={variant.name}
+                    onChange={(e) => handleVariantChange(index, "name", e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <TextField
+                    fullWidth
+                    label="Price"
+                    type="number"
+                    value={variant.price}
+                    onChange={(e) => handleVariantChange(index, "price", e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={variant.is_in_stock}
+                        onChange={(e) =>
+                          handleVariantChange(index, "is_in_stock", e.target.checked)
+                        }
+                      />
+                    }
+                    label="In Stock"
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <IconButton color="error" onClick={() => handleRemoveVariant(index)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
+            ))}
+            <Button onClick={handleAddVariant}>Add Variant</Button>
+          </Grid>
+
+          {/* Submit */}
+          <Grid item xs={12} sx={{ textAlign: "right" }}>
+            <Button variant="contained" onClick={handleSubmit}>
+              Submit
+            </Button>
           </Grid>
         </Grid>
       </Box>

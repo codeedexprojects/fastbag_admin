@@ -166,12 +166,12 @@ const Sidebar = () => {
       icon: <DeliveryDiningIcon />,   // <-- Updated icon here
       path: '/view-deliveryboyslist',
     },
-    //  {
-    //   key: 'Analytics',
-    //   text: 'Analytics',
-    //   icon: <BarChartIcon />,
-    //   path: '/analytics',
-    // },
+     {
+      key: 'Carousel',
+      text: 'Carousel',
+      icon: <BarChartIcon />,
+      path: '/view-carousel',
+    },
   ];
 
   // Filter based on role and permissions

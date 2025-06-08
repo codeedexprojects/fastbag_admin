@@ -36,6 +36,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import BigBuyOrders from './pages/BigBuyOrders/BigBuyOrders';
 import DeliveryBoyList from './pages/Delivery/DeliveryBoyList';
 import DeliveryBoyDetails from './pages/Delivery/DeliveryBoyDetails';
+import CarouselList from './pages/Carousel/ListCarousel';
+import AddCarousel from './pages/Carousel/AddCarousel';
 
 const App = () => {
   const location = useLocation(); // Get current route
@@ -87,6 +89,9 @@ const App = () => {
             <Route path="/view-bigbuyorders" element={<BigBuyOrders />} />
             <Route path="/view-deliveryboyslist" element={<DeliveryBoyList />} />
             <Route path="/view-deliveryboydetails/:id" element={<DeliveryBoyDetails />} />
+            <Route path="/view-carousel" element={<CarouselList />} />
+            <Route path="/add-carousel" element={<AddCarousel />} />
+
           </Routes>
 
          

@@ -580,7 +580,7 @@ export const addFashionProduct = async (formData) => {
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;
@@ -946,7 +946,7 @@ export const addProduct = async (formData) => {
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;
@@ -1093,16 +1093,16 @@ export const updateFoodProduct = async (formData,id) => {
 };
 
 // delete food product
-export const deleteFoodProduct = async (formData,id) => {
+export const deleteFoodProduct = async (id) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
 
-    const response = await commonApi('DELETE', `${BASE_URL}/food/dishes/${id}/`, formData, {
+    const response = await commonApi('DELETE', `${BASE_URL}/food/dishes/${id}/`, "", {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        // 'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
       },
     });
@@ -1311,8 +1311,10 @@ export const addDeliveryBoy = async (formData) => {
     throw error;
   }
 
+};
 //delete deliveryboy
-};export const deleteDeliveryBoy = async (id) => {
+
+export const deleteDeliveryBoy = async (id) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -1428,6 +1430,101 @@ export const getProduct_Vendor_Count = async () => {
     return response.data;
   } catch (error) {
     console.error('Failed to get product and vendors count', error);
+    throw error;
+  }
+};
+//get carousel 
+export const getAllCarouselAds = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) throw new Error("Authentication token is missing");
+
+    const response = await commonApi("GET", `${BASE_URL}/vendors/app-carousel/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch carousel ads", error);
+    throw error;
+  }
+};
+//add carousel
+export const addCarouselAd = async (formData) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'POST',
+      `${BASE_URL}/vendors/app-carousel/`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error('Failed to add carousel ad', error);
+    throw error;
+  }
+};
+//update carousel
+export const updateCarouselAd = async (id, formData) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'PATCH',
+      `${BASE_URL}/vendors/app-carousel/${id}/`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error(`Failed to update carousel ad with id ${id}`, error);
+    throw error;
+  }
+};
+//delete carousel
+export const deleteCarouselAd = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'DELETE',
+      `${BASE_URL}/vendors/app-carousel/${id}/`,
+      "",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error(`Failed to delete carousel ad with id ${id}`, error);
     throw error;
   }
 };

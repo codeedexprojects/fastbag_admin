@@ -25,6 +25,7 @@ const FoodProductList = () => {
             try {
                 const data = await getFoodProducts();
                 setProducts(data);
+                console.log(data)
             } catch (error) {
                 console.error('Error fetching products:', error);
             } finally {
@@ -62,12 +63,13 @@ const FoodProductList = () => {
 
     const handleDeleteClick = (product) => {
         setProductToDelete(product);
+        console.log(productToDelete)
         setDeleteModalOpen(true);
     };
 
     const handleDeleteProduct = async () => {
         try {
-            await deleteFoodProduct(null, productToDelete.id);
+            await deleteFoodProduct(productToDelete.id);
             setProducts(products.filter(product => product.id !== productToDelete.id));
             setDeleteModalOpen(false);
         } catch (error) {
@@ -136,8 +138,8 @@ const FoodProductList = () => {
                                         <TableCell>{product.category_name}</TableCell>
                                         <TableCell>{product.subcategory_name}</TableCell>
                                         <TableCell>
-                                            {product.image_urls?.length > 0 ? (
-                                                product.image_urls.map((img) => (
+                                            {product.images?.length > 0 ? (
+                                                product.images.map((img) => (
                                                     <img
                                                         key={img.id}
                                                         src={img.image}

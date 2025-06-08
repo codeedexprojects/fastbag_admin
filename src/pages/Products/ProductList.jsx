@@ -24,6 +24,7 @@ const ProductList = () => {
       try {
         const data = await viewProducts();
         setProducts(data);
+        console.log(data)
       } catch (error) {
         console.error('Failed to fetch products:', error);
       } finally {
@@ -128,10 +129,10 @@ const ProductList = () => {
                         {product.description}
                       </Typography>
                     </TableCell>
-                    <TableCell>{product.category?.name || 'N/A'}</TableCell>
-                    <TableCell>{product.subcategory?.name || 'N/A'}</TableCell>
-                    <TableCell>{`$${product.price}`}</TableCell>
-                    <TableCell>{`$${product.offer_price}`}</TableCell>
+                    <TableCell>{product.category || 'N/A'}</TableCell>
+                    <TableCell>{product.subcategory || 'N/A'}</TableCell>
+                    <TableCell>{`${product.price?`Rs.${product.price}`: 'N/A'} `}</TableCell>
+                    <TableCell>{`${product.offer_price?`Rs.${product.offer_price}`: 'N/A'} `}</TableCell>
                     <TableCell>
                       {product.available_sizes && product.available_sizes.length > 0 ? (
                         product.available_sizes.map((size, index) => (
