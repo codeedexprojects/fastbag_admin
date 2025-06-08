@@ -16,6 +16,7 @@ const Header = () => {
     };
 
     const handleClose = () => {
+        localStorage.clear()
         navigate('/admin-login')
     };
 

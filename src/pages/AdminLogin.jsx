@@ -37,7 +37,7 @@ function LoginPage() {
 
       // Wait a bit so toast can show before navigating
       
-        navigate('/');
+        navigate('/dash');
      
 
     } catch (error) {
