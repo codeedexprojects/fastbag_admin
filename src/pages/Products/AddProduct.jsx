@@ -2,402 +2,478 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Grid,
   TextField,
   Typography,
+  Grid,
+  Switch,
+  FormControlLabel,
   Select,
   MenuItem,
-  FormControl,
   InputLabel,
-  IconButton,
-  Paper,
+  FormControl,
+  RadioGroup,
+  Radio,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
-
+import { styled } from "@mui/material/styles";
 import {
-  viewVendors,
+  addFashionProduct,
   viewCategory,
   viewsubCategory,
-  addFashionProduct,
+  viewVendors,
+  addImage_fashion,
 } from "../../services/allApi";
+
+const Input = styled("input")({
+  display: "none",
+});
 
 function AddFashionProduct() {
   const [vendors, setVendors] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
-  const [filteredSubcategories, setFilteredSubcategories] = useState([]);
-  const [previews, setPreviews] = useState([]);
 
   const [formData, setFormData] = useState({
     vendor: "",
     category_id: "",
-    subcategory: "",
+    subcategory_id: "",
     name: "",
     description: "",
     gender: "",
     wholesale_price: "",
     price: "",
-    offer_price: "",
     discount: "",
     material: "",
     is_active: true,
-    colors: [],
+    colors: [], // each with: { color_name, color_code, sizes: [{ size, price, offer_price, stock }] }
   });
+
+  const [imageFiles, setImageFiles] = useState({}); // { colorIndex: File }
+  const [previewImages, setPreviewImages] = useState({}); // { colorIndex: ObjectURL }
+
+  const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [vendorsData, categoriesData, subcategoriesData] = await Promise.all([
-          viewVendors(),
-          viewCategory(),
-          viewsubCategory(),
-        ]);
-        setVendors(vendorsData.filter((v) => v.store_type === 3));
-        setCategories(categoriesData.filter((c) => c.store_type === 3));
-        setSubcategories(subcategoriesData);
-      } catch (error) {
-        console.error("Error loading data:", error);
+        const vendorRes = await viewVendors();
+        const categoryRes = await viewCategory();
+        const subcategoryRes = await viewsubCategory();
+        setVendors(vendorRes.filter((v) => v.store_type === 3));
+        setCategories(categoryRes.filter((c) => c.store_type === 3));
+        setSubcategories(subcategoryRes);
+      } catch (err) {
+        console.error("Error fetching data", err);
       }
     };
     fetchData();
-
-    return () => {
-      previews.forEach((url) => URL.revokeObjectURL(url));
-    };
   }, []);
-
-  const handleCategoryChange = (e) => {
-    const selectedCategory = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      category_id: selectedCategory,
-      subcategory: "",
-    }));
-    const filtered = subcategories.filter((sc) => sc.category === selectedCategory);
-    setFilteredSubcategories(filtered);
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: val,
     }));
-  };
-
-  const addColor = () => {
-    setFormData((prev) => ({
-      ...prev,
-      colors: [...prev.colors, { color_name: "", color_image: null, sizes: [] }],
-    }));
-    setPreviews((prev) => [...prev, ""]);
-  };
-
-  const removeColor = (index) => {
-    setFormData((prev) => {
-      const newColors = [...prev.colors];
-      newColors.splice(index, 1);
-      return { ...prev, colors: newColors };
-    });
-    setPreviews((prev) => {
-      const newPreviews = [...prev];
-      if (newPreviews[index]) {
-        URL.revokeObjectURL(newPreviews[index]);
-      }
-      newPreviews.splice(index, 1);
-      return newPreviews;
-    });
   };
 
   const handleColorChange = (index, field, value) => {
-    if (field === "color_image" && value instanceof File) {
-      const objectUrl = URL.createObjectURL(value);
-      setPreviews((prev) => {
-        const newPreviews = [...prev];
-        if (newPreviews[index]) {
-          URL.revokeObjectURL(newPreviews[index]);
-        }
-        newPreviews[index] = objectUrl;
-        return newPreviews;
-      });
-    }
-
-    setFormData((prev) => {
-      const newColors = [...prev.colors];
-      newColors[index][field] = value;
-      return { ...prev, colors: newColors };
-    });
-  };
-
-  const addSize = (colorIndex) => {
-    setFormData((prev) => {
-      const newColors = [...prev.colors];
-      if (!newColors[colorIndex].sizes) newColors[colorIndex].sizes = [];
-      newColors[colorIndex].sizes.push({ size: "", price: "", stock: "" });
-      return { ...prev, colors: newColors };
-    });
-  };
-
-  const removeSize = (colorIndex, sizeIndex) => {
-    setFormData((prev) => {
-      const newColors = [...prev.colors];
-      newColors[colorIndex].sizes.splice(sizeIndex, 1);
-      return { ...prev, colors: newColors };
-    });
+    const updatedColors = [...formData.colors];
+    updatedColors[index][field] = value;
+    setFormData({ ...formData, colors: updatedColors });
   };
 
   const handleSizeChange = (colorIndex, sizeIndex, field, value) => {
-    setFormData((prev) => {
-      const newColors = [...prev.colors];
-      newColors[colorIndex].sizes[sizeIndex] = {
-        ...newColors[colorIndex].sizes[sizeIndex],
-        [field]: value,
-      };
-      return { ...prev, colors: newColors };
-    });
+    const updatedColors = [...formData.colors];
+    updatedColors[colorIndex].sizes[sizeIndex][field] = value;
+    setFormData({ ...formData, colors: updatedColors });
   };
 
-  // Convert nested formData to FormData for submission
-  const buildFormData = (data) => {
-    const fd = new FormData();
+  const addColor = () => {
+    const newColor = {
+      color_name: "",
+      color_code: "",
+      sizes: sizes.map((size) => ({
+        size,
+        price: "",
+        offer_price: "",
+        stock: "",
+      })),
+    };
+    setFormData((prev) => ({ ...prev, colors: [...prev.colors, newColor] }));
+  };
 
-    fd.append("vendor", data.vendor);
-    fd.append("category_id", data.category_id);
-    fd.append("subcategory", data.subcategory);
-    fd.append("name", data.name);
-    fd.append("description", data.description);
-    fd.append("gender", data.gender);
-    fd.append("wholesale_price", data.wholesale_price);
-    fd.append("price", data.price);
-    fd.append("offer_price", data.offer_price || "");
-    fd.append("discount", data.discount || "");
-    fd.append("material", data.material || "");
-    fd.append("is_active", data.is_active);
+  const removeColor = (index) => {
+    const updatedColors = [...formData.colors];
+    updatedColors.splice(index, 1);
+    setFormData({ ...formData, colors: updatedColors });
 
-    data.colors.forEach((color, colorIndex) => {
-      fd.append(`colors[${colorIndex}][color_name]`, color.color_name);
+    const newImageFiles = { ...imageFiles };
+    delete newImageFiles[index];
+    setImageFiles(newImageFiles);
 
-      if (color.color_image instanceof File) {
-        fd.append(`colors[${colorIndex}][color_image]`, color.color_image);
-      }
+    const newPreviews = { ...previewImages };
+    delete newPreviews[index];
+    setPreviewImages(newPreviews);
+  };
 
-      if (color.sizes && color.sizes.length > 0) {
-        color.sizes.forEach((size, sizeIndex) => {
-          fd.append(`colors[${colorIndex}][sizes][${sizeIndex}][size]`, size.size);
-          fd.append(`colors[${colorIndex}][sizes][${sizeIndex}][price]`, size.price);
-          fd.append(`colors[${colorIndex}][sizes][${sizeIndex}][stock]`, size.stock);
-        });
-      }
-    });
-
-    return fd;
+  const handleImageFileChange = (e, index) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFiles((prev) => ({
+        ...prev,
+        [index]: file,
+      }));
+      setPreviewImages((prev) => ({
+        ...prev,
+        [index]: URL.createObjectURL(file),
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const dataToSend = buildFormData(formData);
-      for (const pair of dataToSend.entries()) {
-    console.log(pair[0], ":", pair[1]);
-  }
-      // console.log(formData)
 
-      // Call your API method with FormData
-      // Make sure addFashionProduct sends data as multipart/form-data
-        const response = await addFashionProduct(formData)
-        console.log("Product submitted successfully:", response);
-      // You can reset the form or show a success message here if needed
-    } catch (error) {
-      console.error("Error submitting product:", error);
+    try {
+      // Filter sizes with valid data
+      const payload = { ...formData };
+      payload.colors = payload.colors.map((color) => ({
+        ...color,
+        sizes: color.sizes.filter(
+          (size) =>
+            size.price !== "" && size.offer_price !== "" && size.stock !== ""
+        ),
+      }));
+
+      // 1) Create the product
+      const res = await addFashionProduct(payload);
+      const productId = res.data.id;
+      console.log(res)
+
+      // 2) Upload images with only clothing and image fields
+      for (const file of Object.values(imageFiles)) {
+        const formDataImg = new FormData();
+        formDataImg.append("clothing", productId);
+        formDataImg.append("image", file);
+
+       const res2= await addImage_fashion(formDataImg);
+       console.log(res2)
+      }
+
+      alert("Product and images uploaded successfully!");
+    } catch (err) {
+      console.error("Submission error:", err);
+      alert("Failed to submit product or upload images.");
     }
   };
 
+  const selectedCategory = categories.find(
+    (cat) => cat.id === parseInt(formData.category_id)
+  );
+  const filteredSubcategories = selectedCategory
+    ? subcategories.filter((sc) => sc.category_name === selectedCategory.name)
+    : [];
+
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", p: 3 }}>
-      <Typography variant="h5" mb={3}>Add Fashion Product</Typography>
+    <Box p={3}>
+      <Typography variant="h4" gutterBottom>
+        Add Fashion Product
+      </Typography>
       <form onSubmit={handleSubmit}>
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel id="vendor-label">Vendor</InputLabel>
-          <Select
-            labelId="vendor-label"
-            name="vendor"
-            value={formData.vendor}
-            label="Vendor"
-            onChange={handleChange}
-          >
-            {vendors.map((v) => (
-              <MenuItem key={v.id} value={v.id}>{v.business_name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Grid container spacing={2}>
+          {/* Vendor */}
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Vendor</InputLabel>
+              <Select
+                name="vendor"
+                value={formData.vendor}
+                onChange={handleChange}
+              >
+                {vendors.map((v) => (
+                  <MenuItem key={v.id} value={v.id}>
+                    {v.business_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel id="category-label">Category</InputLabel>
-          <Select
-            labelId="category-label"
-            name="category_id"
-            value={formData.category_id}
-            label="Category"
-            onChange={handleCategoryChange}
-          >
-            {categories.map((c) => (
-              <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          {/* Category */}
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Category</InputLabel>
+              <Select
+                name="category_id"
+                value={formData.category_id}
+                onChange={handleChange}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel id="subcategory-label">Subcategory</InputLabel>
-          <Select
-            labelId="subcategory-label"
-            name="subcategory"
-            value={formData.subcategory}
-            label="Subcategory"
-            onChange={handleChange}
-            disabled={!formData.category_id}
-          >
-            {filteredSubcategories.map((sc) => (
-              <MenuItem key={sc.id} value={sc.id}>{sc.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          {/* Subcategory */}
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Subcategory</InputLabel>
+              <Select
+                name="subcategory_id"
+                value={formData.subcategory_id}
+                onChange={handleChange}
+                disabled={!formData.category_id}
+              >
+                {filteredSubcategories.map((sub) => (
+                  <MenuItem key={sub.id} value={sub.id}>
+                    {sub.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
-        <TextField label="Product Name" name="name" value={formData.name} onChange={handleChange} fullWidth margin="normal" required />
-        <TextField label="Description" name="description" value={formData.description} onChange={handleChange} fullWidth margin="normal" multiline rows={3} required />
+          {/* Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Product Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              fullWidth
+              required
+            />
+          </Grid>
 
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel id="gender-label">Gender</InputLabel>
-          <Select
-            labelId="gender-label"
-            name="gender"
-            value={formData.gender}
-            label="Gender"
-            onChange={handleChange}
-          >
-            <MenuItem value="M">Men</MenuItem>
-            <MenuItem value="W">Women</MenuItem>
-            <MenuItem value="U">Unisex</MenuItem>
-            <MenuItem value="K">Kids</MenuItem>
-          </Select>
-        </FormControl>
+          {/* Description */}
+          <Grid item xs={12}>
+            <TextField
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              multiline
+              rows={3}
+              fullWidth
+            />
+          </Grid>
 
-        <TextField label="Wholesale Price" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} fullWidth margin="normal" type="number" required />
-        <TextField label="Retail Price" name="price" value={formData.price} onChange={handleChange} fullWidth margin="normal" type="number" required />
-        <TextField label="Offer Price" name="offer_price" value={formData.offer_price} onChange={handleChange} fullWidth margin="normal" type="number" />
-        <TextField label="Discount %" name="discount" value={formData.discount} onChange={handleChange} fullWidth margin="normal" type="number" />
-        <TextField label="Material" name="material" value={formData.material} onChange={handleChange} fullWidth margin="normal" />
+          {/* Prices */}
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label="Wholesale Price"
+              name="wholesale_price"
+              value={formData.wholesale_price}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label="Price"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Grid>
 
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="is_active-label">Status</InputLabel>
-          <Select
-            labelId="is_active-label"
-            name="is_active"
-            value={formData.is_active ? "active" : "inactive"}
-            label="Status"
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                is_active: e.target.value === "active",
-              }))
-            }
-          >
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="inactive">Inactive</MenuItem>
-          </Select>
-        </FormControl>
+          {/* Discount and Material */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Discount (%)"
+              name="discount"
+              value={formData.discount}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Material"
+              name="material"
+              value={formData.material}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Grid>
 
-        <Box mt={4}>
-          <Typography variant="h6">Colors & Sizes</Typography>
-          {formData.colors.map((color, cIndex) => (
-            <Paper key={cIndex} variant="outlined" sx={{ p: 2, mb: 3 }}>
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={5}>
-                  <TextField
-                    label="Color Name"
-                    value={color.color_name}
-                    onChange={(e) => handleColorChange(cIndex, "color_name", e.target.value)}
-                    fullWidth
-                    required
-                  />
+          {/* Gender */}
+          <Grid item xs={12}>
+            <Typography>Gender</Typography>
+            <RadioGroup
+              row
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+            >
+              <FormControlLabel value="M" control={<Radio />} label="Men" />
+              <FormControlLabel value="W" control={<Radio />} label="Women" />
+              <FormControlLabel value="U" control={<Radio />} label="Unisex" />
+              <FormControlLabel value="K" control={<Radio />} label="Kids" />
+            </RadioGroup>
+          </Grid>
+
+          {/* Active Toggle */}
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.is_active}
+                  onChange={(e) =>
+                    setFormData({ ...formData, is_active: e.target.checked })
+                  }
+                />
+              }
+              label="Is Active"
+            />
+          </Grid>
+
+          {/* Colors Section */}
+          <Grid item xs={12}>
+            <Typography variant="h6">Colors</Typography>
+            {formData.colors.map((color, index) => (
+              <Box
+                key={index}
+                mb={3}
+                p={2}
+                border="1px solid #ccc"
+                borderRadius={2}
+              >
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      label="Color Name"
+                      value={color.color_name}
+                      onChange={(e) =>
+                        handleColorChange(index, "color_name", e.target.value)
+                      }
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={10} sm={5}>
+                    <TextField
+                      label="Color Code"
+                      value={color.color_code}
+                      onChange={(e) =>
+                        handleColorChange(index, "color_code", e.target.value)
+                      }
+                      fullWidth
+                      required
+                      placeholder="#FFFFFF"
+                    />
+                  </Grid>
+                  <Grid item xs={2} sm={2}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => removeColor(index)}
+                    >
+                      Remove
+                    </Button>
+                  </Grid>
                 </Grid>
-                <Grid item xs={5}>
-                  <input
-                    type="file"
+
+                {/* Image upload */}
+                <Box mt={2} mb={2}>
+                  <Input
                     accept="image/*"
-                    onChange={(e) => handleColorChange(cIndex, "color_image", e.target.files[0])}
+                    id={`color-image-upload-${index}`}
+                    type="file"
+                    onChange={(e) => handleImageFileChange(e, index)}
                   />
-                  {previews[cIndex] && (
+                  <label htmlFor={`color-image-upload-${index}`}>
+                    <Button variant="contained" component="span">
+                      Upload Color Image
+                    </Button>
+                  </label>
+                  {previewImages[index] && (
                     <Box mt={1}>
-                      <img src={previews[cIndex]} alt="Preview" height={150} style={{ borderRadius: 4 }} />
+                      <img
+                        src={previewImages[index]}
+                        alt={`Color Preview ${index}`}
+                        style={{ maxWidth: "150px", maxHeight: "150px" }}
+                      />
                     </Box>
                   )}
-                </Grid>
-                <Grid item xs={2}>
-                  <IconButton onClick={() => removeColor(cIndex)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
+                </Box>
 
-              <Box mt={2}>
-                <Typography>Sizes</Typography>
-                {color.sizes.length > 0 ? (
-                  color.sizes.map((size, sIndex) => (
-                    <Grid container spacing={2} alignItems="center" key={sIndex} sx={{ mt: 1 }}>
-                      <Grid item xs={3}>
-                        <FormControl fullWidth required>
-                          <InputLabel id={`size-label-${cIndex}-${sIndex}`}>Size</InputLabel>
-                          <Select
-                            labelId={`size-label-${cIndex}-${sIndex}`}
-                            value={size.size}
-                            label="Size"
-                            onChange={(e) => handleSizeChange(cIndex, sIndex, "size", e.target.value)}
-                          >
-                            <MenuItem value="XS">Extra Small</MenuItem>
-                            <MenuItem value="S">Small</MenuItem>
-                            <MenuItem value="M">Medium</MenuItem>
-                            <MenuItem value="L">Large</MenuItem>
-                            <MenuItem value="XL">Extra Large</MenuItem>
-                            <MenuItem value="XXL">2x Large</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={4}>
-                        <TextField label="Price" type="number" value={size.price} onChange={(e) => handleSizeChange(cIndex, sIndex, "price", e.target.value)} fullWidth required />
-                      </Grid>
-                      <Grid item xs={3}>
-                        <TextField label="Stock" type="number" value={size.stock} onChange={(e) => handleSizeChange(cIndex, sIndex, "stock", e.target.value)} fullWidth required />
-                      </Grid>
-                      <Grid item xs={2}>
-                        <IconButton onClick={() => removeSize(cIndex, sIndex)} color="error">
-                          <DeleteIcon />
-                        </IconButton>
-                      </Grid>
+                {/* Sizes inputs */}
+                <Typography variant="subtitle1" mt={2} mb={1}>
+                  Sizes & Prices
+                </Typography>
+                {color.sizes.map((size, sIdx) => (
+                  <Grid
+                    container
+                    spacing={1}
+                    key={sIdx}
+                    alignItems="center"
+                    mb={1}
+                  >
+                    <Grid item xs={12} sm={2}>
+                      <Typography variant="body2">{size.size}</Typography>
                     </Grid>
-                  ))
-                ) : (
-                  <Typography>No sizes added yet.</Typography>
-                )}
-                <Button variant="outlined" size="small" startIcon={<AddIcon />} sx={{ mt: 1 }} onClick={() => addSize(cIndex)}>
-                  Add Size
-                </Button>
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        label="Price"
+                        value={size.price}
+                        onChange={(e) =>
+                          handleSizeChange(index, sIdx, "price", e.target.value)
+                        }
+                        fullWidth
+                        type="number"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        label="Offer Price"
+                        value={size.offer_price}
+                        onChange={(e) =>
+                          handleSizeChange(
+                            index,
+                            sIdx,
+                            "offer_price",
+                            e.target.value
+                          )
+                        }
+                        fullWidth
+                        type="number"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        label="Stock"
+                        value={size.stock}
+                        onChange={(e) =>
+                          handleSizeChange(index, sIdx, "stock", e.target.value)
+                        }
+                        fullWidth
+                        type="number"
+                      />
+                    </Grid>
+                  </Grid>
+                ))}
               </Box>
-            </Paper>
-          ))}
-          <Button variant="contained" startIcon={<AddIcon />} onClick={addColor} sx={{ mt: 2 }}>
-            Add Color
-          </Button>
-        </Box>
+            ))}
+            <Button variant="outlined" onClick={addColor}>
+              Add Color
+            </Button>
+          </Grid>
 
-        <Box mt={4}>
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            Submit Product
-          </Button>
-        </Box>
+          {/* Submit */}
+          <Grid item xs={12}>
+            <Button variant="contained" color="primary" type="submit">
+              Submit Product
+            </Button>
+          </Grid>
+        </Grid>
       </form>
     </Box>
   );
 }
 
-export default AddFashionProduct;
+export default AddFashionProduct;  

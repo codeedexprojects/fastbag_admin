@@ -565,17 +565,17 @@ export const viewColours = async () => {
   }
 };
 
-// add product 
-export const addFashionProduct = async (formData) => {
+// add fahsion product 
+export const addFashionProduct = async (reqBody) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
 
-    const response = await commonApi('POST', `${BASE_URL}/fashion/clothing/admin/`, formData, {
+    const response = await commonApi('POST', `${BASE_URL}/fashion/clothing/admin/`, reqBody, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-type':"application/json",
         Authorization: `Bearer ${token}`,
       },
     });
@@ -587,7 +587,25 @@ export const addFashionProduct = async (formData) => {
   }
 };
 
-// update product
+//add imagefiles of fashion product
+export const addImage_fashion = async (formData) => {
+  try {
+        const token = localStorage.getItem("access_token");
+
+    const response = await commonApi('POST', `${BASE_URL}/fashion/clothing/images/admin/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`, 
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to add images', error);
+    throw error;
+  }
+};
+
+// update fashion product
 export const updateProduct = async (formData,id) => {
   try {
     const token = localStorage.getItem("access_token");
@@ -597,19 +615,18 @@ export const updateProduct = async (formData,id) => {
 
     const response = await commonApi('PATCH', `${BASE_URL}/fashion/clothing/${id}/`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;
   }
 };
 
-// view products
+// view fashion products
 export const viewProducts = async () => {
   try {
     const token = localStorage.getItem("access_token");
@@ -626,7 +643,76 @@ export const viewProducts = async () => {
     throw error;
   }
 };
+// View fashion product details by id
+export const viewProduct = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/fashion/clothing/${id}/`, headers);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to view product:", error);
+    throw error;
+  }
+};
+//delete fashion product
+export const deleteProduct = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}/fashion/clothing/${id}/`,"", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to view product:", error);
+    throw error;
+  }
+};
+//delete productimage fashion
 
+export const deleteProductImage = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("DELETE", `${BASE_URL}/fashion/clothing-images/admin/${id}/`," ", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to view product:", error);
+    throw error;
+  }
+};
+//update fashion product image
+
+export const updateProductImage = async (id,reqBody) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("PATCH", `${BASE_URL}/fashion/clothing-images/admin/${id}/`,reqBody, headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to view product:", error);
+    throw error;
+  }
+};
 // view users
 export const viewUsers = async () => {
   try {
@@ -1100,14 +1186,14 @@ export const deleteFoodProduct = async (id) => {
       throw new Error("Authentication token is missing");
     }
 
-    const response = await commonApi('DELETE', `${BASE_URL}/food/dishes/${id}/`, "", {
+    const response = await commonApi('DELETE', `${BASE_URL}/food/dishes/admin/${id}/`," ", {
       headers: {
         // 'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;

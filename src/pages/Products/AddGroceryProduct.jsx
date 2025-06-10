@@ -229,8 +229,8 @@ formData.forEach((value, key) => {
  // Log it like a normal object
  console.log(formDataObject);
 
-    // const res= await addGroceryProduct(formData);
-    // console.log(res)
+     const res= await addGroceryProduct(formData);
+      console.log(res)
     setSuccessMsg("Product added successfully!");
     // resetFormFields();
   } catch (error) {

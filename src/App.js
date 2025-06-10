@@ -38,6 +38,7 @@ import DeliveryBoyList from './pages/Delivery/DeliveryBoyList';
 import DeliveryBoyDetails from './pages/Delivery/DeliveryBoyDetails';
 import CarouselList from './pages/Carousel/ListCarousel';
 import AddCarousel from './pages/Carousel/AddCarousel';
+import ProductDetails from './pages/Products/ProductDetails';
 
 
 
@@ -73,6 +74,7 @@ const App = () => {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/product-list" element={<ProductList />} />
                 <Route path="/add-product" element={<AddProduct />} />
+                <Route path="/view-product/:productId" element={<ProductDetails />} />
                 <Route path="/order-list" element={<OrderList />} />
                 <Route path="/order-details/:orderId" element={<OrderDetails />} />
                 <Route path="/category-list" element={<CategoryPage />} />

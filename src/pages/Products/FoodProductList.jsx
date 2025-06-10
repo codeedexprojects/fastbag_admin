@@ -7,6 +7,7 @@ import { Edit, Delete } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodProducts, deleteFoodProduct } from '../../services/allApi';
 import EditFoodProductModal from './EditFood';
+import { toast } from 'react-toastify';
 
 const FoodProductList = () => {
     const [products, setProducts] = useState([]);
@@ -25,7 +26,7 @@ const FoodProductList = () => {
             try {
                 const data = await getFoodProducts();
                 setProducts(data);
-                console.log(data)
+                // console.log(data)
             } catch (error) {
                 console.error('Error fetching products:', error);
             } finally {
@@ -69,9 +70,17 @@ const FoodProductList = () => {
 
     const handleDeleteProduct = async () => {
         try {
-            await deleteFoodProduct(productToDelete.id);
-            setProducts(products.filter(product => product.id !== productToDelete.id));
-            setDeleteModalOpen(false);
+             console.log(productToDelete)
+         const res=   await deleteFoodProduct(productToDelete.id);
+         console.log(res)
+                     setDeleteModalOpen(false);
+
+          if(res.status==204){
+              setProducts(products.filter(product => product.id !== productToDelete.id));
+            toast.success("Product deleted!")
+          }else{
+            toast.error("Product deletion failed!")
+          }
         } catch (error) {
             console.error('Error deleting product:', error);
         }
