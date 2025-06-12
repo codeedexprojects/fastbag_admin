@@ -282,43 +282,81 @@ const Dashboard = () => {
               <Typography variant="h6">Recent Orders</Typography>
             </Box>
 
-            <TableContainer component={Paper} sx={{ mt: 2 }}>
-              <Table>
-                <TableHead>
+            <TableContainer  component={Paper} sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }}>
+              <Table sx={{minWidth:650}}>
+                <TableHead sx={{ backgroundColor: '#1976d2' }}>
                   <TableRow>
-                    <TableCell><Checkbox /></TableCell>
-                    <TableCell>Order ID</TableCell>
-                    <TableCell>Product</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Payment</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Action</TableCell>
+                    {/* <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}><Checkbox /></TableCell> */}
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Order ID</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Product</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Date</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Customer</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Total</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Payment</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Action</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
                     <TableRow key={index}>
-                      <TableCell><Checkbox /></TableCell>
+                      {/* <TableCell><Checkbox /></TableCell> */}
                       <TableCell><Button>{order.order_id}</Button></TableCell>
                       <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
                       <TableCell>{order.created_at}</TableCell>
                       <TableCell>{order.user_name}</TableCell>
                       <TableCell>₹{order.final_amount}</TableCell>
                       <TableCell>{order.payment_method}</TableCell>
+                  <TableCell>
+  <Typography
+    variant="caption"
+    sx={{
+      px: 1.2,
+      py: 0.4,
+      borderRadius: '8px',
+      fontWeight: 600,
+      color:
+        order.order_status === 'processing'
+          ? '#ef6c00'
+          : order.order_status === 'shipped'
+          ? '#1565c0'
+          : order.order_status === 'out for delivery'
+          ? '#283593'
+          : order.order_status === 'delivered'
+          ? '#2e7d32'
+          : order.order_status === 'cancelled'
+          ? '#ad1457'
+          : order.order_status === 'rejected'
+          ? '#b71c1c'
+          : order.order_status === 'return'
+          ? '#6a1b9a'
+          : '#c62828',
+      backgroundColor:
+        order.order_status === 'processing'
+          ? '#ffe0b2'
+          : order.order_status === 'shipped'
+          ? '#bbdefb'
+          : order.order_status === 'out for delivery'
+          ? '#c5cae9'
+          : order.order_status === 'delivered'
+          ? '#c8e6c9'
+          : order.order_status === 'cancelled'
+          ? '#f8bbd0'
+          : order.order_status === 'rejected'
+          ? '#ffcdd2'
+          : order.order_status === 'return'
+          ? '#e1bee7'
+          : '#ffcdd2',
+      display: 'inline-block',
+      textTransform: 'capitalize',
+    }}
+  >
+    {order.order_status || 'Pending'}
+  </Typography>
+</TableCell>
+
                       <TableCell>
-                        <span style={{
-                          color:
-                            order.order_status === 'Processing' ? 'orange' :
-                              order.order_status === 'Shipped' ? 'blue' :
-                                order.order_status === 'Delivered' ? 'green' : 'red',
-                        }}>
-                          {order.order_status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => { nav(`/order-details/${order.id}`) }}><VisibilityIcon /></IconButton>
+                        <IconButton color='info' onClick={() => { nav(`/order-details/${order.id}`) }}><VisibilityIcon /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))}

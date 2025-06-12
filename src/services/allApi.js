@@ -606,14 +606,14 @@ export const addImage_fashion = async (formData) => {
 };
 
 // update fashion product
-export const updateProduct = async (formData,id) => {
+export const updateProduct = async (id,formData) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
 
-    const response = await commonApi('PATCH', `${BASE_URL}/fashion/clothing/${id}/`, formData, {
+    const response = await commonApi('PUT', `${BASE_URL}/fashion/clothing/${id}/`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1164,14 +1164,14 @@ export const updateFoodProduct = async (formData,id) => {
       throw new Error("Authentication token is missing");
     }
 
-    const response = await commonApi('PATCH', `${BASE_URL}/food/dishes/${id}/`, formData, {
+    const response = await commonApi('PATCH', `${BASE_URL}/food/dishes/admin/${id}/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;
@@ -1200,6 +1200,25 @@ export const deleteFoodProduct = async (id) => {
   }
 };
 
+//getFoodProductById 
+export const getFoodProductById  = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/food/dishes/admin/${id}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to add product', error);
+    throw error;
+  }
+};
+
 // update  grocery product
 export const updateGroceryProduct = async (formData,id) => {
   try {
@@ -1215,7 +1234,7 @@ export const updateGroceryProduct = async (formData,id) => {
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add product', error);
     throw error;
@@ -1230,13 +1249,13 @@ export const deleteGroceryProduct = async (id) => {
       throw new Error("Authentication token is missing");
     }
 
-    const response = await commonApi('DELETE', `${BASE_URL}/grocery/products/admin/${id}/`, null, {
+    const response = await commonApi('DELETE', `${BASE_URL}/grocery/products/admin/${id}/`, " ", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to delete product', error);
     throw error;

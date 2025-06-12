@@ -22,6 +22,7 @@ import {
   viewsubCategory,
   viewVendors,
 } from "../../services/allApi";
+import { useNavigate } from "react-router-dom";
 
 const AddGroceryProduct = () => {
   const [images, setImages] = useState([]);
@@ -159,7 +160,7 @@ const AddGroceryProduct = () => {
     setErrorMsg("");
     setSuccessMsg("");
   };
-
+const nav=useNavigate()
   const handleWeightChange = (e) => {
     const val = e.target.value;
     // Allow only numbers and decimal point
@@ -184,7 +185,7 @@ const AddGroceryProduct = () => {
     const formData = new FormData();
     formData.append("vendor", vendor);
     formData.append("category", category);
-    formData.append("sub_category", subcategory);
+    formData.append("subcategory", subcategory);
     formData.append("name", productName);
     formData.append("description", productDescription);
     formData.append("price", price);
@@ -195,15 +196,14 @@ const AddGroceryProduct = () => {
     formData.append("weight_measurement", measurement);
 
     // ✅ Convert array to desired object format
-    const weightObj = {};
-    availableWeights.forEach((item) => {
-      weightObj[`${item.weight}${measurement}`] = {
-        price: parseFloat(item.weightPrice),
-        quantity: parseInt(item.quantity),
-        is_in_stock: item.stockStatus
-      };
-    });
-    formData.append("weights", JSON.stringify(weightObj)); // Append as JSON string
+    const weights = availableWeights.map((item) => ({
+  price: parseFloat(item.weightPrice),
+  weight: `${item.weight}${measurement}`,
+  quantity: parseInt(item.quantity),
+  is_in_stock: item.stockStatus,
+}));
+
+    formData.append("weights", JSON.stringify(weights)); // Append as JSON string
 
     // Attach image files
    images.forEach((imgObj) => {
@@ -259,7 +259,7 @@ formData.forEach((value, key) => {
           Add Grocery Product
         </Typography>
         <Box>
-          <Button variant="outlined" sx={{ mr: 2 }} onClick={resetFormFields} disabled={loading}>
+          <Button variant="outlined" sx={{ mr: 2 }} onClick={resetFormFields}  disabled={loading}>
             Cancel
           </Button>
           <Button variant="contained" color="primary" onClick={handleSubmit} disabled={loading}>

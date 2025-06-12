@@ -31,21 +31,30 @@ import {
 import { useParams } from 'react-router-dom';
 import { updateOrderStatus, viewSpecificOrder } from '../../services/allApi';
 import html2pdf from 'html2pdf.js';
+import { Backdrop, CircularProgress } from '@mui/material';
+
 
 const OrderDetails = () => {
+  const [loading, setLoading] = useState(false);
+
   const { orderId } = useParams();
   const [orderDetails, setOrderDetails] = useState({});
   const [orderStatus, setOrderStatus] = useState('');
   const invoiceRef = useRef();
 
-  useEffect(() => {
-    const fetchOrderDetails = async () => {
+useEffect(() => {
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
       const data = await viewSpecificOrder(orderId);
       setOrderDetails(data);
-    };
-    fetchOrderDetails();
-  }, [orderId]);
-      console.log(orderDetails)
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchOrderDetails();
+}, [orderId]);
+
 
   useEffect(() => {
     if (orderDetails.order_status) {
@@ -336,6 +345,10 @@ const OrderDetails = () => {
           </Grid>
         </Grid>
       </div>
+      <Backdrop open={loading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Box>
   );
 };

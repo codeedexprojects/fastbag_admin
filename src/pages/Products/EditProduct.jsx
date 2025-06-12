@@ -157,57 +157,60 @@ function EditFashionProductModal({ product, open, onClose, onUpdated }) {
     ? subcategories.filter((sc) => sc.category_name === selectedCategory.name)
     : [];
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      // Build payload JSON for update API
-      const payload = {
-        vendor: formData.vendor,
-        category_id: formData.category_id,
-        subcategory_id: formData.subcategory_id,
-        name: formData.name,
-        description: formData.description,
-        gender: formData.gender,
-        wholesale_price: formData.wholesale_price,
-        price: formData.price,
-        discount: formData.discount,
-        material: formData.material,
-        is_active: formData.is_active,
-        colors: formData.colors.map((color) => ({
-          color_name: color.color_name,
-          color_code: color.color_code,
-          sizes: color.sizes
-            .filter(
-              (size) =>
-                size.price !== "" &&
-                size.offer_price !== "" &&
-                size.stock !== ""
-            )
-            .map((size) => ({
-              size: size.size,
-              price: size.price,
-              offer_price: size.offer_price,
-              stock: size.stock,
-            })),
+  try {
+    const form = new FormData();
+
+    // Append all primitive fields
+    form.append("vendor", formData.vendor);
+    form.append("category_id", formData.category_id);
+    form.append("subcategory_id", formData.subcategory_id);
+    form.append("name", formData.name);
+    form.append("description", formData.description);
+    form.append("gender", formData.gender);
+    form.append("wholesale_price", formData.wholesale_price);
+    form.append("price", formData.price);
+    form.append("discount", formData.discount);
+    form.append("material", formData.material);
+    form.append("is_active", formData.is_active);
+
+    // Clean and append colors as JSON string
+    const cleanedColors = formData.colors.map((color) => ({
+      color_name: color.color_name,
+      color_code: color.color_code,
+      sizes: color.sizes
+        .filter(
+          (size) =>
+            size.price !== "" &&
+            size.offer_price !== "" &&
+            size.stock !== ""
+        )
+        .map((size) => ({
+          size: size.size,
+          price: size.price,
+          offer_price: size.offer_price,
+          stock: size.stock,
         })),
-      };
+    }));
 
-      // Call your update API with product id and payload
-  const res=   await updateProduct(product.id, payload);
-  console.log(res)
-    // console.log(payload)
+    form.append("colors", JSON.stringify(cleanedColors));
 
+    console.log(JSON.stringify(cleanedColors))
+    // Submit via API
+    const res = await updateProduct(product.id, form);
+     console.log("Update response:", res);
 
-      alert("Product updated successfully!");
-      if (onUpdated) onUpdated(); // callback to refresh parent or close modal
-      onClose();
-    } catch (err) {
-      console.error("Update error:", err);
-      alert("Failed to update product.");
-    }
-    
-  };
+    alert("Product updated successfully!");
+    if (onUpdated) onUpdated();
+    onClose();
+  } catch (err) {
+    console.error("Update error:", err);
+    alert("Failed to update product.");
+  }
+};
+
 //   console.log(product)
 
   return (

@@ -39,6 +39,7 @@ import DeliveryBoyDetails from './pages/Delivery/DeliveryBoyDetails';
 import CarouselList from './pages/Carousel/ListCarousel';
 import AddCarousel from './pages/Carousel/AddCarousel';
 import ProductDetails from './pages/Products/ProductDetails';
+import FoodProductDetails from './pages/Products/FoodProductDetails';
 
 
 
@@ -99,6 +100,7 @@ const App = () => {
                 <Route path="/add-groceryproduct" element={<AddGroceryProduct />} />
                 <Route path="/view-groceryproducts" element={<GroceryProductList />} />
                 <Route path="/view-foodproducts" element={<FoodProductList />} />
+                <Route path="/view-foodproduct/:id" element={<FoodProductDetails />} />
                 <Route path="/view-notifications" element={<NotificationPage />} />
                 <Route path="/view-bigbuyorders" element={<BigBuyOrders />} />
                 <Route path="/view-deliveryboyslist" element={<DeliveryBoyList />} />

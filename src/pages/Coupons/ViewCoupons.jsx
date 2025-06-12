@@ -163,30 +163,32 @@ const CouponList = () => {
           onClick={handleAddCoupon}
           variant="contained"
           startIcon={<Add />}
-          sx={{ backgroundColor: "#1e1e2d" }}
-        >
+          sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }}         >
           Add Coupon
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Code</TableCell>
-              <TableCell>Vendor</TableCell>
-              <TableCell>Discount Type</TableCell>
-              <TableCell>Discount Value</TableCell>
-              <TableCell>Min Order</TableCell>
-              <TableCell>Max Discount</TableCell>
-              <TableCell>Valid From</TableCell>
-              <TableCell>Valid To</TableCell>
-              <TableCell style={{ textAlign: "center" }}>New Customer Only</TableCell>
-              <TableCell style={{ textAlign: "center" }}>Usage Limit</TableCell>
-              <TableCell>Actions</TableCell>
+      <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }} component={Paper}>
+        <Table sx={{ minWidth: 650 }}  >
+          <TableHead sx={{ backgroundColor: '#1976d2' }}>
+            <TableRow >
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Code</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Vendor</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Discount Type</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Discount Value</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Min Order</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Max Discount</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Valid From</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Valid To</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }} style={{ textAlign: "center" }}>New Customer Only</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }} style={{ textAlign: "center" }}>Usage Limit</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody     sx={{
+            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+            '&:last-child td, &:last-child th': { border: 0 },
+          }}>
             {coupons.length > 0 ? (
               coupons
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)

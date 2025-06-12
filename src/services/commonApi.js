@@ -13,10 +13,11 @@ export const commonApi = async (method, url, data, options = {}) => {
       data,
       headers,
     });
-
     return response;
   } catch (error) {
     console.error('API call failed:', error);
+    console.log(url)
+
     throw error;
   }
 };

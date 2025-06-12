@@ -12,11 +12,12 @@ import {
   Checkbox,
   IconButton,
   Pagination,
-  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
+  Backdrop
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -74,15 +75,18 @@ const OrderList = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
   const pageSize = 5;
 
   const nav = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
+      setLoading(true);
       const data = await viewOrders();
       setOrders(data);
       setFilteredOrders(data);
+      setLoading(false);
     };
     fetchOrders();
   }, []);
@@ -153,14 +157,13 @@ const OrderList = () => {
     }
   }, [activeButton, selectedDate]);
 
-  // Open confirmation dialog when Delete All button clicked
   const handleDeleteClick = () => {
     setOpenConfirmDialog(true);
   };
 
-  // Confirm deletion
   const handleConfirmDelete = async () => {
     setOpenConfirmDialog(false);
+    setLoading(true);
     const res = await deleteAllOrders();
     if (res.status === 200) {
       toast.success("All orders deleted successfully");
@@ -169,13 +172,13 @@ const OrderList = () => {
     } else {
       toast.error("Failed to delete orders");
     }
+    setLoading(false);
   };
 
-  // Cancel deletion dialog
   const handleCancelDelete = () => {
     setOpenConfirmDialog(false);
   };
-
+console.log(orders)
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" sx={{ marginBottom: 2 }}>
@@ -184,7 +187,9 @@ const OrderList = () => {
 
       <Grid container justifyContent="space-between" alignItems="center" sx={{ marginBottom: 2 }}>
         <Grid item>
-          <Typography variant="body2" color="text.secondary" gutterBottom>Dashboard &gt; Order List</Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Dashboard &gt; Order List
+          </Typography>
         </Grid>
         <Grid item>
           <Button
@@ -204,7 +209,7 @@ const OrderList = () => {
         </Grid>
       </Grid>
 
-    <Box sx={{padding:'20px'}}>
+      <Box sx={{ padding: '20px' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box
             sx={{
@@ -239,83 +244,124 @@ const OrderList = () => {
               </Button>
             ))}
           </Box>
-  
-          <DatePicker
-    label="Select Date"
-    value={selectedDate}
-    onChange={(newValue) => {
-      setSelectedDate(newValue);
-      setActiveButton('All Time');
-    }}
-    slotProps={{
-            textField: {
-              size: 'small',
-              variant: 'outlined',
-              sx: { mr: 2, backgroundColor: 'white' },
-            },
-          }}
-    maxDate={dayjs()}
-    
-  />
-  
-  
-  
-        </Box>
-    </Box>
 
-      <Table>
-        <TableHead>
+          <DatePicker
+            label="Select Date"
+            value={selectedDate}
+            onChange={(newValue) => {
+              setSelectedDate(newValue);
+              setActiveButton('All Time');
+            }}
+            slotProps={{
+              textField: {
+                size: 'small',
+                variant: 'outlined',
+                sx: { mr: 2, backgroundColor: 'white' },
+              },
+            }}
+            maxDate={dayjs()}
+          />
+        </Box>
+      </Box>
+
+      <Table
+        sx={{
+          minWidth: 650,
+          // border: '1px solid #e0e0e0',
+          borderRadius: '10px',
+          overflow: 'hidden',
+          boxShadow: 3,
+        }}
+      >
+        <TableHead sx={{ backgroundColor: '#1976d2' }}>
           <TableRow>
-            <TableCell><Checkbox /></TableCell>
-            <TableCell>Order ID</TableCell>
-            <TableCell>Product</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Customer</TableCell>
-            <TableCell>Total</TableCell>
-            <TableCell>Payment</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Action</TableCell>
+            {/* <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}><Checkbox /></TableCell> */}
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Order ID</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Product</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Date</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Customer</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Total</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Payment</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Status</TableCell>
+            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Action</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {paginatedOrders.map((order) => (
-            <TableRow key={order.id}>
-              <TableCell><Checkbox /></TableCell>
-              <TableCell>
-                <Typography color="primary" sx={{ cursor: 'pointer' }}>
+          {paginatedOrders.map((order, index) => (
+            <TableRow
+              key={order.id}
+                sx={{
+            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+            '&:last-child td, &:last-child th': { border: 0 },
+          }}
+            >
+              {/* <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}><Checkbox /></TableCell> */}
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                <Typography color="" sx={{ cursor: 'pointer' }}>
                   {order.order_id}
                 </Typography>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>
                 {order.product_details?.length > 0
                   ? order.product_details.map((p) => p.product_name).join(', ')
                   : 'N/A'}
               </TableCell>
-              <TableCell>{order.created_at || 'N/A'}</TableCell>
-              <TableCell>{order.user_name}</TableCell>
-              <TableCell>{`Rs ${order.total_amount}`}</TableCell>
-              <TableCell style={{ textTransform: 'uppercase' }}>{order.payment_method || 'N/A'}</TableCell>
-              <TableCell>
-                <Button
-                  variant="outlined"
-                  sx={{
-                    backgroundColor:
-                      order.order_status === 'processing'
-                        ? 'orange'
-                        : order.order_status === 'shipped'
-                          ? 'lightblue'
-                          : order.order_status === 'delivered'
-                            ? 'green'
-                            : 'red',
-                    color: 'white',
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {order.order_status || 'Pending'}
-                </Button>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{order.created_at || 'N/A'}</TableCell>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{order.user_name}</TableCell>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{`Rs ${order.total_amount}`}</TableCell>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0', textTransform: 'uppercase' }}>{order.payment_method || 'N/A'}</TableCell>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>
+               <Typography
+  variant="caption"
+  sx={{
+    px: 1.2,
+    py: 0.4,
+    borderRadius: '8px',
+    fontWeight: 600,
+    color:
+      order.order_status === 'processing'
+        ? '#ef6c00'
+        : order.order_status === 'shipped'
+        ? '#1565c0'
+        : order.order_status === 'out for delivery'
+        ? '#283593'
+        : order.order_status === 'delivered'
+        ? '#2e7d32'
+        : order.order_status === 'cancelled'
+        ? '#ad1457'
+        : order.order_status === 'rejected'
+        ? '#b71c1c'
+        : order.order_status === 'return'
+        ? '#6a1b9a'
+        : '#c62828',
+    backgroundColor:
+      order.order_status === 'processing'
+        ? '#ffe0b2'
+        : order.order_status === 'shipped'
+        ? '#bbdefb'
+        : order.order_status === 'out for delivery'
+        ? '#c5cae9'
+        : order.order_status === 'delivered'
+        ? '#c8e6c9'
+        : order.order_status === 'cancelled'
+        ? '#f8bbd0'
+        : order.order_status === 'rejected'
+        ? '#ffcdd2'
+        : order.order_status === 'return'
+        ? '#e1bee7'
+        : '#ffcdd2',
+    display: 'inline-block',
+    textTransform: 'capitalize',
+  }}
+>
+  {order.order_status || 'Pending'}
+</Typography>
+
               </TableCell>
-              <TableCell>
-                <IconButton onClick={() => { nav(`/order-details/${order.id}`) }}><VisibilityIcon /></IconButton>
+              <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                <IconButton color='info' onClick={() => { nav(`/order-details/${order.id}`) }}>
+                  <VisibilityIcon />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}
@@ -331,7 +377,6 @@ const OrderList = () => {
         />
       </Box>
 
-      {/* Confirmation Dialog */}
       <Dialog open={openConfirmDialog} onClose={handleCancelDelete}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -342,6 +387,13 @@ const OrderList = () => {
           <Button onClick={handleConfirmDelete} color="error" variant="contained">Delete</Button>
         </DialogActions>
       </Dialog>
+
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 };

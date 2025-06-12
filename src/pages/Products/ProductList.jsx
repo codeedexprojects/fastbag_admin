@@ -19,6 +19,8 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { Backdrop, CircularProgress } from '@mui/material';
+
 import { Delete, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { viewProducts, productsCount, deleteProduct } from '../../services/allApi';
@@ -104,31 +106,27 @@ const ProductList = () => {
         Dashboard &gt; Product List — Total Products: <b>{totalProducts}</b>
       </Typography>
 
-      {loading ? (
-        <Typography variant="body1" align="center">
-          Loading products...
-        </Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
+     
+        <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }}  component={Paper}>
+          <Table sx={{minWidth:650}}>
+            <TableHead sx={{ backgroundColor: '#1976d2' }}>
               <TableRow>
-                <TableCell padding="checkbox"><Checkbox /></TableCell>
-                <TableCell>Product</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>Subcategory</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Sizes & Stock (by Color)</TableCell>
-                <TableCell>Colors</TableCell>
-                <TableCell>Images</TableCell>
-                <TableCell>Total Stock</TableCell>
-                <TableCell>Actions</TableCell>
+                {/* <TableCell sx={{ color: 'white', fontWeight: 'bold' }} padding="checkbox"><Checkbox /></TableCell> */}
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Product</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Category</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Subcategory</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Sizes & Stock (by Color)</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Colors</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Images</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Stock</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
                 <TableRow key={product.id} hover>
-                  <TableCell padding="checkbox"><Checkbox /></TableCell>
+                  {/* <TableCell padding="checkbox"><Checkbox /></TableCell> */}
                   <TableCell>
                     <Typography fontWeight="bold">{product.name}</Typography>
                     <Typography variant="body2" color="text.secondary">{product.description}</Typography>
@@ -190,10 +188,10 @@ const ProductList = () => {
                     )) || product.total_stock || 'N/A'}
                   </TableCell>
                   <TableCell>
-                    <IconButton title="View Details" onClick={() => navigate(`/view-product/${product.id}`)}>
+                    <IconButton color='info' title="View Details" onClick={() => navigate(`/view-product/${product.id}`)}>
                       <Visibility />
                     </IconButton>
-                    <IconButton title="Delete Product" onClick={() => handleDeleteClick(product.id)}>
+                    <IconButton color='error' title="Delete Product" onClick={() => handleDeleteClick(product.id)}>
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -211,7 +209,7 @@ const ProductList = () => {
             rowsPerPageOptions={[5, 10, 25]}
           />
         </TableContainer>
-      )}
+      
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
@@ -228,6 +226,13 @@ const ProductList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+  sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+  open={loading}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Box>
   );
 };

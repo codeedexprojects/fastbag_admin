@@ -2,16 +2,26 @@ import React, { useState, useEffect } from "react";
 import {
   Box, Typography, Button, TextField, IconButton, Chip, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, TablePagination, Modal, Select, MenuItem,
-  InputLabel, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+  InputLabel, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+  CircularProgress, Backdrop,
+  InputAdornment
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Search } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { viewsubCategory, updateSubCategory, viewCategory, deleteSubCategory } from "../../services/allApi";
+import {
+  viewsubCategory,
+  updateSubCategory,
+  viewCategory,
+  deleteSubCategory
+} from "../../services/allApi";
 import { toast } from "react-toastify";
 
 const SubCategoryPage = () => {
+  const [loading, setLoading] = useState(true);
   const [subcategories, setSubCategories] = useState([]);
+  const [filteredSubCategories, setFilteredSubCategories] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -28,27 +38,30 @@ const SubCategoryPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchSubCategories = async () => {
+    const fetchData = async () => {
       try {
-        const data = await viewsubCategory();
-        setSubCategories(data);
+        const subData = await viewsubCategory();
+        const catData = await viewCategory();
+        setSubCategories(subData);
+        setCategories(catData);
+        setFilteredSubCategories(subData);
       } catch (error) {
-        console.error("Error fetching subcategories:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
-
-    const fetchCategories = async () => {
-      try {
-        const data = await viewCategory();
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchSubCategories();
-    fetchCategories();
+    fetchData();
   }, []);
+
+  // Handle Search
+  useEffect(() => {
+    const filtered = subcategories.filter((sub) =>
+      sub.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredSubCategories(filtered);
+    setPage(0); // reset to first page when searching
+  }, [searchTerm, subcategories]);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
@@ -59,7 +72,7 @@ const SubCategoryPage = () => {
   const handleAddCategory = () => navigate("/add-subcategory");
 
   const handleEditClick = (subcategory) => {
-    const matchedCategory = categories.find(cat => cat.name === subcategory.category_name);
+    const matchedCategory = categories.find((cat) => cat.name === subcategory.category_name);
     setSelectedSubCategory(subcategory);
     setFormData({
       name: subcategory.name,
@@ -119,10 +132,10 @@ const SubCategoryPage = () => {
   const handleDeleteConfirm = async () => {
     try {
       const response = await deleteSubCategory(subCategoryToDelete.id);
-
       if (response.status === 204) {
         toast.success("Subcategory deleted successfully");
-        setSubCategories(subcategories.filter((sub) => sub.id !== subCategoryToDelete.id));
+        const updatedList = subcategories.filter((sub) => sub.id !== subCategoryToDelete.id);
+        setSubCategories(updatedList);
       } else {
         toast.error("Failed to delete subcategory");
       }
@@ -135,69 +148,95 @@ const SubCategoryPage = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
+      {/* Loading Backdrop */}
+      <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
       <Typography variant="h4" sx={{ marginBottom: "20px" }}>Sub Categories</Typography>
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="body2" color="textSecondary">
-          Dashboard &gt; Sub Categories
-        </Typography>
+        {/* Search Box on the left */}
+        <TextField
+          label="Search Subcategories"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+           InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+        />
+
+        {/* Buttons on right */}
         <Box display="flex" gap={2}>
           <Button variant="outlined">Export</Button>
-          <Button variant="contained" sx={{ backgroundColor: "#1e1e2d" }} onClick={handleAddCategory}>
+          <Button variant="contained" sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" }  }} onClick={handleAddCategory}>
             + Add SubCategory
           </Button>
         </Box>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Image</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Active Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {subcategories
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((subcategory) => (
-                <TableRow key={subcategory.id}>
-                  <TableCell>
-                    <img
-                      src={subcategory.sub_category_image}
-                      alt={subcategory.name}
-                      style={{ width: 50, height: 50, borderRadius: "8px" }}
-                    />
-                  </TableCell>
-                  <TableCell>{subcategory.name}</TableCell>
-                  <TableCell>{subcategory.category_name}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={subcategory.is_active ? "Active" : "Inactive"}
-                      color={subcategory.is_active ? "success" : "default"}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleEditClick(subcategory)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton onClick={() => handleDeleteClick(subcategory)}>
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+     <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: "hidden", boxShadow: 3 }}>
+  <Table>
+    <TableHead>
+      <TableRow sx={{ backgroundColor: "#1976d2" }}>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Image</TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Category</TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Active Status</TableCell>
+        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {filteredSubCategories
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((subcategory, index) => (
+          <TableRow
+            key={subcategory.id}
+            sx={{
+              backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#ffffff",
+              "&:hover": { backgroundColor: "#f1f1f1" },
+            }}
+          >
+            <TableCell>
+              <img
+                src={subcategory.sub_category_image}
+                alt={subcategory.name}
+                style={{ width: 50, height: 50, borderRadius: "8px", objectFit: "cover" }}
+              />
+            </TableCell>
+            <TableCell>{subcategory.name}</TableCell>
+            <TableCell>{subcategory.category_name}</TableCell>
+            <TableCell>
+              <Chip
+                label={subcategory.is_active ? "Active" : "Inactive"}
+                color={subcategory.is_active ? "success" : "default"}
+                size="small"
+              />
+            </TableCell>
+            <TableCell>
+              <IconButton color="info" onClick={() => handleEditClick(subcategory)}>
+                <Edit />
+              </IconButton>
+              <IconButton color="error" onClick={() => handleDeleteClick(subcategory)}>
+                <Delete />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        ))}
+    </TableBody>
+  </Table>
+</TableContainer>
+
 
       <TablePagination
         component="div"
-        count={subcategories.length}
+        count={filteredSubCategories.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}

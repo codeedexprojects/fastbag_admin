@@ -28,6 +28,8 @@ import {
   enableDisableVendor,
   deleteVendor,
 } from "../../services/allApi";
+import { Backdrop, CircularProgress } from "@mui/material";
+
 
 const ViewVendors = () => {
   const navigate = useNavigate();
@@ -409,6 +411,13 @@ const ViewVendors = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+  sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+  open={loading}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Box>
   );
 };

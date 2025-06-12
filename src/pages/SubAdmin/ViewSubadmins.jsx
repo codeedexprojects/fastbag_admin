@@ -28,6 +28,8 @@ import {
 } from "@mui/material";
 import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { Backdrop, CircularProgress } from "@mui/material";
+
 import { viewSubadmins, editSubadmin, deleteSubadmin } from "../../services/allApi";
 
 const permissionOptions = [
@@ -45,6 +47,8 @@ const permissionOptions = [
 ];
 
 const ViewSubAdmin = () => {
+  const [loading, setLoading] = useState(false);
+
   const [subAdmins, setSubAdmins] = useState([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -54,31 +58,31 @@ const ViewSubAdmin = () => {
 
   const navigate = useNavigate();
 
-  // Fetch Sub Admins on Component Mount
-  useEffect(() => {
-    const fetchSubAdmins = async () => {
-      try {
-        const response = await viewSubadmins(); // Call the API function
-
-        // Ensure every subadmin has "Dashboard" permission by default if missing
-        const updatedResponse = response.map((subAdmin) => {
-          if (!subAdmin.permissions?.includes("Dashboard")) {
-            return {
-              ...subAdmin,
-              permissions: ["Dashboard", ...(subAdmin.permissions || [])],
-            };
-          }
-          return subAdmin;
-        });
-
-        setSubAdmins(updatedResponse); // Update state with the fetched data
-      } catch (error) {
-        console.error("Error fetching sub-admins:", error);
+ const fetchSubAdmins = async () => {
+  try {
+    setLoading(true);
+    const response = await viewSubadmins();
+    const updatedResponse = response.map((subAdmin) => {
+      if (!subAdmin.permissions?.includes("Dashboard")) {
+        return {
+          ...subAdmin,
+          permissions: ["Dashboard", ...(subAdmin.permissions || [])],
+        };
       }
-    };
+      return subAdmin;
+    });
+    setSubAdmins(updatedResponse);
+  } catch (error) {
+    console.error("Error fetching sub-admins:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    fetchSubAdmins();
-  }, []);
+useEffect(()=>{
+  fetchSubAdmins()
+},[])
+
 
   const handleAddSubAdmin = () => {
     navigate("/add-subadmin");
@@ -99,27 +103,28 @@ const ViewSubAdmin = () => {
     setEditModalOpen(true);
   };
 
-  const handleEditSave = async () => {
-    try {
-      // Ensure Dashboard is always included before saving
-      let permissionsToSave = formData.permissions.includes("Dashboard")
-        ? formData.permissions
-        : ["Dashboard", ...formData.permissions];
+ const handleEditSave = async () => {
+  try {
+    setLoading(true);
+    let permissionsToSave = formData.permissions.includes("Dashboard")
+      ? formData.permissions
+      : ["Dashboard", ...formData.permissions];
+    const reqBody = { permissions: permissionsToSave };
+    const updatedSubAdmin = await editSubadmin(reqBody, currentSubAdmin.mobile_number);
+    setSubAdmins((prev) =>
+      prev.map((subAdmin) =>
+        subAdmin.mobile_number === currentSubAdmin.mobile_number ? updatedSubAdmin : subAdmin
+      )
+    );
+    setEditModalOpen(false);
+    setCurrentSubAdmin(null);
+  } catch (error) {
+    console.error("Error updating sub-admin:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-      const reqBody = { permissions: permissionsToSave };
-      const updatedSubAdmin = await editSubadmin(reqBody, currentSubAdmin.mobile_number);
-
-      setSubAdmins((prev) =>
-        prev.map((subAdmin) =>
-          subAdmin.mobile_number === currentSubAdmin.mobile_number ? updatedSubAdmin : subAdmin
-        )
-      );
-      setEditModalOpen(false);
-      setCurrentSubAdmin(null);
-    } catch (error) {
-      console.error("Error updating sub-admin:", error);
-    }
-  };
 
   const handlePermissionAdd = () => {
     if (
@@ -149,36 +154,41 @@ const ViewSubAdmin = () => {
     setDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    try {
-      await deleteSubadmin({}, currentSubAdmin.mobile_number);
-      setSubAdmins((prev) =>
-        prev.filter((subAdmin) => subAdmin.mobile_number !== currentSubAdmin.mobile_number)
-      );
-      setDeleteModalOpen(false);
-      setCurrentSubAdmin(null);
-    } catch (error) {
-      console.error("Error deleting sub-admin:", error);
-    }
-  };
+ const handleDeleteConfirm = async () => {
+  try {
+    setLoading(true);
+    await deleteSubadmin({}, currentSubAdmin.mobile_number);
+    setSubAdmins((prev) =>
+      prev.filter((subAdmin) => subAdmin.mobile_number !== currentSubAdmin.mobile_number)
+    );
+    setDeleteModalOpen(false);
+    setCurrentSubAdmin(null);
+  } catch (error) {
+    console.error("Error deleting sub-admin:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">View Sub Admins</Typography>
-        <Button variant="contained" sx={{ backgroundColor: "#1e1e2d" }} onClick={handleAddSubAdmin}>
+        <Button variant="contained" sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }}  onClick={handleAddSubAdmin}>
           Add Sub Admin
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
+      <TableContainer   sx={{ borderRadius: 3, boxShadow:2, overflow: "hidden", mt: 3 }}
+ component={Paper}>
+        <Table  sx={{ minWidth: 650 }} >
+          <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
-              <TableCell>Mobile Number</TableCell>
-              <TableCell>Permissions</TableCell>
-              <TableCell>Is Superuser</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Mobile Number</TableCell>
+              <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Permissions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Is Superuser</TableCell>
+              <TableCell sx={{ fontWeight: "bold" ,color:"white"}} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -288,6 +298,13 @@ const ViewSubAdmin = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+  open={loading}
+  sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Container>
   );
 };

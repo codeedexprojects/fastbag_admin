@@ -25,9 +25,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 import { deleteBigBuyOrders, viewBigBuyOrders, editBigBuyOrders } from '../../services/allApi';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 const BigBuyOrders = () => {
   const [orders, setOrders] = useState([]);
+const [loading, setLoading] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editOrder, setEditOrder] = useState(null);
@@ -40,13 +44,17 @@ const BigBuyOrders = () => {
   }, []);
 
   const fetchOrders = async () => {
-    try {
-      const data = await viewBigBuyOrders();
-      setOrders(data.results);
-    } catch (error) {
-      toast.error('Failed to fetch orders.');
-    }
-  };
+  setLoading(true);
+  try {
+    const data = await viewBigBuyOrders();
+    setOrders(data.results);
+  } catch (error) {
+    toast.error('Failed to fetch orders.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -83,19 +91,23 @@ const BigBuyOrders = () => {
   };
 
   const handleEditSave = async () => {
-    try {
-      const res = await editBigBuyOrders(editOrder, editOrder.id);
-      if (res.status) {
-        toast.success('Order updated successfully!');
-        fetchOrders();
-        handleEditClose();
-      } else {
-        toast.error('Failed to update order.');
-      }
-    } catch (error) {
+  setLoading(true);
+  try {
+    const res = await editBigBuyOrders(editOrder, editOrder.id);
+    if (res.status) {
+      toast.success('Order updated successfully!');
+      fetchOrders();
+      handleEditClose();
+    } else {
       toast.error('Failed to update order.');
     }
-  };
+  } catch (error) {
+    toast.error('Failed to update order.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleDeleteClick = (order) => {
     setOrderToDelete(order);
@@ -107,20 +119,23 @@ const BigBuyOrders = () => {
     setOrderToDelete(null);
   };
 
-  const handleDeleteConfirm = async () => {
-    try {
-      const res = await deleteBigBuyOrders(orderToDelete.id);
-      if (res.status) {
-        fetchOrders();
-        toast.success('Order deleted successfully!');
-      }
-    } catch (error) {
-      toast.error('Failed to delete order.');
-    } finally {
-      setDeleteOpen(false);
-      setOrderToDelete(null);
+const handleDeleteConfirm = async () => {
+  setLoading(true);
+  try {
+    const res = await deleteBigBuyOrders(orderToDelete.id);
+    if (res.status) {
+      fetchOrders();
+      toast.success('Order deleted successfully!');
     }
-  };
+  } catch (error) {
+    toast.error('Failed to delete order.');
+  } finally {
+    setDeleteOpen(false);
+    setOrderToDelete(null);
+    setLoading(false);
+  }
+};
+
 
   return (
     <Box sx={{ p: 4, backgroundColor: '#f9fafb', minHeight: '100vh' }}>
@@ -329,6 +344,13 @@ const BigBuyOrders = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+  sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+  open={loading}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Box>
   );
 };

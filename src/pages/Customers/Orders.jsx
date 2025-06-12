@@ -102,8 +102,8 @@ const TransactionsAndOrders = () => {
         </Box>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }}component={Paper}>
+        <Table sx={{minWidth:650}}>
           <TableHead>
             <TableRow>
               <TableCell>Order ID</TableCell>
@@ -113,7 +113,10 @@ const TransactionsAndOrders = () => {
               <TableCell>Date</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody     sx={{
+            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+            '&:last-child td, &:last-child th': { border: 0 },
+          }}>
             {filteredOrders
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((order) => (
@@ -122,16 +125,32 @@ const TransactionsAndOrders = () => {
                   <TableCell>{order.user_name}</TableCell>
                   <TableCell>₹{order.total_amount}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={order.status || 'Pending'}
-                      color={
-                        order.status === 'Delivered'
-                          ? 'success'
-                          : order.status === 'Shipped'
-                          ? 'info'
-                          : 'warning'
-                      }
-                    />
+<Typography
+  variant="caption"
+  sx={{
+    px: 1.2,
+    py: 0.4,
+    borderRadius: '8px',
+    fontWeight: 600,
+    color:
+      order.status === 'Delivered'
+        ? '#2e7d32'
+        : order.status === 'Shipped'
+        ? '#1565c0'
+        : '#c62828',
+    backgroundColor:
+      order.status === 'Delivered'
+        ? '#c8e6c9'
+        : order.status === 'Shipped'
+        ? '#bbdefb'
+        : '#ffcdd2',
+    display: 'inline-block',
+  }}
+>
+  {order.status || 'Pending'}
+</Typography>
+
+
                   </TableCell>
                   <TableCell>{order.created_at}</TableCell>
                 </TableRow>

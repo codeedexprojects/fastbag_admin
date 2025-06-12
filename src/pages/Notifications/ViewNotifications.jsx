@@ -25,8 +25,12 @@ import {
   markAllRead,
   markAsRead,
 } from "../../services/allApi";
+import { Backdrop, CircularProgress } from "@mui/material";
+
 
 const NotificationPage = () => {
+  const [loading, setLoading] = useState(false);
+
   const [notificationList, setNotificationList] = useState([]);
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
@@ -34,54 +38,68 @@ const NotificationPage = () => {
   });
 
   // Fetch notifications from the API when the component mounts
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await getNotifications();
-        setNotificationList(data);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  const handleMarkAsRead = async (id) => {
+useEffect(() => {
+  const fetchNotifications = async () => {
     try {
-      await markAsRead(id);
-      setNotificationList((prev) =>
-        prev.map((notification) =>
-          notification.id === id ? { ...notification, is_read: true } : notification
-        )
-      );
+      setLoading(true);
+      const data = await getNotifications();
+      setNotificationList(data);
     } catch (error) {
-      console.error("Error marking as read:", error);
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllRead();
-      setNotificationList((prev) =>
-        prev.map((notification) => ({ ...notification, is_read: true }))
-      );
-    } catch (error) {
-      console.error("Error marking all as read:", error);
-    }
-  };
+  fetchNotifications();
+}, []);
 
-  const handleDeleteNotification = async () => {
-    try {
-      await deleteNotification(deleteDialog.id);
-      setNotificationList((prev) =>
-        prev.filter((notification) => notification.id !== deleteDialog.id)
-      );
-      setDeleteDialog({ open: false, id: null });
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-    }
-  };
+
+ const handleMarkAsRead = async (id) => {
+  try {
+    setLoading(true);
+    await markAsRead(id);
+    setNotificationList((prev) =>
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, is_read: true } : notification
+      )
+    );
+  } catch (error) {
+    console.error("Error marking as read:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleMarkAllAsRead = async () => {
+  try {
+    setLoading(true);
+    await markAllRead();
+    setNotificationList((prev) =>
+      prev.map((notification) => ({ ...notification, is_read: true }))
+    );
+  } catch (error) {
+    console.error("Error marking all as read:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleDeleteNotification = async () => {
+  try {
+    setLoading(true);
+    await deleteNotification(deleteDialog.id);
+    setNotificationList((prev) =>
+      prev.filter((notification) => notification.id !== deleteDialog.id)
+    );
+    setDeleteDialog({ open: false, id: null });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const openDeleteDialog = (id) => {
     setDeleteDialog({ open: true, id });
@@ -203,6 +221,13 @@ const NotificationPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+  open={loading}
+  sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Box>
   );
 };

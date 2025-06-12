@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    IconButton, TablePagination, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle
+    IconButton, TablePagination, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,Backdrop,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodProducts, deleteFoodProduct } from '../../services/allApi';
 import EditFoodProductModal from './EditFood';
@@ -67,7 +67,7 @@ const FoodProductList = () => {
         console.log(productToDelete)
         setDeleteModalOpen(true);
     };
-
+console.log(products)
     const handleDeleteProduct = async () => {
         try {
              console.log(productToDelete)
@@ -109,26 +109,21 @@ const FoodProductList = () => {
                 </Button>
             </Box>
 
-            {/* Loading Indicator */}
-            {loading ? (
-                <Box display="flex" justifyContent="center" my={3}>
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <TableContainer component={Paper}>
-                    <Table>
+           
+                <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }} component={Paper}>
+                    <Table sx={{minWidth:650}}>
                         {/* Table Header */}
-                        <TableHead>
+                        <TableHead  sx={{ backgroundColor: '#1976d2' }}>
                             <TableRow>
-                                <TableCell><b>Product</b></TableCell>
-                                <TableCell><b>Category</b></TableCell>
-                                <TableCell><b>Subcategory</b></TableCell>
-                                <TableCell><b>Images</b></TableCell>
-                                <TableCell><b>Price</b></TableCell>
-                                <TableCell><b>Offer Price</b></TableCell>
-                                <TableCell><b>Discount</b></TableCell>
-                                <TableCell><b>Availability</b></TableCell>
-                                <TableCell><b>Actions</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Product</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Category</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Subcategory</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Images</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Price</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Offer Price</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Discount</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Availability</b></TableCell>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Actions</b></TableCell>
                             </TableRow>
                         </TableHead>
 
@@ -171,10 +166,13 @@ const FoodProductList = () => {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <IconButton onClick={() => handleEditClick(product)}>
-                                                <Edit />
+                                            <IconButton color='info' onClick={()=>{navigate(`/view-foodproduct/${product.id}`)}}>
+                                                <Visibility />
                                             </IconButton>
-                                            <IconButton onClick={() => handleDeleteClick(product)}>
+                                            {/* <IconButton onClick={() => handleEditClick(product)}>
+                                                <Edit />
+                                            </IconButton> */}
+                                            <IconButton color='error' onClick={() => handleDeleteClick(product)}>
                                                 <Delete />
                                             </IconButton>
                                         </TableCell>
@@ -193,15 +191,15 @@ const FoodProductList = () => {
                         onRowsPerPageChange={handleChangeRowsPerPage}
                     />
                 </TableContainer>
-            )}
+            
 
             {/* Edit Product Modal */}
-            <EditFoodProductModal
+            {/* <EditFoodProductModal
                 open={isEditModalOpen}
                 onClose={() => setEditModalOpen(false)}
                 productData={selectedProduct}
                 onSave={handleSaveProduct}
-            />
+            /> */}
 
             {/* Delete Confirmation Modal */}
             <Dialog
@@ -224,6 +222,12 @@ const FoodProductList = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+            <Backdrop
+  sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+  open={loading}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
         </Box>
     );
 };
