@@ -133,29 +133,29 @@ const GroceryProductList = () => {
           variant="contained"
 
           onClick={handleAddProduct}
-                  sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }}      >
+                  sx={{ backgroundColor: "#1E1E2D", "&:hover": { backgroundColor: "#333" },boxShadow:3 }}      >
           + Add Product
         </Button>
       </Box>
 
 
-      <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }} component={Paper}>
+      <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }} component={Paper}>
         <Table sx={{ minWidth: 650 }}>
           {/* Table Header */}
-          <TableHead sx={{ backgroundColor: '#1976d2' }}>
+          <TableHead sx={{ backgroundColor: '' }}>
             <TableRow>
               {/* <TableCell>
                   <Checkbox />
                 </TableCell> */}
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Product</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Category</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Subcategory</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Images</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Weight Details</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Price</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Offer Price</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Stock Status</b></TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}><b>Actions</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Product</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Category</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Subcategory</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Images</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Weight Details</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Price</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Offer Price</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Stock Status</b></TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}><b>Actions</b></TableCell>
             </TableRow>
           </TableHead>
 
@@ -164,7 +164,7 @@ const GroceryProductList = () => {
             {products
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((product) => (
-                <TableRow key={product.id}>
+                <TableRow hover key={product.id}>
                   {/* <TableCell>
                       <Checkbox />
                     </TableCell> */}

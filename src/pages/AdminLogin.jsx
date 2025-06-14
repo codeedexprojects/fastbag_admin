@@ -27,7 +27,7 @@ function LoginPage() {
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
       localStorage.setItem('user_id', response.user_id);
-      localStorage.setItem('role', role); // 'admin' or 'subadmin'
+      localStorage.setItem('role', role); 
 
       if (role === 'subadmin' && response.permissions) {
         localStorage.setItem('permissions', JSON.stringify(response.permissions));
@@ -35,7 +35,6 @@ function LoginPage() {
 
       toast.success(`${role === 'admin' ? 'Admin' : 'Sub-Admin'} login successful!`);
 
-      // Wait a bit so toast can show before navigating
       
         navigate('/dash');
      

@@ -107,20 +107,20 @@ const ProductList = () => {
       </Typography>
 
      
-        <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }}  component={Paper}>
+        <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }}  component={Paper}>
           <Table sx={{minWidth:650}}>
-            <TableHead sx={{ backgroundColor: '#1976d2' }}>
+            <TableHead sx={{ backgroundColor: '' }}>
               <TableRow>
                 {/* <TableCell sx={{ color: 'white', fontWeight: 'bold' }} padding="checkbox"><Checkbox /></TableCell> */}
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Product</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Category</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Subcategory</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Sizes & Stock (by Color)</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Colors</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Images</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Total Stock</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Product</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Category</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Subcategory</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Price</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Sizes & Stock (by Color)</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Colors</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Images</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Total Stock</TableCell>
+                <TableCell sx={{  fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

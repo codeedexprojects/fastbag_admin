@@ -196,22 +196,20 @@ const CustomersList = () => {
         </FormControl>
       </Box>
 
-      <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }} component={Paper}>
+      <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }} component={Paper}>
         <Table sx={{minWidth:650}}>
-          <TableHead sx={{ backgroundColor: '#1976d2' }}>
+          <TableHead sx={{ backgroundColor: '' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold',color:'white' }}>Customer Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold',color:'white' }}>Email</TableCell>
-              <TableCell sx={{ fontWeight: 'bold',color:'white' }}>Phone</TableCell>
-              <TableCell sx={{ fontWeight: 'bold',color:'white' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold',color:'white' }}>Joined Date</TableCell>
-              <TableCell sx={{ fontWeight: 'bold',color:'white' }}>Action</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Customer Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Phone</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Joined Date</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Action</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody    sx={{
-            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-            '&:last-child td, &:last-child th': { border: 0 },
-          }}>
+          <TableBody   
+          >
             {paginatedUsers.map((user, index) => (
               <TableRow key={user.id} hover sx={{ backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa' }}>
                 <TableCell>{highlightMatch(user.name || '', searchTerm)}</TableCell>

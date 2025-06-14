@@ -155,22 +155,22 @@ const CategoryPage = () => {
               ),
             }}
           />
-          <Button variant="contained" sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }} onClick={handleAddCategory}>
+          <Button variant="contained" sx={{ backgroundColor: "#1e1e2d", "&:hover": { backgroundColor: "#333" } ,boxShadow:3}} onClick={handleAddCategory}>
             + Add Category
           </Button>
         </Box>
 <TableContainer
   component={Paper}
   elevation={3}
-  sx={{ borderRadius: 3, boxShadow:3, overflow: "hidden", mt: 3 }}
+  sx={{ borderRadius: 1, boxShadow:10, overflow: "hidden", mt: 3 }}
 >
   <Table sx={{ minWidth: 650 }} aria-label="category table">
-    <TableHead sx={{ backgroundColor: "#1976d2" }}>
+    <TableHead sx={{ backgroundColor: "" }}>
       <TableRow >
-        <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Image</TableCell>
-        <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Category Name</TableCell>
-        <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Store</TableCell>
-        <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Actions</TableCell>
+        <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
+        <TableCell sx={{ fontWeight: "bold" }}>Category Name</TableCell>
+        <TableCell sx={{ fontWeight: "bold" }}>Store</TableCell>
+        <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
       </TableRow>
     </TableHead>
     <TableBody>
@@ -180,10 +180,7 @@ const CategoryPage = () => {
           .map((category, index) => (
             <TableRow
               key={category.id}
-                 sx={{
-            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-            '&:last-child td, &:last-child th': { border: 0 },
-          }}
+                hover
             >
               <TableCell>
                 <img

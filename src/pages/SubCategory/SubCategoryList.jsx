@@ -174,22 +174,22 @@ const SubCategoryPage = () => {
 
         {/* Buttons on right */}
         <Box display="flex" gap={2}>
-          <Button variant="outlined">Export</Button>
-          <Button variant="contained" sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" }  }} onClick={handleAddCategory}>
+          <Button variant="outlined" >Export</Button>
+          <Button variant="contained" sx={{ backgroundColor: "#1e1e2d", "&:hover": { backgroundColor: "#333" } ,boxShadow:3 }} onClick={handleAddCategory}>
             + Add SubCategory
           </Button>
         </Box>
       </Box>
 
-     <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: "hidden", boxShadow: 3 }}>
+     <TableContainer component={Paper} sx={{ borderRadius: 1, overflow: "hidden", boxShadow: 10 }}>
   <Table>
     <TableHead>
-      <TableRow sx={{ backgroundColor: "#1976d2" }}>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Image</TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Category</TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Active Status</TableCell>
-        <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
+      <TableRow sx={{ backgroundColor: "" }}>
+        <TableCell sx={{  fontWeight: "bold" }}>Image</TableCell>
+        <TableCell sx={{  fontWeight: "bold" }}>Name</TableCell>
+        <TableCell sx={{  fontWeight: "bold" }}>Category</TableCell>
+        <TableCell sx={{  fontWeight: "bold" }}>Active Status</TableCell>
+        <TableCell sx={{  fontWeight: "bold" }}>Actions</TableCell>
       </TableRow>
     </TableHead>
     <TableBody>

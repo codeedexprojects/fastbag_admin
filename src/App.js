@@ -47,10 +47,9 @@ const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isLoggedIn = localStorage.getItem('access_token'); // or whatever key you're using
+  const isLoggedIn = localStorage.getItem('access_token'); 
   const isLoginPage = location.pathname === '/admin-login';
 
-  // 🔁 Redirect on initial load
   useEffect(() => {
     if (!isLoggedIn && !isLoginPage) {
       navigate('/admin-login');
@@ -110,7 +109,6 @@ const App = () => {
               </>
             )}
 
-            {/* Fallback: Not Found or Unauthorized */}
             <Route path="*" element={<Navigate to={isLoggedIn ? "/" : "/admin-login"} />} />
           </Routes>
 
@@ -132,7 +130,6 @@ const App = () => {
   );
 };
 
-// Styles
 const appStyle = {
   display: 'flex',
   height: '100vh',

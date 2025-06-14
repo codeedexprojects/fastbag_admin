@@ -13,6 +13,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
@@ -39,6 +41,7 @@ export default function ProductDetails() {
   const [newImages, setNewImages] = useState([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [imageToDeleteConfirm, setImageToDeleteConfirm] = useState(null);
+  const [backdropOpen, setBackdropOpen] = useState(false); // Backdrop state
 
   useEffect(() => {
     fetchProduct();
@@ -58,6 +61,7 @@ export default function ProductDetails() {
 
   const handleDelete = async () => {
     try {
+      setBackdropOpen(true);
       const res = await deleteProduct(productId);
       setDeleteDialogOpen(false);
       if (res.status === 204) {
@@ -68,6 +72,8 @@ export default function ProductDetails() {
       }
     } catch {
       toast.error("Delete error");
+    } finally {
+      setBackdropOpen(false);
     }
   };
 
@@ -79,6 +85,7 @@ export default function ProductDetails() {
     if (!imageToDeleteConfirm) return;
 
     try {
+      setBackdropOpen(true);
       const res = await deleteProductImage(imageToDeleteConfirm.id);
       if (res.status === 204 || res.status === 200) {
         toast.success("Image deleted");
@@ -94,6 +101,7 @@ export default function ProductDetails() {
     } finally {
       setConfirmDeleteOpen(false);
       setImageToDeleteConfirm(null);
+      setBackdropOpen(false);
     }
   };
 
@@ -120,15 +128,14 @@ export default function ProductDetails() {
 
     const reqBody = new FormData();
     const clothingId = product?.images?.[0]?.clothing || product?.id;
-
     reqBody.append("clothing", clothingId);
     newImages.forEach((file) => {
       reqBody.append("image", file);
     });
 
     try {
+      setBackdropOpen(true);
       const res = await addImage_fashion(reqBody);
-      console.log(res)
       if (res.status === 200 || res.status === 201) {
         toast.success("Images uploaded successfully");
         await fetchProduct();
@@ -140,10 +147,23 @@ export default function ProductDetails() {
     } catch (err) {
       console.error("Upload error:", err);
       toast.error("Error uploading images");
+    } finally {
+      setBackdropOpen(false);
     }
   };
 
-  if (loading) return <Typography align="center">Loading...</Typography>;
+if (loading) {
+  return (
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      height="60vh"
+    >
+      <CircularProgress />
+    </Box>
+  );
+}
   if (!product) return <Typography align="center">Product not found</Typography>;
 
   return (
@@ -174,8 +194,7 @@ export default function ProductDetails() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={7}>
-          {[
-            ["Category", product.category],
+          {[["Category", product.category],
             ["Subcategory", product.subcategory],
             ["Store Type", product.store_type],
             ["Material", product.material],
@@ -186,12 +205,11 @@ export default function ProductDetails() {
             ["Total Stock", product.total_stock],
             ["Status", product.is_active ? "Active" : "Inactive"],
             ["Created At", product.created_at],
-            ["Updated At", product.updated_at],
-          ].map(([label, value]) => (
-            <Typography key={label} variant="body1">
-              <strong>{label}:</strong> {value || "N/A"}
-            </Typography>
-          ))}
+            ["Updated At", product.updated_at]].map(([label, value]) => (
+              <Typography key={label} variant="body1">
+                <strong>{label}:</strong> {value || "N/A"}
+              </Typography>
+            ))}
         </Grid>
 
         <Grid item xs={12} md={5} sx={{ position: "relative" }}>
@@ -243,9 +261,7 @@ export default function ProductDetails() {
       </Grid>
 
       <Box mt={4}>
-        <Typography variant="h6" gutterBottom>
-          Colors & Sizes
-        </Typography>
+        <Typography variant="h6" gutterBottom>Colors & Sizes</Typography>
         {product.colors?.map((color, idx) => (
           <Box key={idx} p={1} mb={1} border="1px solid #ddd" borderRadius={1}>
             <Box display="flex" alignItems="center" mb={1}>
@@ -275,7 +291,6 @@ export default function ProductDetails() {
         ))}
       </Box>
 
-      {/* Delete Product Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Delete Product?</DialogTitle>
         <DialogContent>
@@ -289,15 +304,14 @@ export default function ProductDetails() {
         </DialogActions>
       </Dialog>
 
-      {/* Edit Product Modal */}
       <EditProductModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
         product={product}
         onSave={handleSave}
+        onUpdated={fetchProduct}
       />
 
-      {/* Edit Images Modal */}
       <Dialog open={editImagesOpen} onClose={() => setEditImagesOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Edit Images</DialogTitle>
         <DialogContent dividers>
@@ -328,7 +342,6 @@ export default function ProductDetails() {
           </Grid>
 
           <Divider sx={{ my: 3 }} />
-
           <Typography variant="subtitle1" gutterBottom>Add New Images</Typography>
           <Button variant="contained" component="label" sx={{ mb: 2 }}>
             Upload Images
@@ -376,7 +389,6 @@ export default function ProductDetails() {
         </DialogActions>
       </Dialog>
 
-      {/* Confirm Delete Image Dialog */}
       <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
         <DialogTitle>Delete Image?</DialogTitle>
         <DialogContent>
@@ -396,6 +408,13 @@ export default function ProductDetails() {
           <Button color="error" onClick={confirmDeleteExistingImage}>Delete</Button>
         </DialogActions>
       </Dialog>
+
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={backdropOpen}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 }

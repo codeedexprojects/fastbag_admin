@@ -268,32 +268,30 @@ console.log(orders)
         sx={{
           minWidth: 650,
           // border: '1px solid #e0e0e0',
-          borderRadius: '10px',
+          borderRadius:1,
           overflow: 'hidden',
-          boxShadow: 3,
+          boxShadow: 10,
         }}
       >
-        <TableHead sx={{ backgroundColor: '#1976d2' }}>
+        <TableHead sx={{ backgroundColor: '' }}>
           <TableRow>
             {/* <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}><Checkbox /></TableCell> */}
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Order ID</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Product</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Date</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Customer</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Total</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Payment</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Status</TableCell>
-            <TableCell sx={{ fontWeight: 'bold',color:'white', borderBottom: '1px solid #e0e0e0' }}>Action</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Order ID</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Product</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Date</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Customer</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Total</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Payment</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Status</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Action</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {paginatedOrders.map((order, index) => (
             <TableRow
               key={order.id}
-                sx={{
-            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-            '&:last-child td, &:last-child th': { border: 0 },
-          }}
+                
+         hover
             >
               {/* <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}><Checkbox /></TableCell> */}
               <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>

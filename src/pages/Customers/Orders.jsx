@@ -102,7 +102,7 @@ const TransactionsAndOrders = () => {
         </Box>
       </Box>
 
-      <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }}component={Paper}>
+      <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }}component={Paper}>
         <Table sx={{minWidth:650}}>
           <TableHead>
             <TableRow>

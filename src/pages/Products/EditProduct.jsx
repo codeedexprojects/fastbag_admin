@@ -27,6 +27,7 @@ import {
   updateFashionProduct,
   updateProduct,
 } from "../../services/allApi";
+import { toast } from "react-toastify";
 
 const Input = styled("input")({
   display: "none",
@@ -73,9 +74,9 @@ function EditFashionProductModal({ product, open, onClose, onUpdated }) {
       fetchData();
     }
   }, [open]);
+  
 
   useEffect(() => {
-    // When product prop changes (modal opens), set form data
     if (product) {
       setFormData({
         vendor: product.vendor || "",
@@ -157,26 +158,11 @@ function EditFashionProductModal({ product, open, onClose, onUpdated }) {
     ? subcategories.filter((sc) => sc.category_name === selectedCategory.name)
     : [];
 
- const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    const form = new FormData();
-
-    // Append all primitive fields
-    form.append("vendor", formData.vendor);
-    form.append("category_id", formData.category_id);
-    form.append("subcategory_id", formData.subcategory_id);
-    form.append("name", formData.name);
-    form.append("description", formData.description);
-    form.append("gender", formData.gender);
-    form.append("wholesale_price", formData.wholesale_price);
-    form.append("price", formData.price);
-    form.append("discount", formData.discount);
-    form.append("material", formData.material);
-    form.append("is_active", formData.is_active);
-
-    // Clean and append colors as JSON string
+    // Clean and structure colors
     const cleanedColors = formData.colors.map((color) => ({
       color_name: color.color_name,
       color_code: color.color_code,
@@ -195,19 +181,33 @@ function EditFashionProductModal({ product, open, onClose, onUpdated }) {
         })),
     }));
 
-    form.append("colors", JSON.stringify(cleanedColors));
+    // Construct JSON payload
+    const payload = {
+      vendor: formData.vendor,
+      category_id: formData.category_id,
+      subcategory_id: formData.subcategory_id,
+      name: formData.name,
+      description: formData.description,
+      gender: formData.gender,
+      wholesale_price: formData.wholesale_price,
+      price: formData.price,
+      discount: formData.discount,
+      material: formData.material,
+      is_active: formData.is_active,
+      colors: cleanedColors,
+    };
 
-    console.log(JSON.stringify(cleanedColors))
-    // Submit via API
-    const res = await updateProduct(product.id, form);
-     console.log("Update response:", res);
+    // Submit via API with JSON
+    const res = await updateProduct(product.id, payload);
 
-    alert("Product updated successfully!");
+    console.log("Update response:", res);
+    toast.success("Product updated successfully!");
     if (onUpdated) onUpdated();
     onClose();
+onUpdated()
   } catch (err) {
     console.error("Update error:", err);
-    alert("Failed to update product.");
+    toast.error("Failed to update product.");
   }
 };
 

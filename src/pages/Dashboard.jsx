@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Grid, IconButton,
-  Checkbox, Badge, Table, TableBody, TableCell, TableContainer,
+  Badge, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TablePagination, Paper
 } from '@mui/material';
 import {
@@ -9,7 +9,6 @@ import {
 } from '@mui/icons-material';
 import { Line } from 'react-chartjs-2';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
 import {
   Chart as ChartJS, LineElement, CategoryScale, LinearScale,
   PointElement, Legend, Tooltip
@@ -25,13 +24,12 @@ import { useNavigate } from 'react-router-dom';
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip);
 
 const Dashboard = () => {
-  const nav=useNavigate()  
+  const nav = useNavigate();
   const filterOptions = ['All Time', '12 Months', '30 Days', '7 Days', '24 Hour'];
 
   const [activeButton, setActiveButton] = useState('All Time');
   const [selectedDate, setSelectedDate] = useState('');
   const [isCustomDateSelected, setIsCustomDateSelected] = useState(false);
-
   const [graphData, setGraphData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [productsAndVendors, setProductsAndVendors] = useState([]);
@@ -57,28 +55,18 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const keyMap = {
-          'All Time': 'all_time',
-          '12 Months': 'last_12_months',
-          '30 Days': 'last_30_days',
-          '7 Days': 'last_7_days',
-          '24 Hour': 'last_24_hours',
-        };
-
-
-        const [graph, sales, stats, orders,productAndVendors] = await Promise.all([
+        const [graph, sales, stats, orders, productAndVendors] = await Promise.all([
           getGraphData(),
           getSalesProgress(),
-          getStatsOverview(selectedDate), 
+          getStatsOverview(selectedDate),
           viewOrders(),
           getProduct_Vendor_Count()
         ]);
-
         setGraphData(graph);
         setSalesProgress(sales);
         setStatsOverview(stats);
         setRecentOrders(orders);
-        setProductsAndVendors(productAndVendors)
+        setProductsAndVendors(productAndVendors);
       } catch (error) {
         console.error("Error fetching dashboard data", error);
       }
@@ -87,7 +75,6 @@ const Dashboard = () => {
     fetchAllData();
   }, [activeButton, selectedDate, isCustomDateSelected]);
 
-  // Determine which stats to show
   const currentStats = (() => {
     if (isCustomDateSelected && selectedDate) {
       return statsOverview.selected_date || { orders: 0, revenue: 0 };
@@ -127,13 +114,25 @@ const Dashboard = () => {
   return (
     <Box sx={{ padding: '20px' }}>
       {/* Filter Buttons + Date Picker */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          flexWrap: 'wrap',
+          gap: 2,
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          mb: 2,
+        }}
+      >
         <Box sx={{
           display: 'flex',
+          flexWrap: 'wrap',
           p: 1,
           border: '1px solid #ddd',
           borderRadius: '8px',
           backgroundColor: '#f9fafb',
+          gap: 1
         }}>
           {filterOptions.map((option) => (
             <Button
@@ -141,10 +140,9 @@ const Dashboard = () => {
               variant="outlined"
               onClick={() => {
                 setActiveButton(option);
-                setIsCustomDateSelected(false);  // Reset custom date when toggling filter
+                setIsCustomDateSelected(false);
               }}
               sx={{
-                mr: 1,
                 borderColor: activeButton === option ? '#1e1e2d' : 'transparent',
                 color: activeButton === option ? '#1e1e2d' : '#000',
                 backgroundColor: activeButton === option ? '#e0e7ff' : 'transparent',
@@ -174,7 +172,7 @@ const Dashboard = () => {
             textField: {
               size: 'small',
               variant: 'outlined',
-              sx: { mr: 2, backgroundColor: 'white' },
+              sx: { backgroundColor: 'white' },
             },
           }}
         />
@@ -183,200 +181,156 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <AttachMoney sx={{ fontSize: 40, color: '#4f46e5' }} />
-                <Badge color="success" />
-              </Box>
-              <Typography variant="h6">Total Revenue</Typography>
-              <Typography variant="h5">₹{currentStats?.revenue?.toFixed(2) || '0.00'}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Box display="flex" justifyContent="space-between">
+              <AttachMoney sx={{ fontSize: 40, color: '#4f46e5' }} />
+              <Badge color="success" />
+            </Box>
+            <Typography variant="h6">Total Revenue</Typography>
+            <Typography variant="h5">₹{currentStats?.revenue?.toFixed(2) || '0.00'}</Typography>
+          </CardContent></Card>
         </Grid>
-
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <ShoppingCart sx={{ fontSize: 40, color: '#16a34a' }} />
-                <Badge color="success" />
-              </Box>
-              <Typography variant="h6">Total Sales</Typography>
-              <Typography variant="h5">{currentStats?.orders || 0}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Box display="flex" justifyContent="space-between">
+              <ShoppingCart sx={{ fontSize: 40, color: '#16a34a' }} />
+              <Badge color="success" />
+            </Box>
+            <Typography variant="h6">Total Sales</Typography>
+            <Typography variant="h5">{currentStats?.orders || 0}</Typography>
+          </CardContent></Card>
         </Grid>
-
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Inventory sx={{ fontSize: 40, color: '#f97316' }} />
-                <Badge badgeContent={0} color="secondary" />
-              </Box>
-              <Typography variant="h6">Total Products</Typography>
-              <Typography variant="h5">{productsAndVendors.total_products}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Box display="flex" justifyContent="space-between">
+              <Inventory sx={{ fontSize: 40, color: '#f97316' }} />
+              <Badge badgeContent={0} color="secondary" />
+            </Box>
+            <Typography variant="h6">Total Products</Typography>
+            <Typography variant="h5">{productsAndVendors.total_products}</Typography>
+          </CardContent></Card>
         </Grid>
-
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <AccountBalanceWallet sx={{ fontSize: 40, color: '#ef4444' }} />
-                <Badge color="error" />
-              </Box>
-              <Typography variant="h6">Total Vendors</Typography>
-              <Typography variant="h5">{productsAndVendors.vendors}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Box display="flex" justifyContent="space-between">
+              <AccountBalanceWallet sx={{ fontSize: 40, color: '#ef4444' }} />
+              <Badge color="error" />
+            </Box>
+            <Typography variant="h6">Total Vendors</Typography>
+            <Typography variant="h5">{productsAndVendors.vendors}</Typography>
+          </CardContent></Card>
         </Grid>
 
-        {/* Sales Progress */}
         <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h6">Sales Progress</Typography>
-              </Box>
-              <Typography variant="h4" sx={{ mt: 2 }}>
-                {salesProgress?.percentage_change?.toFixed(2) || 0}%
+          <Card><CardContent>
+            <Typography variant="h6">Sales Progress</Typography>
+            <Typography variant="h4" sx={{ mt: 2 }}>
+              {salesProgress?.percentage_change?.toFixed(2) || 0}%
+            </Typography>
+            {salesProgress.today_revenue > salesProgress.yesterday_revenue ? (
+              <Typography color="green">
+                You earned ₹{salesProgress.today_revenue} today, higher than yesterday
               </Typography>
-              {salesProgress.today_revenue > salesProgress.yesterday_revenue ? (
-                <Typography color="green">
-                  You earned ₹{salesProgress.today_revenue} today, higher than yesterday
-                </Typography>
-              ) : salesProgress.today_revenue < salesProgress.yesterday_revenue ? (
-                <Typography color="error">
-                  Revenue dropped to ₹{salesProgress.today_revenue} today, lower than yesterday
-                </Typography>
-              ) : (
-                <Typography color="text.secondary">
-                  Same as yesterday: ₹{salesProgress.today_revenue}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+            ) : salesProgress.today_revenue < salesProgress.yesterday_revenue ? (
+              <Typography color="error">
+                Revenue dropped to ₹{salesProgress.today_revenue} today, lower than yesterday
+              </Typography>
+            ) : (
+              <Typography color="text.secondary">
+                Same as yesterday: ₹{salesProgress.today_revenue}
+              </Typography>
+            )}
+          </CardContent></Card>
         </Grid>
 
-        {/* Line Chart */}
         <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Statistics</Typography>
-              <Box sx={{ height: '250px' }}>
-                <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
-              </Box>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Typography variant="h6">Statistics</Typography>
+            <Box sx={{ height: { xs: '200px', sm: '250px' } }}>
+              <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </Box>
+          </CardContent></Card>
         </Grid>
       </Grid>
 
       {/* Recent Orders Table */}
       <Box sx={{ mt: 5 }}>
-        <Card>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="h6">Recent Orders</Typography>
-            </Box>
-
-            <TableContainer  component={Paper} sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }}>
-              <Table sx={{minWidth:650}}>
-                <TableHead sx={{ backgroundColor: '#1976d2' }}>
-                  <TableRow>
-                    {/* <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}><Checkbox /></TableCell> */}
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Order ID</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Product</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Date</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Customer</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Total</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Payment</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
-                    <TableCell  sx={{ color: 'white', fontWeight: 'bold' }}>Action</TableCell>
+        <Card><CardContent>
+          <Typography variant="h6">Recent Orders</Typography>
+          <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 3, overflowX: "auto", mt: 3 }}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead sx={{ backgroundColor: '' }}>
+                <TableRow>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Order ID</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Product</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Date</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Customer</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Total</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Payment</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell sx={{  fontWeight: 'bold' }}>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
+                  <TableRow hover key={index}>
+                    <TableCell><Button>{order.order_id}</Button></TableCell>
+                    <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
+                    <TableCell>{order.created_at}</TableCell>
+                    <TableCell>{order.user_name}</TableCell>
+                    <TableCell>₹{order.final_amount}</TableCell>
+                    <TableCell>{order.payment_method}</TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          px: 1.2, py: 0.4, borderRadius: '8px', fontWeight: 600,
+                          color: getStatusColor(order.order_status).color,
+                          backgroundColor: getStatusColor(order.order_status).bg,
+                          display: 'inline-block',
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {order.order_status || 'Pending'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <IconButton color='info' onClick={() => nav(`/order-details/${order.id}`)}>
+                        <VisibilityIcon />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
-                    <TableRow key={index}>
-                      {/* <TableCell><Checkbox /></TableCell> */}
-                      <TableCell><Button>{order.order_id}</Button></TableCell>
-                      <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
-                      <TableCell>{order.created_at}</TableCell>
-                      <TableCell>{order.user_name}</TableCell>
-                      <TableCell>₹{order.final_amount}</TableCell>
-                      <TableCell>{order.payment_method}</TableCell>
-                  <TableCell>
-  <Typography
-    variant="caption"
-    sx={{
-      px: 1.2,
-      py: 0.4,
-      borderRadius: '8px',
-      fontWeight: 600,
-      color:
-        order.order_status === 'processing'
-          ? '#ef6c00'
-          : order.order_status === 'shipped'
-          ? '#1565c0'
-          : order.order_status === 'out for delivery'
-          ? '#283593'
-          : order.order_status === 'delivered'
-          ? '#2e7d32'
-          : order.order_status === 'cancelled'
-          ? '#ad1457'
-          : order.order_status === 'rejected'
-          ? '#b71c1c'
-          : order.order_status === 'return'
-          ? '#6a1b9a'
-          : '#c62828',
-      backgroundColor:
-        order.order_status === 'processing'
-          ? '#ffe0b2'
-          : order.order_status === 'shipped'
-          ? '#bbdefb'
-          : order.order_status === 'out for delivery'
-          ? '#c5cae9'
-          : order.order_status === 'delivered'
-          ? '#c8e6c9'
-          : order.order_status === 'cancelled'
-          ? '#f8bbd0'
-          : order.order_status === 'rejected'
-          ? '#ffcdd2'
-          : order.order_status === 'return'
-          ? '#e1bee7'
-          : '#ffcdd2',
-      display: 'inline-block',
-      textTransform: 'capitalize',
-    }}
-  >
-    {order.order_status || 'Pending'}
-  </Typography>
-</TableCell>
-
-                      <TableCell>
-                        <IconButton color='info' onClick={() => { nav(`/order-details/${order.id}`) }}><VisibilityIcon /></IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              component="div"
-              count={recentOrders.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 15]}
-            />
-          </CardContent>
-        </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={recentOrders.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 15]}
+          />
+        </CardContent></Card>
       </Box>
     </Box>
   );
+};
+
+const getStatusColor = (status) => {
+  const map = {
+    processing: { color: '#ef6c00', bg: '#ffe0b2' },
+    shipped: { color: '#1565c0', bg: '#bbdefb' },
+    'out for delivery': { color: '#283593', bg: '#c5cae9' },
+    delivered: { color: '#2e7d32', bg: '#c8e6c9' },
+    cancelled: { color: '#ad1457', bg: '#f8bbd0' },
+    rejected: { color: '#b71c1c', bg: '#ffcdd2' },
+    return: { color: '#6a1b9a', bg: '#e1bee7' },
+    default: { color: '#c62828', bg: '#ffcdd2' }
+  };
+  return map[status] || map.default;
 };
 
 export default Dashboard;

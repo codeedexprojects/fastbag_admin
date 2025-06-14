@@ -21,7 +21,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import { Edit, Delete, Add } from "@mui/icons-material";
+import { Edit, Delete, Add, BorderColor } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { viewCoupons, editCoupons, deleteCoupon } from "../../services/allApi";
 import { toast } from "react-toastify";
@@ -163,37 +163,34 @@ const CouponList = () => {
           onClick={handleAddCoupon}
           variant="contained"
           startIcon={<Add />}
-          sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }}         >
+          sx={{ backgroundColor: "#2A2A40", "&:hover": { backgroundColor: "#333" } ,boxShadow:10}}         >
           Add Coupon
         </Button>
       </Box>
 
-      <TableContainer sx={{ borderRadius: 3, boxShadow: 3, overflow: "hidden", mt: 3 }} component={Paper}>
+      <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }} component={Paper}>
         <Table sx={{ minWidth: 650 }}  >
-          <TableHead sx={{ backgroundColor: '#1976d2' }}>
+          <TableHead >
             <TableRow >
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Code</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Vendor</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Discount Type</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Discount Value</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Min Order</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Max Discount</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Valid From</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Valid To</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }} style={{ textAlign: "center" }}>New Customer Only</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }} style={{ textAlign: "center" }}>Usage Limit</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Code</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Vendor</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Discount Type</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Discount Value</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Min Order</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Max Discount</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Valid From</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Valid To</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }} style={{ textAlign: "center" }}>New Customer Only</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }} style={{ textAlign: "center" }}>Usage Limit</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody     sx={{
-            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-            '&:last-child td, &:last-child th': { border: 0 },
-          }}>
+          <TableBody    >
             {coupons.length > 0 ? (
               coupons
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((coupon) => (
-                  <TableRow key={coupon.id}>
+                  <TableRow hover   key={coupon.id}>
                     <TableCell>{coupon.code}</TableCell>
                     <TableCell>{coupon.vendor_name || "N/A"}</TableCell>
                     <TableCell>

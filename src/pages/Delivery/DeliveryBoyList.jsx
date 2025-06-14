@@ -145,15 +145,15 @@ const DeliveryBoyList = () => {
         <Button variant="contained"    sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }}    onClick={() => setOpen(true)}>Add Delivery Boy</Button>
       </Box>
 
-     <TableContainer component={Paper} elevation={4} sx={{ borderRadius: 3 }}>
+     <TableContainer component={Paper}  sx={{ borderRadius: 1,boxShadow:10 }}>
   <Table>
-    <TableHead sx={{ backgroundColor: '#1976d2' }}>
+    <TableHead sx={{ backgroundColor: '' }}>
       <TableRow>
         {[
           'Name', 'Mobile', 'Email', 'Vehicle', 'Vehicle Type',
           'Gender', 'DOB', 'Status', 'Actions'
         ].map((header) => (
-          <TableCell key={header} sx={{ color: '#fff', fontWeight: 'bold' }}>
+          <TableCell key={header} sx={{  fontWeight: 'bold' }}>
             {header}
           </TableCell>
         ))}
