@@ -189,6 +189,7 @@ useEffect(() => {
             <MenuItem value="return">Return</MenuItem>
             <MenuItem value="shipped">Shipped</MenuItem>
             <MenuItem value="rejected">Rejected</MenuItem>
+            <MenuItem value="delivered">Delivered</MenuItem>
           </Select>
           <Button variant="outlined" onClick={handleExportCSV}>Export</Button>
           <Button variant="contained" color="primary" onClick={handleGenerateInvoice}>

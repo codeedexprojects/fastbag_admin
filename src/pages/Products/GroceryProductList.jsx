@@ -72,7 +72,7 @@ const GroceryProductList = () => {
     );
     setProducts(updatedProducts);
   };
-
+console.log(products)
   const handleDeleteClick = (product) => {
     console.log('Product to delete:', product); // Check product data
     if (!product.id) {
@@ -107,6 +107,7 @@ const GroceryProductList = () => {
       setLoading(false); // <-- End loading
     }
   };
+
 
 
 
@@ -151,7 +152,7 @@ const GroceryProductList = () => {
               <TableCell sx={{  fontWeight: 'bold' }}><b>Category</b></TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}><b>Subcategory</b></TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}><b>Images</b></TableCell>
-              <TableCell sx={{  fontWeight: 'bold' }}><b>Weight Details</b></TableCell>
+<TableCell sx={{ fontWeight: 'bold' }}>Weight / Price / Stock</TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}><b>Price</b></TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}><b>Offer Price</b></TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}><b>Stock Status</b></TableCell>
@@ -186,19 +187,43 @@ const GroceryProductList = () => {
                       />
                     ))}
                   </TableCell>
-                  <TableCell>
-                    {Array.isArray(product.weights) ? (
-                      product.weights.map((weight, index) => (
-                        <Typography key={index} variant="body2">
-                          {weight.weightMeasurment}: {weight.quantity} (Price: ₹{weight.price})
-                        </Typography>
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        No weight details available
-                      </Typography>
-                    )}
-                  </TableCell>
+         <TableCell>
+  {Array.isArray(product.weights) && product.weights.length > 0 ? (
+    <Table
+      size="small"
+      aria-label="weight-details"
+      sx={{
+        '& td, & th': { borderBottom: 'none', padding: '4px 8px' },
+      }}
+    >
+      <TableHead>
+        <TableRow>
+          <TableCell><b>Weight</b></TableCell>
+          <TableCell><b>Price</b></TableCell>
+          <TableCell><b>Stock</b></TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {product.weights.map((weight, index) => (
+          <TableRow key={index}>
+            <TableCell>{weight.weight}</TableCell>
+            <TableCell>₹{weight.price}</TableCell>
+            <TableCell>{weight.quantity}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  ) : (
+    <Typography variant="body2" color="textSecondary">
+      No weight details available
+    </Typography>
+  )}
+</TableCell>
+
+
+
+
+
                   <TableCell>₹{product.price}</TableCell>
                   <TableCell>₹{product.offer_price}</TableCell>
                   <TableCell>
@@ -209,11 +234,14 @@ const GroceryProductList = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <IconButton color='info' onClick={() => handleEditClick(product)}>
+                    {/* <IconButton color='info' onClick={() => handleEditClick(product)}>
                       <Edit />
-                    </IconButton>
+                    </IconButton> */}
                     <IconButton color='error' onClick={() => handleDeleteClick(product)}>
                       <Delete />
+                    </IconButton>
+                    <IconButton color='info' onClick={() => navigate(`/view-groceryproduct/${product.id}`)}>
+                      <Visibility />
                     </IconButton>
                   </TableCell>
                 </TableRow>

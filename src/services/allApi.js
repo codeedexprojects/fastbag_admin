@@ -1079,6 +1079,24 @@ export const getGroceryProducts = async () => {
     throw error;
   }
 };
+//get grocery product by id
+export const getGroceryProductById = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/grocery/products/admin/${id}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to add product', error);
+    throw error;
+  }
+};
 
 // get food products
 export const getFoodProducts = async () => {

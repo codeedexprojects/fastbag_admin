@@ -40,6 +40,7 @@ import CarouselList from './pages/Carousel/ListCarousel';
 import AddCarousel from './pages/Carousel/AddCarousel';
 import ProductDetails from './pages/Products/ProductDetails';
 import FoodProductDetails from './pages/Products/FoodProductDetails';
+import GroceryProductDetailsPage from './pages/Products/GroceryPrdouctdetails';
 
 
 
@@ -98,6 +99,7 @@ const App = () => {
                 <Route path="/add-foodproduct" element={<AddFoodProduct />} />
                 <Route path="/add-groceryproduct" element={<AddGroceryProduct />} />
                 <Route path="/view-groceryproducts" element={<GroceryProductList />} />
+                <Route path="/view-groceryproduct/:id" element={<GroceryProductDetailsPage />} />
                 <Route path="/view-foodproducts" element={<FoodProductList />} />
                 <Route path="/view-foodproduct/:id" element={<FoodProductDetails />} />
                 <Route path="/view-notifications" element={<NotificationPage />} />
