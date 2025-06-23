@@ -27,8 +27,8 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
-import { getNotificationCounts } from '../services/allApi';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
+import { getNotificationCounts } from '../services/allApi';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -173,15 +173,15 @@ const Sidebar = () => {
       onMouseEnter={() => setIsSidebarOpen(true)}
       onMouseLeave={() => setIsSidebarOpen(false)}
       sx={{
-        width: isSidebarOpen ? 240 : 70,
+        width: isSidebarOpen ? 240 : 72,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: isSidebarOpen ? 240 : 70,
-          boxSizing: 'border-box',
-          backgroundColor: '#1e1e2d',
-          color: '#a4a6b3',
+          width: isSidebarOpen ? 240 : 72,
+          backgroundColor: '#1f2937',
+          color: '#d1d5db',
           transition: 'width 0.3s ease',
           overflowX: 'hidden',
+          boxSizing: 'border-box',
         },
       }}
     >
@@ -189,21 +189,15 @@ const Sidebar = () => {
         <img
           src="https://i.postimg.cc/qqhWvvN2/6f05cef92da77e8f946c303920fa8a7e.png"
           alt="Logo"
-          style={{ width: '100%', maxWidth: '120px', height: '29px' }}
+          style={{ width: '100%', maxWidth: '120px', height: '50px' }}
         />
       </Box>
-      <Divider sx={{ borderColor: '#393946' }} />
+      {/* <Divider sx={{ borderColor: '#374151' }} /> */}
       <Box
         sx={{
           overflowY: 'auto',
-          overflowX: 'hidden',
           flexGrow: 1,
-          scrollBehavior: 'smooth',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          '&::-webkit-scrollbar': {
-            display: 'none',
-          },
+          '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
         <List>
@@ -222,11 +216,11 @@ const Sidebar = () => {
                   to={item.subItems ? undefined : item.path}
                   selected={isSelected}
                   sx={{
-                    borderRadius: '4px',
-                    backgroundColor: isSelected ? '#393946' : 'transparent',
-                    color: isSelected ? '#ffffff' : '#a4a6b3',
+                    borderRadius: '6px',
+                    backgroundColor: isSelected ? '#4b5563' : 'transparent',
+                    color: isSelected ? '#ffffff' : '#d1d5db',
                     '&:hover': {
-                      backgroundColor: '#393946',
+                      backgroundColor: '#374151',
                       color: '#ffffff',
                     },
                     padding: '8px 16px',
@@ -235,7 +229,7 @@ const Sidebar = () => {
                 >
                   <ListItemIcon
                     sx={{
-                      color: isSelected ? '#ffffff' : '#a4a6b3',
+                      color: isSelected ? '#ffffff' : '#d1d5db',
                       minWidth: 0,
                       mr: isSidebarOpen ? 2 : 'auto',
                       justifyContent: 'center',
@@ -259,11 +253,11 @@ const Sidebar = () => {
                           selected={location.pathname === subItem.path}
                           sx={{
                             paddingLeft: '32px',
-                            borderRadius: '4px',
-                            backgroundColor: location.pathname === subItem.path ? '#393946' : 'transparent',
-                            color: location.pathname === subItem.path ? '#ffffff' : '#a4a6b3',
+                            borderRadius: '6px',
+                            backgroundColor: location.pathname === subItem.path ? '#4b5563' : 'transparent',
+                            color: location.pathname === subItem.path ? '#ffffff' : '#d1d5db',
                             '&:hover': {
-                              backgroundColor: '#393946',
+                              backgroundColor: '#374151',
                               color: '#ffffff',
                             },
                             margin: '4px 8px',
@@ -271,7 +265,7 @@ const Sidebar = () => {
                         >
                           <ListItemIcon
                             sx={{
-                              color: location.pathname === subItem.path ? '#ffffff' : '#a4a6b3',
+                              color: location.pathname === subItem.path ? '#ffffff' : '#d1d5db',
                               minWidth: 0,
                               mr: 2,
                               justifyContent: 'center',

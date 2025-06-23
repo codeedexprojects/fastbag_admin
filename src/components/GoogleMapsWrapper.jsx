@@ -6,7 +6,7 @@ const libraries = ["places"];
 const GoogleMapsWrapper = ({ children }) => {
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyCnNixdBmNb0cOCet3HofxffjMSKOsAm4w",
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries,
     language: "en",
     region: "IN",

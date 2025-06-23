@@ -155,7 +155,7 @@ const CategoryPage = () => {
               ),
             }}
           />
-          <Button variant="contained" sx={{ backgroundColor: "#1e1e2d", "&:hover": { backgroundColor: "#333" } ,boxShadow:3}} onClick={handleAddCategory}>
+          <Button variant="contained" sx={{ backgroundColor: "#1F2935", "&:hover": { backgroundColor: "#333" } ,boxShadow:3}} onClick={handleAddCategory}>
             + Add Category
           </Button>
         </Box>

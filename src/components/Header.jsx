@@ -6,7 +6,8 @@ import {
   Typography,
   Avatar,
   Box,
-  Badge
+  Badge,
+  Tooltip
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -29,42 +30,62 @@ const Header = () => {
       position="static"
       elevation={0}
       sx={{
-        backgroundColor: '#1e1e2d',
+        backgroundColor: '#1f2937', // matches Sidebar
         color: '#ffffff',
-        borderBottom: '1px solid #393946',
-        px: 2,
+        borderBottom: '1px solid #374151',
+        px: 3,
+        height: '64px',
+        justifyContent: 'center',
       }}
     >
-      <Toolbar sx={{ justifyContent: 'flex-end' }}>
+      <Toolbar sx={{ justifyContent: 'flex-end', minHeight: '64px !important' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Notification Bell */}
-          {/* <IconButton sx={{ bgcolor: '#e0edff', borderRadius: '12px', p: 1 }}>
-            <Badge badgeContent={3} color="error">
-              <NotificationsIcon sx={{ color: '#1e40af' }} />
-            </Badge>
-          </IconButton> */}
 
-          {/* Name + Role */}
+          {/* Optional Notification Icon */}
+          {/* <Tooltip title="Notifications">
+            <IconButton>
+              <Badge badgeContent={3} color="error">
+                <NotificationsIcon sx={{ color: '#60a5fa' }} />
+              </Badge>
+            </IconButton>
+          </Tooltip> */}
+
+          {/* User Info */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <Typography sx={{ fontWeight: 'bold', fontSize: '14px', color: '#ffffff' }}>
+            <Typography sx={{ fontWeight: 600, fontSize: '14px', color: '#ffffff' }}>
               {displayName}
             </Typography>
-            <Typography sx={{ fontSize: '12px', color: '#a4a6b3' }}>
+            <Typography sx={{ fontSize: '12px', color: '#9ca3af' }}>
               {subRole}
             </Typography>
           </Box>
 
           {/* Avatar */}
           <Avatar
-            sx={{ bgcolor: '#3b82f6', width: 36, height: 36, fontSize: '14px' }}
+            sx={{
+              bgcolor: '#3b82f6',
+              width: 36,
+              height: 36,
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
           >
-            {displayName.slice(0, 1).toUpperCase()}
+            {displayName.charAt(0).toUpperCase()}
           </Avatar>
 
-          {/* Logout */}
-          <IconButton onClick={handleLogout} sx={{ color: '#ffffff' }}>
-            <LogoutIcon />
-          </IconButton>
+          {/* Logout Button */}
+          <Tooltip title="Logout">
+            <IconButton
+              onClick={handleLogout}
+              sx={{
+                color: '#f87171',
+                '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' },
+              }}
+            >
+              <LogoutIcon />
+            </IconButton>
+          </Tooltip>
+
         </Box>
       </Toolbar>
     </AppBar>
