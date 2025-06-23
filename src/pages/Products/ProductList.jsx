@@ -111,7 +111,7 @@ const ProductList = () => {
           <Table sx={{minWidth:650}}>
             <TableHead sx={{ backgroundColor: '' }}>
               <TableRow>
-                {/* <TableCell sx={{ color: 'white', fontWeight: 'bold' }} padding="checkbox"><Checkbox /></TableCell> */}
+                <TableCell sx={{  fontWeight: 'bold' }}>No</TableCell>
                 <TableCell sx={{  fontWeight: 'bold' }}>Product</TableCell>
                 <TableCell sx={{  fontWeight: 'bold' }}>Category</TableCell>
                 <TableCell sx={{  fontWeight: 'bold' }}>Subcategory</TableCell>
@@ -124,9 +124,9 @@ const ProductList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
+              {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product,index) => (
                 <TableRow key={product.id} hover>
-                  {/* <TableCell padding="checkbox"><Checkbox /></TableCell> */}
+                  <TableCell>{index+1}</TableCell>
                   <TableCell>
                     <Typography fontWeight="bold">{product.name}</Typography>
                     <Typography variant="body2" color="text.secondary">{product.description}</Typography>

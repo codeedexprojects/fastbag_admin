@@ -185,6 +185,7 @@ const SubCategoryPage = () => {
   <Table>
     <TableHead>
       <TableRow sx={{ backgroundColor: "" }}>
+        <TableCell sx={{  fontWeight: "bold" }}>No</TableCell>
         <TableCell sx={{  fontWeight: "bold" }}>Image</TableCell>
         <TableCell sx={{  fontWeight: "bold" }}>Name</TableCell>
         <TableCell sx={{  fontWeight: "bold" }}>Category</TableCell>
@@ -203,6 +204,7 @@ const SubCategoryPage = () => {
               "&:hover": { backgroundColor: "#f1f1f1" },
             }}
           >
+            <TableCell>{index+1}</TableCell>
             <TableCell>
               <img
                 src={subcategory.sub_category_image}

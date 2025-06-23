@@ -261,19 +261,23 @@ const Dashboard = () => {
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: '' }}>
                 <TableRow>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Order ID</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Product</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Date</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Customer</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Total</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Payment</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell sx={{  fontWeight: 'bold' }}>Action</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
+
+                  <TableCell sx={{ fontWeight: 'bold' }}>Order ID</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Customer</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Payment</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
                   <TableRow hover key={index}>
+                    <TableCell>{index+1}</TableCell>
+
                     <TableCell><Button>{order.order_id}</Button></TableCell>
                     <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
                     <TableCell>{order.created_at}</TableCell>

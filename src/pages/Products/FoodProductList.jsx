@@ -89,6 +89,7 @@ const FoodProductList = () => {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Subcategory</TableCell>
@@ -103,9 +104,10 @@ const FoodProductList = () => {
           </TableHead>
 
           <TableBody>
-            {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
+            {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product,index) => (
               <TableRow hover key={product.id}>
                 {/* Product Info */}
+                <TableCell>{index+1}</TableCell>
                 <TableCell>
                   <Typography variant="body1">{product.name}</Typography>
                   <Typography variant="body2" color="textSecondary">{product.description}</Typography>

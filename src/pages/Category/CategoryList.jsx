@@ -167,6 +167,8 @@ const CategoryPage = () => {
   <Table sx={{ minWidth: 650 }} aria-label="category table">
     <TableHead sx={{ backgroundColor: "" }}>
       <TableRow >
+        
+        <TableCell sx={{ fontWeight: "bold" }}>No.</TableCell>
         <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
         <TableCell sx={{ fontWeight: "bold" }}>Category Name</TableCell>
         <TableCell sx={{ fontWeight: "bold" }}>Store</TableCell>
@@ -182,6 +184,7 @@ const CategoryPage = () => {
               key={category.id}
                 hover
             >
+              <TableCell>{index+1}</TableCell>
               <TableCell>
                 <img
                   src={category.category_image}

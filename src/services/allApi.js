@@ -97,7 +97,7 @@ export const addVendor = async (formData) => {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to add vendor', error);
     throw error;

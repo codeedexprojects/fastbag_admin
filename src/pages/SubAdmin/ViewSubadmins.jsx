@@ -175,25 +175,27 @@ useEffect(()=>{
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">View Sub Admins</Typography>
-        <Button variant="contained" sx={{ backgroundColor: "#1976d2", "&:hover": { backgroundColor: "#333" } }}  onClick={handleAddSubAdmin}>
+        <Button variant="contained" sx={{ backgroundColor: "#1e1e2d", "&:hover": { backgroundColor: "#333" } }}  onClick={handleAddSubAdmin}>
           Add Sub Admin
         </Button>
       </Box>
 
-      <TableContainer   sx={{ borderRadius: 3, boxShadow:2, overflow: "hidden", mt: 3 }}
+      <TableContainer   sx={{ borderRadius: 1, boxShadow:2, overflow: "hidden", mt: 3 }}
  component={Paper}>
         <Table  sx={{ minWidth: 650 }} >
-          <TableHead sx={{ backgroundColor: "#1976d2" }}>
+          <TableHead sx={{ backgroundColor: "" }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Mobile Number</TableCell>
-              <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Permissions</TableCell>
-              <TableCell sx={{ fontWeight: "bold" ,color:"white"}}>Is Superuser</TableCell>
-              <TableCell sx={{ fontWeight: "bold" ,color:"white"}} align="right">Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>No</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Mobile Number</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Permissions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Is Superuser</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {subAdmins.map((subAdmin, index) => (
               <TableRow key={index}>
+                <TableCell>{index+1}</TableCell>
                 <TableCell>{subAdmin.mobile_number}</TableCell>
                 <TableCell>
                   {subAdmin.permissions && subAdmin.permissions.length > 0

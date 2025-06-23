@@ -231,14 +231,15 @@ const DeliveryBoyList = () => {
         <Table>
           <TableHead>
             <TableRow>
-              {['Name', 'Mobile', 'Email', 'Vehicle', 'Type', 'Gender', 'DOB', 'Status', 'Actions'].map(header => (
+              {['No','Name', 'Mobile', 'Email', 'Vehicle', 'Type', 'Gender', 'DOB', 'Status', 'Actions'].map(header => (
                 <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {deliveryBoys.map((boy) => (
+            {deliveryBoys.map((boy,index) => (
               <TableRow key={boy.id}>
+                <TableCell>{index+1}</TableCell>
                 <TableCell>{boy.name}</TableCell>
                 <TableCell>{boy.mobile_number}</TableCell>
                 <TableCell>{boy.email}</TableCell>

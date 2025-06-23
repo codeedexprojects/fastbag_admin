@@ -172,6 +172,7 @@ const CouponList = () => {
         <Table sx={{ minWidth: 650 }}  >
           <TableHead >
             <TableRow >
+              <TableCell sx={{  fontWeight: 'bold' }}>No</TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}>Code</TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}>Vendor</TableCell>
               <TableCell sx={{  fontWeight: 'bold' }}>Discount Type</TableCell>
@@ -189,8 +190,9 @@ const CouponList = () => {
             {coupons.length > 0 ? (
               coupons
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((coupon) => (
+                .map((coupon,index) => (
                   <TableRow hover   key={coupon.id}>
+                    <TableCell>{index+1}</TableCell>
                     <TableCell>{coupon.code}</TableCell>
                     <TableCell>{coupon.vendor_name || "N/A"}</TableCell>
                     <TableCell>

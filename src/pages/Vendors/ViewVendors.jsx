@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardMedia,
-  IconButton,
   Switch,
   Dialog,
   DialogActions,
@@ -20,7 +19,7 @@ import {
   FormControl,
   Stack,
 } from "@mui/material";
-import { Search, FilterList, FileDownload, Delete } from "@mui/icons-material";
+import { Search, FileDownload, Delete, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   viewVendors,
@@ -48,6 +47,8 @@ const ViewVendors = () => {
       setLoading(true);
       const vendorsData = await viewVendors();
       setVendors(vendorsData);
+          console.log(vendorsData)
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -342,51 +343,80 @@ const ViewVendors = () => {
               </CardContent>
 
               {/* Action Buttons */}
-              <Box
-                display="flex"
-                flexDirection="column"
-                gap={1}
-                width="100%"
-                px={2}
-                mt={1}
-              >
-                {vendor.is_approved === false ? (
-                  <Box display="flex" justifyContent="space-between" mb={1} gap={1}>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      fullWidth
-                      onClick={() => handleAcceptReject(vendor.id, "accept")}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      fullWidth
-                      onClick={() => handleAcceptReject(vendor.id, "reject")}
-                    >
-                      Reject
-                    </Button>
-                  </Box>
-                ) : null}
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => handleViewVendor(vendor.id)}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="contained"
-                  color="error"
-                  startIcon={<Delete />}
-                  fullWidth
-                  onClick={() => handleOpenDeleteDialog(vendor)}
-                >
-                  Delete
-                </Button>
-              </Box>
+             {/* Action Buttons */}
+<Box
+  display="flex"
+  flexDirection="column"
+  gap={1}
+  width="100%"
+  px={2}
+  mt={1}
+>
+  {vendor.is_approved === false ? (
+    <Box display="flex" justifyContent="space-between" mb={1} gap={1}>
+      <Button
+        variant="contained"
+        color="success"
+        fullWidth
+        onClick={() => handleAcceptReject(vendor.id, "accept")}
+        startIcon={<span style={{ fontWeight: "bold" }}>✔</span>}
+        sx={{
+          borderRadius: "20px",
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        Accept
+      </Button>
+      <Button
+        variant="contained"
+        color="error"
+        fullWidth
+        onClick={() => handleAcceptReject(vendor.id, "reject")}
+        startIcon={<span style={{ fontWeight: "bold" }}>✖</span>}
+        sx={{
+          borderRadius: "20px",
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        Reject
+      </Button>
+    </Box>
+  ) : null}
+
+  <Box display="flex" justifyContent="space-between" gap={1}>
+    <Button
+      variant="contained"
+      color="primary"
+      fullWidth
+      onClick={() => handleViewVendor(vendor.id)}
+     
+      sx={{
+        borderRadius: "20px",
+        textTransform: "none",
+        fontWeight: 600,
+      }}
+    >
+      <Visibility/>
+    </Button>
+
+    <Button
+      color="error"
+      variant="contained"
+      fullWidth
+      onClick={() => handleOpenDeleteDialog(vendor)}
+      sx={{
+        borderRadius: "20px",
+        textTransform: "none",
+        fontWeight: 600,
+      }}
+    >
+      <Delete/>
+    </Button>
+  </Box>
+</Box>
+
             </Card>
           ))}
         </Box>

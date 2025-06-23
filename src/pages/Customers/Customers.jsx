@@ -200,6 +200,7 @@ const CustomersList = () => {
         <Table sx={{minWidth:650}}>
           <TableHead sx={{ backgroundColor: '' }}>
             <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Customer Name</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Phone</TableCell>
@@ -212,6 +213,7 @@ const CustomersList = () => {
           >
             {paginatedUsers.map((user, index) => (
               <TableRow key={user.id} hover sx={{ backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa' }}>
+                <TableCell>{index+1}</TableCell>
                 <TableCell>{highlightMatch(user.name || '', searchTerm)}</TableCell>
                 <TableCell>{highlightMatch(user.email || '', searchTerm)}</TableCell>
                 <TableCell>{highlightMatch(user.mobile_number || '', searchTerm)}</TableCell>

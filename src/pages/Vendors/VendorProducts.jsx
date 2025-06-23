@@ -143,6 +143,8 @@ const Products = ({ vendorId }) => {
         <Table>
           <TableHead>
             <TableRow>
+                            <TableCell>No</TableCell>
+
               <TableCell>
                 <TableSortLabel
                   active={sortConfig.key === 'name'}
@@ -178,8 +180,9 @@ const Products = ({ vendorId }) => {
             ) : (
               sortedProducts
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((product) => (
+                .map((product,index) => (
                   <TableRow key={product.id}>
+                    <TableCell>{index+1}</TableCell>
                     <TableCell>{product.name}</TableCell>
                     <TableCell>
                       {product.images && product.images.length > 0 ? (
