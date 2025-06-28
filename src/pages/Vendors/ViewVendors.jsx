@@ -18,8 +18,9 @@ import {
   InputLabel,
   FormControl,
   Stack,
+  InputAdornment,
 } from "@mui/material";
-import { Search, FileDownload, Delete, Visibility } from "@mui/icons-material";
+import { Search, FileDownload, Delete, Visibility, IosShare, Add } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   viewVendors,
@@ -28,6 +29,7 @@ import {
   deleteVendor,
 } from "../../services/allApi";
 import { Backdrop, CircularProgress } from "@mui/material";
+import { ChevronDown, CirclePlus, Eye, Filter, Trash2 } from "lucide-react";
 
 
 const ViewVendors = () => {
@@ -204,36 +206,88 @@ const ViewVendors = () => {
         mb={3}
       >
         <TextField
-          variant="outlined"
-          placeholder="Search vendors by name, owner or store type..."
-          size="small"
-          sx={{ width: { xs: "100%", sm: 300 } }}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: <Search sx={{ mr: 1, color: "#777" }} />,
-          }}
-        />
+  variant="outlined"
+  label="Search vendors"
+  // placeholder="Search vendors by name, owner or store type..."
+  size="small"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  sx={{
+    width: { xs: '100%', sm: 300 },
+    backgroundColor: '#f9fafb',
+    borderRadius: 2,
+    boxShadow: '0 1px 8px rgba(0, 0, 0, 0.1)',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      '& fieldset': {
+        border: 'none',
+      },
+     
+    },
+    '& .MuiInputBase-input': {
+      color: '#111827',
+      fontSize: 14,
+    },
+    '& .MuiSvgIcon-root': {
+      color: '#374151',
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <Search size={18} style={{ color: '#374151' }} />
+      </InputAdornment>
+    ),
+  }}
+/>
+
 
         <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Status Filter</InputLabel>
-            <Select
-              value={filterStatus}
-              label="Status Filter"
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="enabled">Enabled</MenuItem>
-              <MenuItem value="disabled">Disabled</MenuItem>
-              <MenuItem value="approved">Approved</MenuItem>
-              <MenuItem value="not_approved">Not Approved</MenuItem>
-            </Select>
-          </FormControl>
+
+<FormControl size="small" sx={{
+  minWidth: 160,
+  backgroundColor: '#f9fafb',
+  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+  borderRadius: 2,
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 2,
+    '& fieldset': {
+      border: 'none',
+    },
+   
+  },
+  '& .MuiInputBase-input': {
+    color: '#111827',
+    fontSize: 14,
+  },
+  '& .MuiSvgIcon-root': {
+    color: '#374151',
+  },
+}}>
+  <InputLabel>Status Filter</InputLabel>
+  <Select
+    value={filterStatus}
+    label="Status Filter"
+    
+    onChange={(e) => setFilterStatus(e.target.value)}
+    IconComponent={ChevronDown}
+    startAdornment={
+      <InputAdornment position="start">
+        <Filter size={18} style={{ color: '#374151' }} />
+      </InputAdornment>}
+  >
+    <MenuItem value="all">All</MenuItem>
+    <MenuItem value="enabled">Enabled</MenuItem>
+    <MenuItem value="disabled">Disabled</MenuItem>
+    <MenuItem value="approved">Approved</MenuItem>
+    <MenuItem value="not_approved">Not Approved</MenuItem>
+  </Select>
+</FormControl>
+
 
           <Button
-            variant="outlined"
-            startIcon={<FileDownload />}
+            variant="contained"
+            startIcon={<IosShare />}
             onClick={exportToCSV}
             disabled={filteredVendors.length === 0}
             sx={{ whiteSpace: "nowrap" }}
@@ -242,11 +296,11 @@ const ViewVendors = () => {
           </Button>
 
           <Button
-            variant="contained"
-            sx={{ backgroundColor: "#1e1e2d", whiteSpace: "nowrap" }}
+            variant="containedSecondary"
+            startIcon={<CirclePlus/>}
             onClick={handleAddVendor}
           >
-            + Add Vendor
+            Add Vendor
           </Button>
         </Box>
       </Stack>
@@ -284,7 +338,7 @@ const ViewVendors = () => {
                 backgroundColor: "#fff",
                 transition: "transform 0.2s",
                 "&:hover": {
-                  transform: "scale(1.03)",
+                  transform: "scale(1.01)",
                   boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
                 },
               }}
@@ -398,7 +452,7 @@ const ViewVendors = () => {
         fontWeight: 600,
       }}
     >
-      <Visibility/>
+      <Eye/>
     </Button>
 
     <Button
@@ -412,7 +466,7 @@ const ViewVendors = () => {
         fontWeight: 600,
       }}
     >
-      <Delete/>
+      <Trash2/>
     </Button>
   </Box>
 </Box>

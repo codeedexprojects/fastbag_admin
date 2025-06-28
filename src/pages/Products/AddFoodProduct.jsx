@@ -11,10 +11,10 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ImageUp, Trash2, CirclePlus, Save } from "lucide-react";
 import { addProduct, viewCategory, viewsubCategory, viewVendors } from "../../services/allApi";
 
 const PreviewContainer = styled(Box)(({ theme }) => ({
@@ -41,9 +41,7 @@ const AddFoodProduct = () => {
   const [isOfferProduct, setIsOfferProduct] = useState(false);
   const [isPopularProduct, setIsPopularProduct] = useState(false);
   const [filteredSubcategories, setFilteredSubcategories] = useState([]);
-  const [variants, setVariants] = useState([
-    { name: "", price: "", is_in_stock: true },
-  ]);
+  const [variants, setVariants] = useState([{ name: "", price: "", is_in_stock: true }]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,19 +64,14 @@ const AddFoodProduct = () => {
   const handleCategoryChange = (e) => {
     const selectedCategory = e.target.value;
     setCategory(selectedCategory);
-
-    if (Array.isArray(subcategories)) {
-      const filtered = subcategories.filter((sc) => sc.category === selectedCategory);
-      setFilteredSubcategories(filtered);
-    } else {
-      setFilteredSubcategories([]);
-    }
+    const filtered = subcategories.filter((sc) => sc.category === selectedCategory);
+    setFilteredSubcategories(filtered);
     setSubcategory("");
   };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setImages(files);
+    setImages((prev) => [...prev, ...files]);
   };
 
   const handleRemoveImage = (index) => {
@@ -119,20 +112,12 @@ const AddFoodProduct = () => {
     formData.append("is_available", isAvailable);
     formData.append("is_offer_product", isOfferProduct);
     formData.append("is_popular_product", isPopularProduct);
-
-    images.forEach((image) => {
-      formData.append("image_files", image);
-    });
-
+    images.forEach((image) => formData.append("image_files", image));
     formData.append("variants", JSON.stringify(variants));
-      for (const pair of formData.entries()) {
-    console.log(pair[0], ":", pair[1]);}
 
     try {
-    const res=   await addProduct(formData);
-    console.log(res)
+      await addProduct(formData);
       alert("Product added successfully");
-
       // Reset
       setVendor("");
       setCategory("");
@@ -155,20 +140,22 @@ const AddFoodProduct = () => {
   };
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+    <Box sx={{ p: 4, backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
       <Typography variant="h5" fontWeight="bold" mb={3}>
-        Add Product
+        Add Food Product
       </Typography>
 
-      <Box sx={{ backgroundColor: "#ECF4EE", borderRadius: 2, p: 3 }}>
+      <Box sx={{ backgroundColor: "#fff", borderRadius: 2, p: 3,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
         <Grid container spacing={3}>
-          {/* General Info */}
+          {/* Vendor / Category / Subcategory */}
           <Grid item xs={6}>
             <FormControl fullWidth>
               <InputLabel>Vendor</InputLabel>
               <Select value={vendor} onChange={(e) => setVendor(e.target.value)}>
                 {vendors.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>{v.business_name}</MenuItem>
+                  <MenuItem key={v.id} value={v.id}>
+                    {v.business_name}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -178,7 +165,9 @@ const AddFoodProduct = () => {
               <InputLabel>Category</InputLabel>
               <Select value={category} onChange={handleCategoryChange}>
                 {categories.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.name}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -192,55 +181,116 @@ const AddFoodProduct = () => {
                 disabled={!category}
               >
                 {filteredSubcategories.map((sc) => (
-                  <MenuItem key={sc.id} value={sc.id}>{sc.name}</MenuItem>
+                  <MenuItem key={sc.id} value={sc.id}>
+                    {sc.name}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
+
+          {/* Product Info */}
           <Grid item xs={6}>
-            <TextField fullWidth label="Product Name" value={productName} onChange={(e) => setProductName(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Product Name"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+            />
           </Grid>
           <Grid item xs={12}>
-            <TextField fullWidth label="Description" multiline rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Description"
+              multiline
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </Grid>
 
           {/* Pricing */}
           <Grid item xs={4}>
-            <TextField fullWidth label="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Price"
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
           </Grid>
           <Grid item xs={4}>
-            <TextField fullWidth label="Offer Price" type="number" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Offer Price"
+              type="number"
+              value={offerPrice}
+              onChange={(e) => setOfferPrice(e.target.value)}
+            />
           </Grid>
           <Grid item xs={4}>
-            <TextField fullWidth label="Discount (%)" type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} />
+            <TextField
+              fullWidth
+              label="Discount (%)"
+              type="number"
+              value={discount}
+              onChange={(e) => setDiscount(e.target.value)}
+            />
           </Grid>
 
           {/* Toggles */}
           <Grid item xs={4}>
-            <FormControlLabel control={<Switch checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />} label="Available" />
+            <FormControlLabel
+              control={<Switch checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />}
+              label="Available"
+            />
           </Grid>
           <Grid item xs={4}>
-            <FormControlLabel control={<Switch checked={isOfferProduct} onChange={(e) => setIsOfferProduct(e.target.checked)} />} label="Offer Product" />
+            <FormControlLabel
+              control={<Switch checked={isOfferProduct} onChange={(e) => setIsOfferProduct(e.target.checked)} />}
+              label="Offer Product"
+            />
           </Grid>
           <Grid item xs={4}>
-            <FormControlLabel control={<Switch checked={isPopularProduct} onChange={(e) => setIsPopularProduct(e.target.checked)} />} label="Popular Product" />
+            <FormControlLabel
+              control={<Switch checked={isPopularProduct} onChange={(e) => setIsPopularProduct(e.target.checked)} />}
+              label="Popular Product"
+            />
           </Grid>
 
           {/* Image Upload */}
           <Grid item xs={12}>
-            <Button variant="outlined" component="label">
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<ImageUp size={20} />}
+              component="label"
+              sx={{ borderRadius: 2 }}
+            >
               Upload Images
-              <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
+              <input hidden multiple accept="image/*" type="file" onChange={handleImageUpload} />
             </Button>
             <PreviewContainer>
-              {images.map((image, index) => (
-                <Box key={index}>
+              {images.map((img, idx) => (
+                <Box key={idx} position="relative">
                   <img
-                    src={URL.createObjectURL(image)}
-                    alt={`Preview ${index}`}
-                    style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 4 }}
+                    src={URL.createObjectURL(img)}
+                    alt="preview"
+                    style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 6 }}
                   />
-                  <Button color="error" onClick={() => handleRemoveImage(index)}>Remove</Button>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleRemoveImage(idx)}
+                    sx={{
+                      position: "absolute",
+                      top: -10,
+                      right: -10,
+                      bgcolor: "white",
+                      boxShadow: 1,
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </IconButton>
                 </Box>
               ))}
             </PreviewContainer>
@@ -248,17 +298,17 @@ const AddFoodProduct = () => {
 
           {/* Variants */}
           <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
+            <Typography variant="h6" fontWeight="bold" mb={1}>
               Variants
             </Typography>
-            {variants.map((variant, index) => (
-              <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
-                <Grid item xs={3}>
+            {variants.map((variant, idx) => (
+              <Grid container spacing={2} key={idx} alignItems="center" mb={1}>
+                <Grid item xs={4}>
                   <TextField
                     fullWidth
                     label="Variant Name"
                     value={variant.name}
-                    onChange={(e) => handleVariantChange(index, "name", e.target.value)}
+                    onChange={(e) => handleVariantChange(idx, "name", e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={3}>
@@ -267,7 +317,7 @@ const AddFoodProduct = () => {
                     label="Price"
                     type="number"
                     value={variant.price}
-                    onChange={(e) => handleVariantChange(index, "price", e.target.value)}
+                    onChange={(e) => handleVariantChange(idx, "price", e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={3}>
@@ -276,27 +326,38 @@ const AddFoodProduct = () => {
                       <Switch
                         checked={variant.is_in_stock}
                         onChange={(e) =>
-                          handleVariantChange(index, "is_in_stock", e.target.checked)
+                          handleVariantChange(idx, "is_in_stock", e.target.checked)
                         }
                       />
                     }
                     label="In Stock"
                   />
                 </Grid>
-                <Grid item xs={3}>
-                  <IconButton color="error" onClick={() => handleRemoveVariant(index)}>
-                    <DeleteIcon />
+                <Grid item xs={2}>
+                  <IconButton color="error" onClick={() => handleRemoveVariant(idx)}>
+                    <Trash2 size={18} />
                   </IconButton>
                 </Grid>
               </Grid>
             ))}
-            <Button onClick={handleAddVariant}>Add Variant</Button>
+            <Button
+              startIcon={<CirclePlus size={18} />}
+              onClick={handleAddVariant}
+              sx={{ mt: 1 }}
+              variant="containedSecondary"
+            >
+              Add Variant
+            </Button>
           </Grid>
 
           {/* Submit */}
-          <Grid item xs={12} sx={{ textAlign: "right" }}>
-            <Button variant="contained" onClick={handleSubmit}>
-              Submit
+          <Grid item xs={12} textAlign="right">
+            <Button
+              variant="contained"
+              startIcon={<Save size={18} />}
+              onClick={handleSubmit}
+            >
+              Submit Product
             </Button>
           </Grid>
         </Grid>

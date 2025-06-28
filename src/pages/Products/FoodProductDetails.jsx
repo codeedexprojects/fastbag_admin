@@ -23,6 +23,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { getFoodProductById, deleteFoodProduct } from "../../services/allApi";
 import EditFoodProductModal from "./EditFood";
+import { ArrowLeft, CircleX, Pencil, Trash2 } from "lucide-react";
 
 const FoodProductDetails = () => {
   const { id } = useParams();
@@ -75,19 +76,19 @@ const FoodProductDetails = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">{product.name}</Typography>
         <Box>
-          <Tooltip title="Back">
+          {/* <Tooltip title="Back">
             <IconButton onClick={() => navigate(-1)}>
-              <ArrowBackIcon />
+              <ArrowLeft />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Edit">
-            <IconButton onClick={() => setEditOpen(true)}>
-              <EditIcon />
+            <IconButton color="primary" onClick={() => setEditOpen(true)}>
+              <Pencil />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
             <IconButton color="error" onClick={() => setDeleteConfirmOpen(true)}>
-              <DeleteIcon />
+              <Trash2 />
             </IconButton>
           </Tooltip>
         </Box>
@@ -163,11 +164,11 @@ const FoodProductDetails = () => {
 
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+      <Dialog open={deleteConfirmOpen} sx={{p:2}}  onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>Are you sure you want to delete this product?</DialogTitle>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-          <Button onClick={handleDelete} color="error" variant="contained">Delete</Button>
+          <Button startIcon={<CircleX/>} variant="contained" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button startIcon={<Trash2/>} variant="containedError" onClick={handleDelete} >Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

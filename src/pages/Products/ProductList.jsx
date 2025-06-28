@@ -21,10 +21,11 @@ import {
 } from '@mui/material';
 import { Backdrop, CircularProgress } from '@mui/material';
 
-import { Delete, Visibility } from '@mui/icons-material';
+import { Add, Delete, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { viewProducts, productsCount, deleteProduct } from '../../services/allApi';
 import { toast } from 'react-toastify';
+import { CirclePlus, CircleX, Eye, Trash2 } from 'lucide-react';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -97,8 +98,8 @@ const ProductList = () => {
     <Box sx={{ padding: 3 }}>
       <Box mb={3} display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="h4">Fashion Products</Typography>
-        <Button variant="contained" sx={{ backgroundColor: '#1e1e2d' }} onClick={handleAddProduct}>
-          + Add Product
+        <Button variant="containedSecondary" startIcon={<CirclePlus/>} onClick={handleAddProduct}>
+          Add Product
         </Button>
       </Box>
 
@@ -107,9 +108,13 @@ const ProductList = () => {
       </Typography>
 
      
-        <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }}  component={Paper}>
-          <Table sx={{minWidth:650}}>
-            <TableHead sx={{ backgroundColor: '' }}>
+       <TableContainer
+                component={Paper}
+                elevation={3}
+                sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+              >
+                <Table sx={{ minWidth: 650 }} aria-label="category table">
+                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
               <TableRow>
                 <TableCell sx={{  fontWeight: 'bold' }}>No</TableCell>
                 <TableCell sx={{  fontWeight: 'bold' }}>Product</TableCell>
@@ -188,11 +193,11 @@ const ProductList = () => {
                     )) || product.total_stock || 'N/A'}
                   </TableCell>
                   <TableCell>
-                    <IconButton color='info' title="View Details" onClick={() => navigate(`/view-product/${product.id}`)}>
-                      <Visibility />
+                    <IconButton color='primary' title="View Details" onClick={() => navigate(`/view-product/${product.id}`)}>
+                      <Eye />
                     </IconButton>
                     <IconButton color='error' title="Delete Product" onClick={() => handleDeleteClick(product.id)}>
-                      <Delete />
+                      <Trash2 />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -218,10 +223,10 @@ const ProductList = () => {
           Are you sure you want to delete this product?
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+          <Button color='primary' startIcon={<CircleX/>} onClick={() => setDeleteDialogOpen(false)} variant="contained">
             Cancel
           </Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
+          <Button onClick={confirmDelete} color="error" startIcon={<Trash2/>} variant="contained">
             Delete
           </Button>
         </DialogActions>

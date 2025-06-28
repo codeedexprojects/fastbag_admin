@@ -4,10 +4,11 @@ import {
   TableHead, TableRow, Paper, IconButton, TablePagination, CircularProgress,
   Dialog, DialogActions, DialogContent, DialogTitle, Backdrop
 } from '@mui/material';
-import { Delete, Visibility } from '@mui/icons-material';
+import { Add, Delete, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodProducts, deleteFoodProduct } from '../../services/allApi';
 import { toast } from 'react-toastify';
+import { CirclePlus, CircleX, Eye, Trash2 } from 'lucide-react';
 
 const FoodProductList = () => {
   const [products, setProducts] = useState([]);
@@ -76,18 +77,22 @@ const FoodProductList = () => {
           Dashboard &gt; Product List
         </Typography>
         <Button
-          variant="contained"
+          variant="containedSecondary"
           onClick={handleAddProduct}
-          sx={{ textTransform: 'none', backgroundColor: '#1e1e2d' }}
+          startIcon={<CirclePlus/>}
         >
-          + Add Product
+          Add Product
         </Button>
       </Box>
 
       {/* Table */}
-      <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }} component={Paper}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
+       <TableContainer
+                component={Paper}
+                elevation={3}
+                sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+              >
+                <Table sx={{ minWidth: 650 }} aria-label="category table">
+                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
@@ -134,28 +139,52 @@ const FoodProductList = () => {
                 {/* Variants */}
                 <TableCell>
                   {Array.isArray(product.variants) && product.variants.length > 0 ? (
-                    <Table size="small" sx={{ '& td, & th': { borderBottom: 'none', padding: '4px 8px' } }}>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Stock</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {product.variants.map((variant, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell sx={{textTransform:'capitalize'}}>{variant.name}</TableCell>
-                            <TableCell>
-                              <Typography color={variant.is_in_stock ? 'green' : 'red'}>
-                                {variant.is_in_stock ? 'In Stock' : 'Out of Stock'}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>₹{variant.price}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <Table
+  size="small"
+  sx={{
+    '& td, & th': {
+      borderBottom: 'none',
+      padding: '4px 8px',
+    },
+  }}
+>
+  <TableHead>
+    <TableRow>
+      <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+      <TableCell sx={{ fontWeight: 'bold' }}>Stock</TableCell>
+      <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {product.variants.map((variant, idx) => (
+      <TableRow key={idx}>
+        <TableCell sx={{ textTransform: 'capitalize' }}>
+          {variant.name}
+        </TableCell>
+        <TableCell>
+          <Box
+            sx={{
+              display: 'inline-block',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: '999px',
+              fontSize: '0.7rem',
+              fontWeight: 500,
+              minWidth: 90,
+              textAlign: 'center',
+              bgcolor: variant.is_in_stock ? 'success.light' : 'error.light',
+              color: variant.is_in_stock ? 'success.dark' : 'error.dark',
+            }}
+          >
+            {variant.is_in_stock ? 'In Stock' : 'Out of Stock'}
+          </Box>
+        </TableCell>
+        <TableCell>₹{variant.price}</TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
+
                   ) : (
                     <Typography variant="body2" color="textSecondary">
                       No variants available
@@ -174,11 +203,11 @@ const FoodProductList = () => {
 
                 {/* Actions */}
                 <TableCell>
-                  <IconButton color="info" onClick={() => navigate(`/view-foodproduct/${product.id}`)}>
-                    <Visibility />
+                  <IconButton color='primary' onClick={() => navigate(`/view-foodproduct/${product.id}`)}>
+                    <Eye />
                   </IconButton>
                   <IconButton color="error" onClick={() => handleDeleteClick(product)}>
-                    <Delete />
+                    <Trash2 />
                   </IconButton>
                 </TableCell>
               </TableRow>
@@ -207,8 +236,8 @@ const FoodProductList = () => {
           <Typography>Are you sure you want to delete this product?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteModalOpen(false)} color="primary">Cancel</Button>
-          <Button onClick={handleDeleteProduct} color="secondary">Delete</Button>
+          <Button onClick={() => setDeleteModalOpen(false)} startIcon={<CircleX/>} variant="contained">Cancel</Button>
+          <Button onClick={handleDeleteProduct}             startIcon={<Trash2/>} variant="containedError">Delete</Button>
         </DialogActions>
       </Dialog>
 

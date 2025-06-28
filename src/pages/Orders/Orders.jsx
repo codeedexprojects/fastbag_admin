@@ -3,7 +3,10 @@ import {
   Box, Button, Grid, Typography, Table, TableBody,
   TableCell, TableHead, TableRow, IconButton,
   Pagination, Dialog, DialogTitle, DialogContent,
-  DialogActions, CircularProgress, Backdrop, MenuItem, TextField
+  DialogActions, CircularProgress, Backdrop, MenuItem, TextField,
+  InputAdornment,
+  Paper,
+  TableContainer
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -11,6 +14,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { viewOrders, deleteAllOrders } from "../../services/allApi";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { IosShare } from '@mui/icons-material';
+import { CalendarSearch, ChevronDown, Eye, Filter, Trash2 } from 'lucide-react';
 
 const exportToCSV = (data, filename = 'orders.csv') => {
   const headers = [
@@ -91,7 +96,7 @@ const OrderList = () => {
             return orderDate && (
               activeButton === '24 Hour'
                 ? orderDate.isSame(now, 'day')
-                : orderDate.isAfter(cutoffDate) && orderDate.isBefore(now.add(1, 'day'))
+                : orderDate.isSame(now, 'day') || orderDate.isAfter(cutoffDate)
             );
           });
         }
@@ -117,7 +122,6 @@ const OrderList = () => {
   const paginatedOrders = filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handlePageChange = (_, value) => setCurrentPage(value);
-
   const handleDeleteClick = () => setOpenConfirmDialog(true);
 
   const handleConfirmDelete = async () => {
@@ -152,45 +156,49 @@ const OrderList = () => {
               setSelectedDate(newValue);
               setActiveButton('All Time');
             }}
+            slots={{ openPickerIcon: CalendarSearch }}
             slotProps={{
               textField: {
                 size: 'small',
                 variant: 'outlined',
-                sx: { mr: 2, backgroundColor: 'white' },
+                sx: {
+                  mr: 2,
+                  backgroundColor: '#f9fafb',
+                  borderRadius: 2,
+                  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.06)',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    border: 'none',
+                  },
+                },
               },
             }}
+
             maxDate={dayjs()}
           />
-          <Button variant="outlined" sx={{ marginRight: 2 }} onClick={() => exportToCSV(filteredOrders)}>Export</Button>
-          <Button onClick={handleDeleteClick} variant="contained" sx={{ backgroundColor: "rgb(172, 0, 0)" }}>Delete All</Button>
+          <Button variant="contained" startIcon={<IosShare />} sx={{ marginRight: 2 }} onClick={() => exportToCSV(filteredOrders)}>Export</Button>
+          <Button onClick={handleDeleteClick} variant="containedError" startIcon={<Trash2 size={20} />} >Delete All</Button>
         </Grid>
       </Grid>
 
       <Grid container justifyContent="space-between" alignItems="center" sx={{ marginBottom: 2 }}>
         <Grid item>
-          <Box
-            sx={{
-              display: 'flex',
-              p: 1,
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              backgroundColor: '#f9fafb',
-            }}
-          >
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', p: 1, borderRadius: 2, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', gap: 1, backgroundColor: '#fff' }}>
             {filterOptions.map((option) => (
               <Button
                 key={option}
-                variant="outlined"
-                sx={{
-                  mr: 1,
-                  borderColor: activeButton === option ? '#4f46e5' : 'transparent',
-                  color: activeButton === option ? '#4f46e5' : '#000',
-                  backgroundColor: activeButton === option ? '#e0e7ff' : 'transparent',
-                  '&:hover': { backgroundColor: activeButton === option ? '#e0e7ff' : '#f3f4f6' },
-                }}
                 onClick={() => {
                   setActiveButton(option);
-                  if (option !== 'All Time') setSelectedDate(null);
+                  setSelectedDate(null);
+                }}
+                sx={{
+                  borderRadius: 3,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  backgroundColor: activeButton === option ? '#e0e7ff' : 'transparent',
+                  color: activeButton === option ? '#1e3a8a' : '#4b5563',
+                  '&:hover': {
+                    backgroundColor: '#e0e7ff',
+                  }
                 }}
               >
                 {option}
@@ -200,24 +208,56 @@ const OrderList = () => {
         </Grid>
         <Grid item>
           <TextField
-            select
-            label="Filter by Status"
-            size="small"
-            value={orderStatusFilter}
-            onChange={(e) => setOrderStatusFilter(e.target.value)}
-            sx={{ width: 200, backgroundColor: 'white' }}
-          >
-            {orderStatusOptions.map((status) => (
-              <MenuItem key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
+  select
+  label="Filter by Status"
+  size="small"
+  value={orderStatusFilter}
+  onChange={(e) => setOrderStatusFilter(e.target.value)}
+ SelectProps={{
+    IconComponent: ChevronDown,
+  }}
+  sx={{
+    width: 200,
+    backgroundColor: '#f9fafb',
+    borderRadius: 2,
+    boxShadow: '0 1px 8px rgba(0, 0, 0, 0.05)',
+    '& .MuiOutlinedInput-notchedOutline': {
+      border: 'none',
+    },
+    '& .MuiInputLabel-root': {
+      color: '#6b7280',
+      fontSize: 14,
+    },
+    '& .MuiSelect-select': {
+      fontSize: 14,
+    },
+    '& .MuiSvgIcon-root': {
+      color: '#374151', // Optional: color for ChevronDown icon
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <Filter size={18} style={{ color: '#374151' }} />
+      </InputAdornment>
+    ),
+  }}
+>
+  {orderStatusOptions.map((status) => (
+    <MenuItem key={status} value={status}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </MenuItem>
+  ))}
+</TextField>        </Grid>
       </Grid>
 
-      <Table sx={{ minWidth: 650, borderRadius: 1, overflow: 'hidden', boxShadow: 10 }}>
-        <TableHead>
+     <TableContainer
+          component={Paper}
+          elevation={3}
+          sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+        >
+          <Table sx={{ minWidth: 650 }} aria-label="category table">
+            <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
           <TableRow>
             <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>No.</TableCell>
             <TableCell sx={{ fontWeight: 'bold' }}>Order ID</TableCell>
@@ -277,13 +317,14 @@ const OrderList = () => {
               </TableCell>
               <TableCell>
                 <IconButton color="info" onClick={() => { nav(`/order-details/${order.id}`); }}>
-                  <VisibilityIcon />
+                  <Eye />
                 </IconButton>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      </TableContainer>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: 2 }}>
         <Pagination

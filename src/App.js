@@ -6,6 +6,9 @@ import {
   useNavigate,
   Navigate,
 } from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import theme from "./theme";
+
 import Header from "./components/Header";
 import Sidebar from "./components/Siedebar";
 import Dashboard from "./pages/Dashboard";
@@ -37,7 +40,7 @@ import AddGroceryProduct from "./pages/Products/AddGroceryProduct";
 import GroceryProductList from "./pages/Products/GroceryProductList";
 import FoodProductList from "./pages/Products/FoodProductList";
 import NotificationPage from "./pages/Notifications/ViewNotifications";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BigBuyOrders from "./pages/BigBuyOrders/BigBuyOrders";
 import DeliveryBoyList from "./pages/Delivery/DeliveryBoyList";
@@ -65,111 +68,78 @@ const App = () => {
   }, [isLoggedIn, isLoginPage, navigate]);
 
   return (
-    <div style={appStyle}>
-      {!isLoginPage && <Sidebar />}
-      <div style={contentStyle}>
-        {!isLoginPage && <Header />}
-        <div style={mainStyle}>
-          <Routes>
-            {/* Auth Routes */}
-            <Route path="/admin-login" element={<LoginPage />} />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <div style={appStyle}>
+        {!isLoginPage && <Sidebar />}
+        <div style={contentStyle}>
+          {!isLoginPage && <Header />}
+          <div style={mainStyle}>
+            <Routes>
+              {/* Auth Routes */}
+              <Route path="/admin-login" element={<LoginPage />} />
 
-            {/* Protected Routes */}
-            {isLoggedIn && (
-              <>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/product-list" element={<ProductList />} />
-                <Route path="/add-product" element={<AddProduct />} />
-                <Route
-                  path="/view-product/:productId"
-                  element={<ProductDetails />}
-                />
-                <Route path="/order-list" element={<OrderList />} />
-                <Route
-                  path="/order-details/:orderId"
-                  element={<OrderDetails />}
-                />
-                <Route path="/category-list" element={<CategoryPage />} />
-                <Route path="/add-category" element={<AddCategory />} />
-                <Route path="/customers-list" element={<CustomersList />} />
-                <Route
-                  path="/customer-details/:id"
-                  element={<CustomerDetails />}
-                />
-                <Route path="/view-vendors" element={<ViewVendors />} />
-                <Route path="/vendors/:vendorId" element={<VendorDetails />} />
-                <Route path="/add-vendor" element={<GoogleMapsWrapper><AddVendor /></GoogleMapsWrapper>} />
-                <Route path="/view-stores" element={<ViewStores />} />
-                <Route path="/add-store" element={<AddStore />} />
-                <Route path="/add-subcategory" element={<AddSubCategory />} />
-                <Route path="/view-subcategory" element={<SubCategoryPage />} />
-                <Route path="/colours" element={<ColorManagement />} />
-                <Route path="/view-coupons" element={<CouponList />} />
-                <Route path="/add-coupons" element={<AddEditCoupon />} />
-                <Route path="/reviews-list" element={<ReviewViewer />} />
-                <Route path="/reports-list" element={<ReportPage />} />
-                <Route path="/add-subadmin" element={<AddSubAdmin />} />
-                <Route path="/view-subadmin" element={<ViewSubAdmin />} />
-                <Route path="/add-foodproduct" element={<AddFoodProduct />} />
-                <Route
-                  path="/add-groceryproduct"
-                  element={<AddGroceryProduct />}
-                />
-                <Route
-                  path="/view-groceryproducts"
-                  element={<GroceryProductList />}
-                />
-                <Route
-                  path="/view-groceryproduct/:id"
-                  element={<GroceryProductDetailsPage />}
-                />
-                <Route
-                  path="/view-foodproducts"
-                  element={<FoodProductList />}
-                />
-                <Route
-                  path="/view-foodproduct/:id"
-                  element={<FoodProductDetails />}
-                />
-                <Route
-                  path="/view-notifications"
-                  element={<NotificationPage />}
-                />
-                <Route path="/view-bigbuyorders" element={<BigBuyOrders />} />
-                <Route
-                  path="/view-deliveryboyslist"
-                  element={<DeliveryBoyList />}
-                />
-                <Route
-                  path="/view-deliveryboydetails/:id"
-                  element={<DeliveryBoyDetails />}
-                />
-                <Route path="/view-carousel" element={<CarouselList />} />
-                <Route path="/add-carousel" element={<AddCarousel />} />
-              </>
-            )}
+              {/* Protected Routes */}
+              {isLoggedIn && (
+                <>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/product-list" element={<ProductList />} />
+                  <Route path="/add-product" element={<AddProduct />} />
+                  <Route path="/view-product/:productId" element={<ProductDetails />} />
+                  <Route path="/order-list" element={<OrderList />} />
+                  <Route path="/order-details/:orderId" element={<OrderDetails />} />
+                  <Route path="/category-list" element={<CategoryPage />} />
+                  <Route path="/add-category" element={<AddCategory />} />
+                  <Route path="/customers-list" element={<CustomersList />} />
+                  <Route path="/customer-details/:id" element={<CustomerDetails />} />
+                  <Route path="/view-vendors" element={<ViewVendors />} />
+                  <Route path="/vendors/:vendorId" element={<VendorDetails />} />
+                  <Route path="/add-vendor" element={<GoogleMapsWrapper><AddVendor /></GoogleMapsWrapper>} />
+                  <Route path="/view-stores" element={<ViewStores />} />
+                  <Route path="/add-store" element={<AddStore />} />
+                  <Route path="/add-subcategory" element={<AddSubCategory />} />
+                  <Route path="/view-subcategory" element={<SubCategoryPage />} />
+                  <Route path="/colours" element={<ColorManagement />} />
+                  <Route path="/view-coupons" element={<CouponList />} />
+                  <Route path="/add-coupons" element={<AddEditCoupon />} />
+                  <Route path="/reviews-list" element={<ReviewViewer />} />
+                  <Route path="/reports-list" element={<ReportPage />} />
+                  <Route path="/add-subadmin" element={<AddSubAdmin />} />
+                  <Route path="/view-subadmin" element={<ViewSubAdmin />} />
+                  <Route path="/add-foodproduct" element={<AddFoodProduct />} />
+                  <Route path="/add-groceryproduct" element={<AddGroceryProduct />} />
+                  <Route path="/view-groceryproducts" element={<GroceryProductList />} />
+                  <Route path="/view-groceryproduct/:id" element={<GroceryProductDetailsPage />} />
+                  <Route path="/view-foodproducts" element={<FoodProductList />} />
+                  <Route path="/view-foodproduct/:id" element={<FoodProductDetails />} />
+                  <Route path="/view-notifications" element={<NotificationPage />} />
+                  <Route path="/view-bigbuyorders" element={<BigBuyOrders />} />
+                  <Route path="/view-deliveryboyslist" element={<DeliveryBoyList />} />
+                  <Route path="/view-deliveryboydetails/:id" element={<GoogleMapsWrapper><DeliveryBoyDetails /></GoogleMapsWrapper>} />
+                  <Route path="/view-carousel" element={<CarouselList />} />
+                  <Route path="/add-carousel" element={<AddCarousel />} />
+                </>
+              )}
 
-            <Route
-              path="*"
-              element={<Navigate to={isLoggedIn ? "/" : "/admin-login"} />}
+              <Route path="*" element={<Navigate to={isLoggedIn ? "/" : "/admin-login"} />} />
+            </Routes>
+
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
             />
-          </Routes>
-
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-          />
+          </div>
         </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 };
 

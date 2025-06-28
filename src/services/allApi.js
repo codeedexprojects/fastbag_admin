@@ -766,6 +766,58 @@ export const deleteUser = async (id) => {
     throw error;
   }
 };
+//update userdetails
+export const updateUserDetails = async (data,id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+
+    const response = await commonApi(
+      "PUT",
+      `${BASE_URL}/users/user/${id}/update/`,
+      headers,
+      data
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update user details:", error);
+    throw error;
+  }
+};
+//update user adress
+export const updateUserAddress = async (id, formData) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    const response = await commonApi(
+      "PATCH",
+      `${BASE_URL}/users/address/${id}/update/`,
+      formData,
+      headers
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update user address:", error);
+    throw error;
+  }
+};
+
 // add coupons
 // export const addCoupons = async (reqBody) => {
 //   try {
@@ -1478,6 +1530,26 @@ export const updateDeliveryBoy = async (id,reqBody) => {
     throw error;
   }
 };
+//get deliveryboy accepted orders
+
+export const getAcceptedOrders = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const response = await commonApi('GET', `${BASE_URL}/delivery/delivery_boys/${id}/accepted_orders/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get delivery boys', error);
+    throw error;
+  }
+};
+
 //get dashboard graph data
 export const getGraphData = async () => {
   try {

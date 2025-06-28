@@ -5,7 +5,8 @@ import {
   TableHead, TableRow, TablePagination, Paper
 } from '@mui/material';
 import {
-  ShoppingCart, AttachMoney, Inventory, AccountBalanceWallet
+  ShoppingCart, AttachMoney, Inventory, AccountBalanceWallet,
+  CurrencyRupee
 } from '@mui/icons-material';
 import { Line } from 'react-chartjs-2';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -20,6 +21,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+import { CalendarSearch, Eye } from 'lucide-react';
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip);
 
@@ -119,7 +121,11 @@ const Dashboard = () => {
           justifyContent: 'space-between', alignItems: 'center', mb: 3
         }}
       >
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', p: 1, borderRadius: 2,boxShadow:1, gap: 1, backgroundColor: '#fff' }}>
+        <Box sx={{
+          display: 'flex', flexWrap: 'wrap', p: 1, borderRadius: 2, gap: 1, backgroundColor: '#fff', boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+
+
+        }}>
           {filterOptions.map((option) => (
             <Button
               key={option}
@@ -151,72 +157,250 @@ const Dashboard = () => {
               setIsCustomDateSelected(false);
             }
           }}
+          slots={{
+            openPickerIcon: CalendarSearch,
+          }}
           slotProps={{
             textField: {
               size: 'small',
+
               variant: 'outlined',
-              sx: { backgroundColor: '#fff', borderRadius: 2 },
+              sx: {
+                minWidth: 180,
+                boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+
+                backgroundColor: '#f9fafb',
+                borderRadius: 2,
+                fontSize: 14,
+                '& .MuiOutlinedInput-root': {
+                  paddingRight: '10px',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#d1d5db',
+                  borderRadius: '8px',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#9ca3af',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#6366f1',
+                  borderWidth: 2,
+                },
+                '& .MuiInputBase-input': {
+                  padding: '10px 12px',
+                  color: '#111827',
+                },
+                '& .MuiSvgIcon-root': {
+                  color: '#4b5563',
+                },
+              },
+            },
+            openPickerButton: {
+              sx: {
+                color: '#4b5563',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                },
+              },
             },
           }}
         />
+
+
       </Box>
 
       <Grid container spacing={2}>
         {[
-          { title: 'Total Revenue', value: `₹${currentStats?.revenue?.toFixed(2)}`, icon: <AttachMoney sx={{ fontSize: 36, color: '#6366f1' }} /> },
-          { title: 'Total Sales', value: currentStats?.orders, icon: <ShoppingCart sx={{ fontSize: 36, color: '#22c55e' }} /> },
-          { title: 'Total Products', value: productsAndVendors.total_products, icon: <Inventory sx={{ fontSize: 36, color: '#f97316' }} /> },
-          { title: 'Total Vendors', value: productsAndVendors.vendors, icon: <AccountBalanceWallet sx={{ fontSize: 36, color: '#ef4444' }} /> }
+          {
+            title: 'Total Revenue',
+            value: `₹${currentStats?.revenue?.toFixed(2)}`,
+            iconColor: '#6366f1',
+            icon: <CurrencyRupee sx={{ fontSize: 20, color: '#fff' }} />,
+          },
+          {
+            title: 'Total Sales',
+            value: currentStats?.orders,
+            iconColor: '#22c55e',
+            icon: <ShoppingCart sx={{ fontSize: 20, color: '#fff' }} />,
+          },
+          {
+            title: 'Total Products',
+            value: productsAndVendors.total_products,
+            iconColor: '#f97316',
+            icon: <Inventory sx={{ fontSize: 20, color: '#fff' }} />,
+          },
+          {
+            title: 'Total Vendors',
+            value: productsAndVendors.vendors,
+            iconColor: '#ef4444',
+            icon: <AccountBalanceWallet sx={{ fontSize: 20, color: '#fff' }} />,
+          },
         ].map((item, i) => (
           <Grid item xs={12} sm={6} md={3} key={i}>
-            <Card sx={{ borderRadius: 3, boxShadow: 1, backgroundColor: '#fff' }}>
+            <Card
+              sx={{
+                borderRadius: 3,
+                backgroundColor: '#fff',
+                boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+                p: 2,
+              }}
+            >
               <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  {item.icon}
+                <Typography variant="body2" sx={{ color: '#6b7280', fontWeight: 600 }}>
+                  {item.title}
+                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                  <Typography variant="h4" fontWeight={700}>
+                    {item.value}
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      backgroundColor: item.iconColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
                 </Box>
-                <Typography variant="body2" sx={{ color: '#6b7280', mt: 1 }}>{item.title}</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>{item.value}</Typography>
+                {/* Optional trend indicator can be added here */}
               </CardContent>
             </Card>
           </Grid>
         ))}
 
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, backgroundColor: '#fff' }}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              boxShadow: '0 1px 10px rgba(0, 0, 0, 0.08)',
+              p: 2,
+            }}
+          >
             <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Sales Progress</Typography>
-              <Typography variant="h4" sx={{ mt: 2 }}>{salesProgress?.percentage_change?.toFixed(2) || 0}%</Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>
-                {salesProgress.today_revenue > salesProgress.yesterday_revenue ?
-                  `You earned ₹${salesProgress.today_revenue} today, higher than yesterday` :
-                  salesProgress.today_revenue < salesProgress.yesterday_revenue ?
-                    `Revenue dropped to ₹${salesProgress.today_revenue} today, lower than yesterday` :
-                    `Same as yesterday: ₹${salesProgress.today_revenue}`
-                }
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: '#6b7280', fontWeight: 600 }}>
+                    Sales Progress
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                    {salesProgress?.percentage_change?.toFixed(2) || 0}%
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#6b7280', mt: 1 }}>
+                    {salesProgress?.today_revenue > salesProgress?.yesterday_revenue
+                      ? `You earned ₹${salesProgress?.today_revenue} today, higher than yesterday`
+                      : salesProgress.today_revenue < salesProgress.yesterday_revenue
+                        ? `Revenue dropped to ₹${salesProgress?.today_revenue} today, lower than yesterday`
+                        : `Same as yesterday: ₹${salesProgress?.today_revenue}`}
+                  </Typography>
+                </Box>
 
-        <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, backgroundColor: '#fff' }}>
-            <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Statistics</Typography>
-              <Box sx={{ height: '250px' }}>
-                <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor:
+                      salesProgress?.today_revenue > salesProgress?.yesterday_revenue
+                        ? '#22c55e'
+                        : salesProgress?.today_revenue < salesProgress?.yesterday_revenue
+                          ? '#ef4444'
+                          : '#a1a1aa',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M13 2v8h8" />
+                    <path d="M21 3l-9 9-7-7-4 4" />
+                  </svg>
+                </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
 
+
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              boxShadow: '0 1px 10px rgba(0, 0, 0, 0.08)',
+              p: 2,
+            }}
+          >
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+              <Typography variant="subtitle2" sx={{ color: '#6b7280', fontWeight: 600 }}>
+                Statistics
+              </Typography>
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: '#6366f1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="feather feather-bar-chart-2"
+                >
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </Box>
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+              Insights
+            </Typography>
+            <Box sx={{ height: '230px' }}>
+              <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </Box>
+          </Card>
+        </Grid>
+
+      </Grid>
       <Box sx={{ mt: 5 }}>
-        <Card sx={{ borderRadius: 3, backgroundColor: '#fff' }}>
+        <Card sx={{
+          borderRadius: 3, backgroundColor: '#fff', boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+        }}>
           <CardContent>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Recent Orders</Typography>
-            <TableContainer component={Paper} sx={{ mt: 2, borderRadius: 2 }}>
-              <Table>
-                <TableHead>
+            <TableContainer
+              component={Paper}
+              elevation={3}
+              sx={{ borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', overflow: "hidden", mt: 3 }}
+            >
+              <Table sx={{ minWidth: 650 }} aria-label="category table">
+                <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                   <TableRow>
                     <TableCell>No.</TableCell>
                     <TableCell>Order ID</TableCell>
@@ -233,7 +417,7 @@ const Dashboard = () => {
                   {recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
                     <TableRow key={index} hover>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell><Button>{order.order_id}</Button></TableCell>
+                      <TableCell>{order.order_id}</TableCell>
                       <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
                       <TableCell>{order.created_at}</TableCell>
                       <TableCell>{order.user_name}</TableCell>
@@ -254,7 +438,7 @@ const Dashboard = () => {
                       </TableCell>
                       <TableCell>
                         <IconButton color='info' onClick={() => nav(`/order-details/${order.id}`)}>
-                          <VisibilityIcon />
+                          <Eye />
                         </IconButton>
                       </TableCell>
                     </TableRow>

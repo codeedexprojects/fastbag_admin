@@ -4,9 +4,10 @@ import {
   Modal, MenuItem, Select, FormControl, InputLabel, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   CircularProgress, Backdrop, InputAdornment,
 } from "@mui/material";
-import { Search, Edit, Delete } from "@mui/icons-material";
+import { Search, Edit, Delete, Add } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { viewCategory, updateCategory, deleteCategory, viewStores } from "../../services/allApi";
+import { CircleX, ImageUp, Pencil, Plus, PlusCircle, Save, Trash, Trash2, Upload } from "lucide-react";
 
 const CategoryPage = () => {
   const [loading, setLoading] = useState(false);
@@ -141,84 +142,105 @@ const CategoryPage = () => {
 
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <TextField
-            variant="outlined"
+            // variant="outlined"
             label="Search Subcategories"
             size="small"
-            sx={{ width: "300px" }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              width: 300, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',
+
+              backgroundColor: '#f9fafb',
+              borderRadius: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '& fieldset': {
+                 border:"none" ,
+                },
+                
+              },
+              '& .MuiInputLabel-root': {
+                color: '#6b7280',
+                fontSize: 14,
+              },
+              '& .MuiInputBase-input': {
+                fontSize: 14,
+              },
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search />
+                  <Search size={18} style={{ color: '#374151' }} />
                 </InputAdornment>
               ),
             }}
           />
-          <Button variant="contained" sx={{ backgroundColor: "#1F2935", "&:hover": { backgroundColor: "#333" } ,boxShadow:3}} onClick={handleAddCategory}>
-            + Add Category
+
+          <Button variant="containedSecondary"
+            startIcon={<PlusCircle />} onClick={handleAddCategory}>
+            Add Category
           </Button>
         </Box>
-<TableContainer
-  component={Paper}
-  elevation={3}
-  sx={{ borderRadius: 1, boxShadow:10, overflow: "hidden", mt: 3 }}
->
-  <Table sx={{ minWidth: 650 }} aria-label="category table">
-    <TableHead sx={{ backgroundColor: "" }}>
-      <TableRow >
-        
-        <TableCell sx={{ fontWeight: "bold" }}>No.</TableCell>
-        <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
-        <TableCell sx={{ fontWeight: "bold" }}>Category Name</TableCell>
-        <TableCell sx={{ fontWeight: "bold" }}>Store</TableCell>
-        <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {filteredCategories.length > 0 ? (
-        filteredCategories
-          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((category, index) => (
-            <TableRow
-              key={category.id}
-                hover
-            >
-              <TableCell>{index+1}</TableCell>
-              <TableCell>
-                <img
-                  src={category.category_image}
-                  alt={category.name}
-                  style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: "8px",
-                    objectFit: "cover",
-                  }}
-                />
-              </TableCell>
-              <TableCell>{category.name}</TableCell>
-              <TableCell>{category.StoreType_name}</TableCell>
-              <TableCell>
-                <IconButton color="info" onClick={() => handleEditClick(category)}>
-                  <Edit />
-                </IconButton>
-                <IconButton color="error" onClick={() => handleDeleteClick(category)}>
-                  <Delete />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))
-      ) : (
-        <TableRow>
-          <TableCell colSpan={4} align="center">
-            No categories found.
-          </TableCell>
-        </TableRow>
-      )}
-    </TableBody>
-  </Table>
-</TableContainer>
+        <TableContainer
+          component={Paper}
+          elevation={3}
+          sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+        >
+          <Table sx={{ minWidth: 650 }} aria-label="category table">
+            <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+              <TableRow >
+
+                <TableCell sx={{ fontWeight: "bold" }}>No.</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Category Name</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Store</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredCategories.length > 0 ? (
+                filteredCategories
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((category, index) => (
+                    <TableRow
+                      key={category.id}
+                      hover
+                    >
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>
+                        <img
+                          src={category.category_image}
+                          alt={category.name}
+                          style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: "8px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{category.name}</TableCell>
+                      <TableCell>{category.StoreType_name}</TableCell>
+                      <TableCell>
+                        <IconButton color="primary" onClick={() => handleEditClick(category)}>
+                          <Pencil />
+                        </IconButton>
+                        <IconButton color="error" onClick={() => handleDeleteClick(category)}>
+                          <Trash2 />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    No categories found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
 
         <TablePagination
@@ -240,8 +262,8 @@ const CategoryPage = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-            <Button color="error" onClick={handleDeleteConfirm}>
+            <Button variant="contained" startIcon={<CircleX/>} onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            <Button  variant="containedError" startIcon={<Trash2 size={20}/>} onClick={handleDeleteConfirm}>
               Delete
             </Button>
           </DialogActions>
@@ -251,28 +273,61 @@ const CategoryPage = () => {
         <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
           <Box
             sx={{
-              width: "400px",
-              backgroundColor: "white",
-              padding: 3,
-              margin: "100px auto",
-              borderRadius: "8px",
+              width: 420,
+              bgcolor: 'background.paper',
+              borderRadius: 3,
+              boxShadow: 24,
+              p: 4,
+              mx: 'auto',
+              mt: '10vh',
+              outline: 'none',
             }}
           >
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant="h6" fontWeight={600} mb={2}>
               Edit Category
             </Typography>
+
             <TextField
               label="Category Name"
               fullWidth
-              margin="normal"
+              size="small"
+              margin="dense"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              sx={{
+                backgroundColor: '#f9fafb',
+                borderRadius: 1,
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#e5e7eb',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#9ca3af',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#6366f1',
+                },
+              }}
             />
-            <FormControl fullWidth margin="normal">
+
+            <FormControl fullWidth size="small" margin="dense">
               <InputLabel>Store</InputLabel>
               <Select
                 value={formData.store}
+                label="Store"
                 onChange={(e) => setFormData({ ...formData, store: e.target.value })}
+                sx={{
+                  backgroundColor: '#f9fafb',
+                  borderRadius: 1,
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#e5e7eb',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#9ca3af',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#6366f1',
+                  },
+                }}
               >
                 {stores.map((store) => (
                   <MenuItem key={store.id} value={store.id}>
@@ -283,34 +338,59 @@ const CategoryPage = () => {
             </FormControl>
 
             <Box mt={2}>
-              <input type="file" accept="image/*" onChange={handleImageChange} />
+              <Button
+                component="label"
+                startIcon={<ImageUp size={20} />}
+                variant="containedSecondary"
+                size="small"
+
+              >
+                Upload Image
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </Button>
+
               {formData.category_image && (
-                <Box display="flex" alignItems="center" mt={1}>
-                  <img
+                <Box display="flex" alignItems="center" mt={2}>
+                  <Box
+                    component="img"
                     src={
                       formData.category_image instanceof File
                         ? URL.createObjectURL(formData.category_image)
                         : formData.category_image
                     }
                     alt="Preview"
-                    style={{ width: 100, height: 100, objectFit: "cover", borderRadius: "8px" }}
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 2,
+                      objectFit: 'cover',
+                      border: '1px solid #e5e7eb',
+                    }}
                   />
-                  <IconButton onClick={handleImageDelete} sx={{ marginLeft: 1 }}>
-                    <Delete />
+                  <IconButton color="error" onClick={handleImageDelete} sx={{ ml: 1 }}>
+                    <Trash2 size={20} />
                   </IconButton>
                 </Box>
               )}
             </Box>
-            <Box display="flex" justifyContent="flex-end" mt={2}>
-              <Button variant="outlined" onClick={() => setIsEditModalOpen(false)}>
+
+
+            <Box display="flex" justifyContent="flex-end" mt={3}>
+              <Button startIcon={<CircleX />} variant="containedError" onClick={() => setIsEditModalOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="contained" color="primary" onClick={handleEditSave} sx={{ ml: 2 }}>
+              <Button startIcon={<Save size={20} />} variant="contained" onClick={handleEditSave} sx={{ ml: 2 }}>
                 Save
               </Button>
             </Box>
           </Box>
         </Modal>
+
       </Box>
     </>
   );

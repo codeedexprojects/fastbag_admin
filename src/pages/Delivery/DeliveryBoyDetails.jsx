@@ -1,17 +1,18 @@
-// DeliveryBoyDetails.jsx
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Container, Typography, Grid, Card, CardContent, Avatar,
   Divider, CircularProgress, Box, Chip, IconButton, Dialog,
   DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Button, TextField, InputLabel, MenuItem, Select,
-  FormControlLabel, Switch
+  Button, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, TablePagination
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
-import { getDeliveryBoy, updateDeliveryBoy, deleteDeliveryBoy } from '../../services/allApi';
+import { getDeliveryBoy, updateDeliveryBoy, deleteDeliveryBoy, getAcceptedOrders } from '../../services/allApi';
+import EditDeliveryBoyModal from './EditDeliveryModal';
+import { CircleX, Pencil, Trash2 } from 'lucide-react';
 
 const genders = [
   { value: 'M', label: 'Male' },
@@ -19,12 +20,6 @@ const genders = [
   { value: 'O', label: 'Others' },
 ];
 
-const vehicleTypes = ['Bike', 'Car', 'Auto', 'Van'];
-
-const acceptedOrders = [
-  { id: 'ORD123', customer: 'Alice', date: '2025-06-01', status: 'DELIVERED' },
-  { id: 'ORD124', customer: 'Bob', date: '2025-06-02', status: 'IN TRANSIT' },
-];
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -33,6 +28,7 @@ const getStatusColor = (status) => {
     case 'CANCELLED': return 'error';
     case 'PREPARING': return 'info';
     case 'DELIVERED': return 'primary';
+    case 'PICKED': return 'success';
     default: return 'default';
   }
 };
@@ -45,6 +41,13 @@ const DeliveryBoyDetails = () => {
   const [editPreview, setEditPreview] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
+  const [acceptedOrders, setAcceptedOrders] = useState([]);
+  const [rejectedOrders, setRejectedOrders] = useState([]);
+  const [acceptedPage, setAcceptedPage] = useState(0);
+  const [acceptedRowsPerPage, setAcceptedRowsPerPage] = useState(5);
+  const [rejectedPage, setRejectedPage] = useState(0);
+  const [rejectedRowsPerPage, setRejectedRowsPerPage] = useState(5);
+
   const { id } = useParams();
 
   const fetchDeliveryBoy = async () => {
@@ -62,6 +65,23 @@ const DeliveryBoyDetails = () => {
   useEffect(() => {
     fetchDeliveryBoy();
   }, [id]);
+const nav=useNavigate()
+  useEffect(() => {
+    const fetchAcceptedOrders = async () => {
+      setLoading(true);
+      try {
+        const res = await getAcceptedOrders(id);
+        const allOrders = res?.results || [];
+        setAcceptedOrders(allOrders.filter(o => o.is_accepted && !o.is_rejected));
+        setRejectedOrders(allOrders.filter(o => o.is_rejected));
+      } catch (error) {
+        console.log("Error fetching accepted orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAcceptedOrders();
+  }, []);
 
   const handleEdit = (boy) => {
     setEditData({ ...boy });
@@ -83,7 +103,7 @@ const DeliveryBoyDetails = () => {
       await deleteDeliveryBoy(selectedDeleteId);
       toast.success('Delivery boy deleted');
       setDeleteDialogOpen(false);
-      fetchDeliveryBoy();
+      nav(-1)
     } catch {
       toast.error('Failed to delete delivery boy');
     } finally {
@@ -95,10 +115,10 @@ const DeliveryBoyDetails = () => {
     const {
       id, name, mobile_number, email, vehicle_type,
       vehicle_number, gender, dob, is_active,
-      aadhar_card_image, driving_license_image
+      aadhar_card_image, driving_license_image, address,
     } = editData;
 
-    if (!name || !mobile_number || !email || !vehicle_type || !vehicle_number || !gender || !dob) {
+    if (!name || !mobile_number || !email || !vehicle_type || !vehicle_number || !gender || !dob || !address) {
       toast.error("Please fill all fields");
       return;
     }
@@ -109,24 +129,22 @@ const DeliveryBoyDetails = () => {
     reqBody.append("email", email);
     reqBody.append("vehicle_type", vehicle_type);
     reqBody.append("vehicle_number", vehicle_number);
+    reqBody.append("address", address);
     reqBody.append("gender", gender);
     reqBody.append("dob", dob);
     reqBody.append("is_active", is_active);
 
-    if (aadhar_card_image instanceof File) {
-      reqBody.append("aadhar_card_image", aadhar_card_image);
-    }
-
-    if (driving_license_image instanceof File) {
-      reqBody.append("driving_license_image", driving_license_image);
-    }
+    if (aadhar_card_image instanceof File) reqBody.append("aadhar_card_image", aadhar_card_image);
+    if (driving_license_image instanceof File) reqBody.append("driving_license_image", driving_license_image);
 
     setLoading(true);
     try {
-      await updateDeliveryBoy(id, reqBody);
-      toast.success("Delivery boy updated successfully");
+      const res = await updateDeliveryBoy(id, reqBody);
+      if (res.status === 200) {
+        toast.success("Updated successfully");
+        fetchDeliveryBoy();
+      }
       setEditOpen(false);
-      fetchDeliveryBoy();
     } catch {
       toast.error("Update failed");
     } finally {
@@ -134,174 +152,247 @@ const DeliveryBoyDetails = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    if (files && files[0]) {
-      setEditData((prev) => ({ ...prev, [name]: files[0] }));
-      const reader = new FileReader();
-      reader.onload = () => {
-        setEditPreview((prev) => ({ ...prev, [name === 'aadhar_card_image' ? 'aadhar' : 'license']: reader.result }));
-      };
-      reader.readAsDataURL(files[0]);
-    }
-  };
-
   if (loading) return <Container sx={{ textAlign: 'center', mt: 4 }}><CircularProgress /></Container>;
   if (!deliveryBoy) return <Container sx={{ textAlign: 'center', mt: 4 }}><Typography color="error">Delivery boy not found.</Typography></Container>;
 
-  return (
-    <Box sx={{ p: 4, backgroundColor: '#f9fafb', minHeight: '100vh' }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h4" fontWeight={700}>{deliveryBoy.name}</Typography>
-        <Box>
-          <IconButton onClick={() => handleEdit(deliveryBoy)}><EditIcon /></IconButton>
-          <IconButton onClick={() => handleDeleteConfirm(deliveryBoy.id)}><DeleteIcon /></IconButton>
-        </Box>
+ return (
+  <Box sx={{ p: { xs: 2, md: 4 }, backgroundColor: '#f5f7fa', minHeight: '100vh' }}>
+    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Typography variant="h4" fontWeight={700} color="primary.main">
+        {deliveryBoy.name}
+      </Typography>
+      <Box>
+        <IconButton color="primary" onClick={() => handleEdit(deliveryBoy)} size="small">
+          <Pencil  />
+        </IconButton>
+        <IconButton color="error" onClick={() => handleDeleteConfirm(deliveryBoy.id)} size="small">
+          <Trash2  />
+        </IconButton>
       </Box>
+    </Box>
 
-      <Grid container spacing={4} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={4}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
-            <CardContent>
-              <Box display="flex" justifyContent="center" mb={3}>
-                <Avatar src={deliveryBoy.photo} sx={{ width: 120, height: 120 }}>
-                  {!deliveryBoy.photo && deliveryBoy.name?.charAt(0)}
-                </Avatar>
-              </Box>
-              <Typography variant="body1"><strong>Mobile:</strong> {deliveryBoy.mobile_number}</Typography>
-              <Typography variant="body1"><strong>Email:</strong> {deliveryBoy.email}</Typography>
-              <Typography variant="body1"><strong>Vehicle:</strong> {deliveryBoy.vehicle_type} - {deliveryBoy.vehicle_number}</Typography>
-              <Typography variant="body1"><strong>DOB:</strong> {deliveryBoy.dob}</Typography>
-              <Typography variant="body1">
-                <strong>Gender:</strong> {
-                  genders.find(g => g.value === deliveryBoy.gender)?.label || deliveryBoy.gender
-                }
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>Documents</Typography>
-              <Box display="flex" flexDirection="column" gap={1}>
-                {deliveryBoy.aadhar_card_image && (
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>Aadhar Card</Typography>
-                    <a href={deliveryBoy.aadhar_card_image} download>
-                      <img src={deliveryBoy.aadhar_card_image} alt="Aadhar" width="100" style={{ borderRadius: 8 }} />
-                    </a>
-                  </Box>
-                )}
-                {deliveryBoy.driving_license_image && (
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>Driving License</Typography>
-                    <a href={deliveryBoy.driving_license_image} download>
-                      <img src={deliveryBoy.driving_license_image} alt="License" width="100" style={{ borderRadius: 8 }} />
-                    </a>
-                  </Box>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+    <Grid container spacing={4}>
+      {/* Profile Card */}
+      <Grid item xs={12}>
+        <Card elevation={2} sx={{ borderRadius: 3,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)', }}>
+          <CardContent>
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4}>
+  {/* Left: Info Section */}
+  <Box flex={1}>
+    <Box display="flex" gap={2} alignItems="center" mb={2}>
+      <Avatar src={deliveryBoy.photo} sx={{ width: 100, height: 100 }}>
+        {!deliveryBoy.photo && deliveryBoy.name?.charAt(0)}
+      </Avatar>
+      <Typography variant="h6">{deliveryBoy.name}</Typography>
+    </Box>
 
-        <Grid item xs={12} md={8}>
-          <Typography variant="h6" mb={2}>Accepted Orders</Typography>
-          <Grid container spacing={2}>
-            {acceptedOrders.map(order => (
-              <Grid item xs={12} sm={6} key={order.id}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography><strong>Order ID:</strong> {order.id}</Typography>
-                    <Typography><strong>Customer:</strong> {order.customer}</Typography>
-                    <Typography><strong>Date:</strong> {order.date}</Typography>
-                    <Chip label={order.status} color={getStatusColor(order.status)} size="small" sx={{ mt: 1 }} />
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Grid>
+    <Typography><strong>Mobile:</strong> {deliveryBoy.mobile_number}</Typography>
+    <Typography><strong>Email:</strong> {deliveryBoy.email}</Typography>
+    <Typography><strong>Vehicle:</strong> {deliveryBoy.vehicle_type} - {deliveryBoy.vehicle_number}</Typography>
+    <Typography><strong>DOB:</strong> {deliveryBoy.dob}</Typography>
+    <Typography><strong>Gender:</strong> {genders.find(g => g.value === deliveryBoy.gender)?.label || deliveryBoy.gender}</Typography>
+    <Typography>
+      <strong>Address:</strong> {deliveryBoy.address}
+      {deliveryBoy.latitude != null && deliveryBoy.longitude != null && (
+        <> ({deliveryBoy.latitude}, {deliveryBoy.longitude})</>
+      )}
+    </Typography>
+  </Box>
+
+  {/* Divider */}
+  <Divider orientation="vertical" flexItem sx={{   borderRightWidth: 3,display: { xs: 'none', md: 'block' }, mx: 2 }} />
+
+  {/* Right: Documents Section */}
+  <Box flex={1}>
+    <Typography variant="h6" gutterBottom>Documents</Typography>
+    <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+      {deliveryBoy.aadhar_card_image && (
+        <Box textAlign="center">
+          <a href={deliveryBoy.aadhar_card_image} download>
+            <img src={deliveryBoy.aadhar_card_image} alt="Aadhar" height={150} width="100" style={{ borderRadius: 8 }} />
+          </a>
+          <Typography variant="body2" fontWeight={600} mt={1}>Aadhar Card</Typography>
+        </Box>
+      )}
+      {deliveryBoy.driving_license_image && (
+        <Box textAlign="center">
+          <a href={deliveryBoy.driving_license_image} download>
+            <img src={deliveryBoy.driving_license_image} alt="License" height={150} width="100" style={{ borderRadius: 8 }} />
+          </a>
+          <Typography variant="body2" fontWeight={600} mt={1}>Driving License</Typography>
+        </Box>
+      )}
+    </Box>
+  </Box>
+</Box>
+
+          </CardContent>
+        </Card>
       </Grid>
 
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Are you sure you want to delete this delivery boy?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleDelete} color="error">Delete</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Accepted Orders */}
+      <Grid item xs={12}>
+        <Typography variant="h6" mb={2}>Accepted Orders</Typography>
+        <TableContainer component={Paper} sx={{ borderRadius: 3,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',  }}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: '#f0f2f5' }}>
+                <TableCell>No</TableCell>
+                <TableCell>Order ID</TableCell>
+                <TableCell>Customer</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Delivery Address</TableCell>
+                <TableCell>Vendor</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {acceptedOrders
+                .slice(acceptedPage * acceptedRowsPerPage, acceptedPage * acceptedRowsPerPage + acceptedRowsPerPage)
+                .map((order, index) => (
+                  <TableRow key={order.id} hover>
+                    <TableCell>{acceptedPage * acceptedRowsPerPage + index + 1}</TableCell>
+                    <TableCell>{order.order_id}</TableCell>
+                    <TableCell>{order.user_details?.name}</TableCell>
+                    <TableCell>{order.assigned_at}</TableCell>
+                    <TableCell>
+                      {order.user_details?.address && (
+                        <>
+                          {order.user_details.address.address_line1}, {order.user_details.address.address_line2}<br />
+                          {order.user_details.address.city}, {order.user_details.address.state}<br />
+                          {order.user_details.address.country} - {order.user_details.address.pincode}
+                        </>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {order.vendor_details && (
+                        <>
+                          {order.vendor_details.name}<br />
+                          {order.vendor_details.address}, {order.vendor_details.landmark}<br />
+                          {order.vendor_details.city}, {order.vendor_details.state} - {order.vendor_details.pincode}<br />
+                          {(order.vendor_details.latitude && order.vendor_details.longitude) && (
+                            <small>(Lat: {order.vendor_details.latitude}, Lng: {order.vendor_details.longitude})</small>
+                          )}
+                        </>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={order.status} color={getStatusColor(order.status)} size="small" />
+                    </TableCell>
+                  </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={acceptedOrders.length}
+            rowsPerPage={acceptedRowsPerPage}
+            page={acceptedPage}
+            onPageChange={(e, newPage) => setAcceptedPage(newPage)}
+            onRowsPerPageChange={(e) => {
+              setAcceptedRowsPerPage(parseInt(e.target.value, 10));
+              setAcceptedPage(0);
+            }}
+          />
+        </TableContainer>
+      </Grid>
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Edit Delivery Boy</DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Name" name="name" fullWidth value={editData.name || ''} onChange={handleInputChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Mobile Number" name="mobile_number" fullWidth value={editData.mobile_number || ''} onChange={handleInputChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Email" name="email" fullWidth value={editData.email || ''} onChange={handleInputChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Vehicle Number" name="vehicle_number" fullWidth value={editData.vehicle_number || ''} onChange={handleInputChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <InputLabel>Gender</InputLabel>
-              <Select name="gender" fullWidth value={editData.gender || ''} onChange={handleInputChange}>
-                {genders.map((g) => (
-                  <MenuItem key={g.value} value={g.value}>{g.label}</MenuItem>
-                ))}
-              </Select>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <InputLabel>Vehicle Type</InputLabel>
-              <Select name="vehicle_type" fullWidth value={editData.vehicle_type || ''} onChange={handleInputChange}>
-                {vehicleTypes.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
-              </Select>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField type="date" label="DOB" name="dob" InputLabelProps={{ shrink: true }} fullWidth value={editData.dob || ''} onChange={handleInputChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControlLabel
-                control={<Switch checked={editData.is_active || false} onChange={(e) => setEditData(prev => ({ ...prev, is_active: e.target.checked }))} />}
-                label="Active"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" gutterBottom>Aadhar Card Image</Typography>
-              {editPreview.aadhar && <Avatar variant="rounded" src={editPreview.aadhar} alt="Aadhar" sx={{ width: 80, height: 80, mb: 1 }} />}
-              <Button variant="outlined" component="label" fullWidth>
-                Upload Aadhar
-                <input hidden accept="image/*" type="file" name="aadhar_card_image" onChange={handleFileChange} />
-              </Button>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2" gutterBottom>Driving License Image</Typography>
-              {editPreview.license && <Avatar variant="rounded" src={editPreview.license} alt="License" sx={{ width: 80, height: 80, mb: 1 }} />}
-              <Button variant="outlined" component="label" fullWidth>
-                Upload License
-                <input hidden accept="image/*" type="file" name="driving_license_image" onChange={handleFileChange} />
-              </Button>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={handleUpdate} variant="contained" disabled={loading}>
-            {loading ? 'Updating...' : 'Update'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
+      {/* Rejected Orders */}
+      <Grid item xs={12}>
+        <Typography variant="h6" mb={2}>Rejected Orders</Typography>
+        <TableContainer component={Paper} sx={{  borderRadius: 3,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',  }}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: '#f0f2f5' }}>
+                <TableCell>No</TableCell>
+                <TableCell>Order ID</TableCell>
+                <TableCell>Customer</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Delivery Address</TableCell>
+                <TableCell>Vendor</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rejectedOrders
+                .slice(rejectedPage * rejectedRowsPerPage, rejectedPage * rejectedRowsPerPage + rejectedRowsPerPage)
+                .map((order, index) => (
+                  <TableRow key={order.id} hover>
+                    <TableCell>{rejectedPage * rejectedRowsPerPage + index + 1}</TableCell>
+                    <TableCell>{order.order_id}</TableCell>
+                    <TableCell>{order.user_details?.name}</TableCell>
+                    <TableCell>{order.assigned_at}</TableCell>
+                    <TableCell>
+                      {order.user_details?.address && (
+                        <>
+                          {order.user_details.address.address_line1}, {order.user_details.address.address_line2}<br />
+                          {order.user_details.address.city}, {order.user_details.address.state}<br />
+                          {order.user_details.address.country} - {order.user_details.address.pincode}
+                        </>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {order.vendor_details && (
+                        <>
+                          {order.vendor_details.name}<br />
+                          {order.vendor_details.address}, {order.vendor_details.landmark}<br />
+                          {order.vendor_details.city}, {order.vendor_details.state} - {order.vendor_details.pincode}<br />
+                          {(order.vendor_details.latitude && order.vendor_details.longitude) && (
+                            <small>(Lat: {order.vendor_details.latitude}, Lng: {order.vendor_details.longitude})</small>
+                          )}
+                        </>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={order.status} color={getStatusColor(order.status)} size="small" />
+                    </TableCell>
+                  </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={rejectedOrders.length}
+            rowsPerPage={rejectedRowsPerPage}
+            page={rejectedPage}
+            onPageChange={(e, newPage) => setRejectedPage(newPage)}
+            onRowsPerPageChange={(e) => {
+              setRejectedRowsPerPage(parseInt(e.target.value, 10));
+              setRejectedPage(0);
+            }}
+          />
+        </TableContainer>
+      </Grid>
+    </Grid>
+
+    <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <DialogTitle>Confirm Delete</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Are you sure you want to delete this delivery boy?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteDialogOpen(false)}  variant='contained' startIcon={<CircleX/>}>Cancel</Button>
+        <Button onClick={handleDelete} color="error" variant='contained' startIcon={<Trash2/>}>Delete</Button>
+      </DialogActions>
+    </Dialog>
+
+    <EditDeliveryBoyModal
+      open={editOpen}
+      handleClose={() => setEditOpen(false)}
+      editData={editData}
+      setEditData={setEditData}
+      editPreview={editPreview}
+      setEditPreview={setEditPreview}
+      handleUpdate={handleUpdate}
+      loading={loading}
+    />
+  </Box>
+);
+
 };
 
 export default DeliveryBoyDetails;

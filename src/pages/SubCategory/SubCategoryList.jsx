@@ -6,7 +6,7 @@ import {
   CircularProgress, Backdrop,
   InputAdornment
 } from "@mui/material";
-import { Edit, Delete, Search } from "@mui/icons-material";
+import { Edit, Delete, Search, Add, IosShare } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   viewsubCategory,
@@ -15,6 +15,7 @@ import {
   deleteSubCategory
 } from "../../services/allApi";
 import { toast } from "react-toastify";
+import { CircleX, ImageUp, Pencil, PencilIcon, Save, Trash2 } from "lucide-react";
 
 const SubCategoryPage = () => {
   const [loading, setLoading] = useState(true);
@@ -163,77 +164,121 @@ const SubCategoryPage = () => {
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-           InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
+          sx={{
+            width: 300,
+            backgroundColor: '#f9fafb',
+            boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',
+
+            borderRadius: 2,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              '& fieldset': {
+                border: "none",
+              },
+
+            },
+            '& .MuiInputLabel-root': {
+              color: '#6b7280',
+              fontSize: 14,
+            },
+            '& .MuiInputBase-input': {
+              fontSize: 14,
+            },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search size={18} style={{ color: '#374151' }} />
+              </InputAdornment>
+            ),
+          }}
         />
+
 
         {/* Buttons on right */}
         <Box display="flex" gap={2}>
-          <Button variant="outlined" >Export</Button>
-          <Button variant="contained" sx={{ backgroundColor: "#1e1e2d", "&:hover": { backgroundColor: "#333" } ,boxShadow:3 }} onClick={handleAddCategory}>
-            + Add SubCategory
+          <Button
+            variant="contained"
+            startIcon={<IosShare />}
+
+          >
+            Export
+          </Button>
+          <Button variant="containedSecondary"
+            startIcon={<Add />} onClick={handleAddCategory}>
+            Add SubCategory
           </Button>
         </Box>
       </Box>
 
-     <TableContainer component={Paper} sx={{ borderRadius: 1, overflow: "hidden", boxShadow: 10 }}>
-  <Table>
-    <TableHead>
-      <TableRow sx={{ backgroundColor: "" }}>
-        <TableCell sx={{  fontWeight: "bold" }}>No</TableCell>
-        <TableCell sx={{  fontWeight: "bold" }}>Image</TableCell>
-        <TableCell sx={{  fontWeight: "bold" }}>Name</TableCell>
-        <TableCell sx={{  fontWeight: "bold" }}>Category</TableCell>
-        <TableCell sx={{  fontWeight: "bold" }}>Active Status</TableCell>
-        <TableCell sx={{  fontWeight: "bold" }}>Actions</TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {filteredSubCategories
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .map((subcategory, index) => (
-          <TableRow
-            key={subcategory.id}
-            sx={{
-              backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#ffffff",
-              "&:hover": { backgroundColor: "#f1f1f1" },
-            }}
-          >
-            <TableCell>{index+1}</TableCell>
-            <TableCell>
-              <img
-                src={subcategory.sub_category_image}
-                alt={subcategory.name}
-                style={{ width: 50, height: 50, borderRadius: "8px", objectFit: "cover" }}
-              />
-            </TableCell>
-            <TableCell>{subcategory.name}</TableCell>
-            <TableCell>{subcategory.category_name}</TableCell>
-            <TableCell>
-              <Chip
-                label={subcategory.is_active ? "Active" : "Inactive"}
-                color={subcategory.is_active ? "success" : "default"}
-                size="small"
-              />
-            </TableCell>
-            <TableCell>
-              <IconButton color="info" onClick={() => handleEditClick(subcategory)}>
-                <Edit />
-              </IconButton>
-              <IconButton color="error" onClick={() => handleDeleteClick(subcategory)}>
-                <Delete />
-              </IconButton>
-            </TableCell>
-          </TableRow>
-        ))}
-    </TableBody>
-  </Table>
-</TableContainer>
+      <TableContainer
+        component={Paper}
+        elevation={3}
+        sx={{ borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', overflow: "hidden", mt: 3 }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="category table">
+          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow sx={{ backgroundColor: "" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>No</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Active Status</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredSubCategories
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((subcategory, index) => (
+                <TableRow
+                  key={subcategory.id}
+                  sx={{
+                    backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#ffffff",
+                    "&:hover": { backgroundColor: "#f1f1f1" },
+                  }}
+                >
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    <img
+                      src={subcategory.sub_category_image}
+                      alt={subcategory.name}
+                      style={{ width: 50, height: 50, borderRadius: "8px", objectFit: "cover" }}
+                    />
+                  </TableCell>
+                  <TableCell>{subcategory.name}</TableCell>
+                  <TableCell>{subcategory.category_name}</TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        px: 2, // horizontal padding
+                        py: 0.8, // vertical padding
+                        borderRadius: '12px',
+                        fontWeight: 600,
+                        fontSize: '0.875rem', // ~14px
+                        display: 'inline-block',
+                        color: subcategory.is_active ? '#15803d' : '#374151', // green-700 / gray-700
+                        backgroundColor: subcategory.is_active ? '#dcfce7' : '#e5e7eb', // green-100 / gray-200
+                      }}
+                    >
+                      {subcategory.is_active ? 'Active' : 'Inactive'}
+                    </Typography>
+
+                  </TableCell>
+                  <TableCell>
+                    <IconButton color="primary" onClick={() => handleEditClick(subcategory)}>
+                      <Pencil />
+                    </IconButton>
+                    <IconButton color="error" onClick={() => handleDeleteClick(subcategory)}>
+                      <Trash2 />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
 
       <TablePagination
@@ -255,67 +300,141 @@ const SubCategoryPage = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error">Delete</Button>
+          <Button variant="contained" startIcon={<CircleX size={20} />} onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button variant="containedError" startIcon={<Trash2 size={20} />} onClick={handleDeleteConfirm} color="error">Delete</Button>
         </DialogActions>
       </Dialog>
 
       {/* Edit Modal */}
+
       <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <Box
           sx={{
-            width: "400px",
-            backgroundColor: "white",
-            padding: 3,
-            margin: "100px auto",
-            borderRadius: "8px",
+            width: 420,
+            bgcolor: 'background.paper',
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            mx: 'auto',
+            mt: '10vh',
+            outline: 'none',
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2 }}>Edit Subcategory</Typography>
+          <Typography variant="h6" fontWeight={600} mb={2}>
+            Edit Subcategory
+          </Typography>
+
           <TextField
             label="Subcategory Name"
             fullWidth
-            margin="normal"
+            size="small"
+            margin="dense"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            sx={{
+              backgroundColor: '#f9fafb',
+              borderRadius: 1,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#e5e7eb',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#9ca3af',
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#6366f1',
+              },
+            }}
           />
-          <FormControl fullWidth margin="normal">
+
+          <FormControl fullWidth size="small" margin="dense">
             <InputLabel>Category</InputLabel>
             <Select
               value={formData.category}
+              label="Category"
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              sx={{
+                backgroundColor: '#f9fafb',
+                borderRadius: 1,
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#e5e7eb',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#9ca3af',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#6366f1',
+                },
+              }}
             >
               {categories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+                <MenuItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <Box mt={2}>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
+            <Button
+              component="label"
+              startIcon={<ImageUp size={20} />}
+              variant="containedSecondary"
+              size="small"
+            >
+              Upload Image
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </Button>
+
             {formData.subcategory_image && (
-              <Box display="flex" alignItems="center" mt={1}>
-                <img
+              <Box display="flex" alignItems="center" mt={2}>
+                <Box
+                  component="img"
                   src={
                     formData.subcategory_image instanceof File
                       ? URL.createObjectURL(formData.subcategory_image)
                       : formData.subcategory_image
                   }
                   alt="Preview"
-                  style={{ width: 100, height: 100, objectFit: "cover", borderRadius: "8px" }}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 2,
+                    objectFit: 'cover',
+                    border: '1px solid #e5e7eb',
+                  }}
                 />
-                <IconButton onClick={handleImageDelete} sx={{ marginLeft: 1 }}>
-                  <Delete />
+                <IconButton color="error" onClick={handleImageDelete} sx={{ ml: 1 }}>
+                  <Trash2 size={20} />
                 </IconButton>
               </Box>
             )}
           </Box>
-          <Box display="flex" justifyContent="flex-end" mt={2}>
-            <Button variant="outlined" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-            <Button variant="contained" onClick={handleEditSave} sx={{ ml: 2 }}>Save</Button>
+
+          <Box display="flex" justifyContent="flex-end" mt={3}>
+            <Button
+              startIcon={<CircleX />}
+              variant="containedError"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              startIcon={<Save size={20} />}
+              variant="contained"
+              onClick={handleEditSave}
+              sx={{ ml: 2 }}
+            >
+              Save
+            </Button>
           </Box>
         </Box>
       </Modal>
+
     </Box>
   );
 };

@@ -27,6 +27,7 @@ import { toast } from 'react-toastify';
 import { deleteBigBuyOrders, viewBigBuyOrders, editBigBuyOrders } from '../../services/allApi';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import { CircleX, Pencil, Save, Trash2 } from 'lucide-react';
 
 
 const BigBuyOrders = () => {
@@ -182,7 +183,7 @@ const handleDeleteConfirm = async () => {
                         onClick={() => handleEditOpen(order)}
                         aria-label="edit order"
                       >
-                        <EditIcon fontSize="small" />
+                        <Pencil size={20} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Delete Order">
@@ -192,7 +193,7 @@ const handleDeleteConfirm = async () => {
                         onClick={() => handleDeleteClick(order)}
                         aria-label="delete order"
                       >
-                        <DeleteIcon fontSize="small" />
+                        <Trash2 size={20}/>
                       </IconButton>
                     </Tooltip>
                   </Box>
@@ -322,8 +323,8 @@ const handleDeleteConfirm = async () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>
+          <Button startIcon={<CircleX/>}  variant="containedError" onClick={handleEditClose}>Cancel</Button>
+          <Button variant="contained" startIcon={<Save/>} onClick={handleEditSave}>
             Save
           </Button>
         </DialogActions>
@@ -338,8 +339,8 @@ const handleDeleteConfirm = async () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
+          <Button variant='contained' startIcon={<CircleX/>} onClick={handleDeleteCancel}>Cancel</Button>
+          <Button variant="contained" startIcon={<Trash2/>} color="error" onClick={handleDeleteConfirm}>
             Delete
           </Button>
         </DialogActions>

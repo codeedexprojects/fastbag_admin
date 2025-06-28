@@ -12,6 +12,14 @@ import {
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
+import { Paper, styled } from '@mui/material';
+    
+    const GlassPaper = styled(Paper)(({ theme }) => ({
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      backdropFilter: 'blur(10px)',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      padding: theme.spacing(2),
+    }));
 
 const Header = () => {
   const navigate = useNavigate();
@@ -36,6 +44,8 @@ const Header = () => {
         px: 3,
         height: '64px',
         justifyContent: 'center',
+        
+        
       }}
     >
       <Toolbar sx={{ justifyContent: 'flex-end', minHeight: '64px !important' }}>

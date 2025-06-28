@@ -11,11 +11,10 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { CloudUploadOutlined } from "@mui/icons-material";
-import {  toast } from "react-toastify";
+import { Add, CloudUploadOutlined } from "@mui/icons-material";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { addCategory } from "../../services/allApi";
-import { viewStores } from "../../services/allApi";
+import { addCategory, viewStores } from "../../services/allApi";
 
 const AddCategory = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +25,6 @@ const AddCategory = () => {
 
   const [storeTypes, setStoreTypes] = useState([]);
 
-  // Fetch store types on component mount
   useEffect(() => {
     const fetchStores = async () => {
       try {
@@ -37,20 +35,19 @@ const AddCategory = () => {
         toast.error("Failed to load store types.");
       }
     };
-
     fetchStores();
   }, []);
-      console.log(storeTypes)
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    setFormData({ ...formData, category_image: file });
+    if (file) {
+      setFormData((prev) => ({ ...prev, category_image: file }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -62,15 +59,8 @@ const AddCategory = () => {
 
       await addCategory(reqBody);
 
-      // Display success toast
       toast.success("Category added successfully!");
-
-      // Clear form fields
-      setFormData({
-        name: "",
-        category_image: null,
-        store_type: "",
-      });
+      setFormData({ name: "", category_image: null, store_type: "" });
     } catch (error) {
       console.error("Error adding category:", error);
       toast.error("Failed to add category.");
@@ -79,35 +69,43 @@ const AddCategory = () => {
 
   return (
     <Box sx={{ padding: 4 }}>
-      <Typography variant="h4" sx={{ marginBottom: "20px" }}>
-        Add Category
+      <Typography variant="h5" fontWeight={600} mb={3}>
+        Add New Category
       </Typography>
 
-      {/* Breadcrumbs */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Typography variant="body2" color="textSecondary">
-          Dashboard &gt; Categories &gt; Add Category
-        </Typography>
-      </Box>
+      <Typography variant="body2" color="text.secondary" mb={4}>
+        Dashboard &gt; Categories &gt; Add Category
+      </Typography>
 
-      {/* Main Form */}
-      <Grid container spacing={3}>
-        {/* Left: Thumbnail Section */}
-        <Grid item xs={12} sm={4}>
-          <Paper sx={{ padding: 3, backgroundColor: "#f5faf5" }}>
-            <Typography variant="h6" gutterBottom>
-              Thumbnail
-            </Typography>
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-              Upload Image
+      <Grid container spacing={4}>
+        {/* Thumbnail Section */}
+        <Grid item xs={12} md={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 3,
+              border: "1px solid #e0e0e0",
+              backgroundColor: "#fcfcfc",
+            }}
+          >
+            <Typography variant="subtitle1" fontWeight={500} mb={1}>
+              Upload Thumbnail
             </Typography>
             <Box
               sx={{
-                border: "2px dashed #d4d4d4",
+                border: "2px dashed #c4c4c4",
                 borderRadius: 2,
-                textAlign: "center",
-                padding: 4,
+                height: 200,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
                 cursor: "pointer",
+                transition: "border-color 0.3s",
+                "&:hover": {
+                  borderColor: "#1976d2",
+                },
               }}
               onClick={() => document.getElementById("image-upload").click()}
             >
@@ -115,30 +113,42 @@ const AddCategory = () => {
                 <img
                   src={URL.createObjectURL(formData.category_image)}
                   alt="Thumbnail"
-                  style={{ maxWidth: "100%", height: "auto" }}
+                  style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
                 />
               ) : (
                 <>
-                  <CloudUploadOutlined sx={{ fontSize: 50, color: "#a0a0a0" }} />
-                  <Typography>Drag and drop image here, or click to upload</Typography>
+                  <CloudUploadOutlined sx={{ fontSize: 40, color: "#999" }} />
+                  <Typography variant="body2" mt={1} color="text.secondary">
+                    Click to upload
+                  </Typography>
                 </>
               )}
             </Box>
             <input
               id="image-upload"
               type="file"
-              style={{ display: "none" }}
+              accept="image/*"
+              hidden
               onChange={handleImageUpload}
             />
           </Paper>
         </Grid>
 
-        {/* Right: Form Fields */}
-        <Grid item xs={12} sm={8}>
-          <Paper sx={{ padding: 3, backgroundColor: "#f5faf5" }}>
-            <Typography variant="h6" gutterBottom>
+        {/* Form Section */}
+        <Grid item xs={12} md={8}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 3,
+              border: "1px solid #e0e0e0",
+              backgroundColor: "#fcfcfc",
+            }}
+          >
+            <Typography variant="subtitle1" fontWeight={500} mb={2}>
               Category Details
             </Typography>
+
             <TextField
               label="Category Name"
               name="name"
@@ -146,19 +156,17 @@ const AddCategory = () => {
               onChange={handleInputChange}
               fullWidth
               variant="outlined"
-              placeholder="Type category name here..."
-              sx={{ marginBottom: 2 }}
+              sx={{ mb: 3 }}
             />
+
             <FormControl fullWidth>
               <InputLabel>Store Type</InputLabel>
               <Select
                 name="store_type"
                 value={formData.store_type}
                 onChange={handleInputChange}
-                displayEmpty
-                variant="outlined"
+                label="Store Type"
               >
-                
                 {storeTypes.map((store) => (
                   <MenuItem key={store.id} value={store.id}>
                     {store.name}
@@ -170,15 +178,15 @@ const AddCategory = () => {
         </Grid>
       </Grid>
 
-      {/* Buttons at Bottom */}
-      <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
-        <Button variant="outlined">Cancel</Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          + Add Category
+      {/* Buttons */}
+      <Box display="flex" justifyContent="flex-end" mt={4} gap={2}>
+        <Button variant="containedError"  size="large">
+          Cancel
+        </Button>
+        <Button variant="contained" startIcon={<Add/>} size="large" onClick={handleSubmit}>
+           Add Category
         </Button>
       </Box>
-
-      {/* Toast Notifications */}
     </Box>
   );
 };

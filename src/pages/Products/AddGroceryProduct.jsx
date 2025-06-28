@@ -23,6 +23,7 @@ import {
   viewVendors,
 } from "../../services/allApi";
 import { useNavigate } from "react-router-dom";
+import { CirclePlus, CircleX, ImageUp } from "lucide-react";
 
 const AddGroceryProduct = () => {
   const [images, setImages] = useState([]);
@@ -259,10 +260,10 @@ formData.forEach((value, key) => {
           Add Grocery Product
         </Typography>
         <Box>
-          <Button variant="outlined" sx={{ mr: 2 }} onClick={resetFormFields}  disabled={loading}>
+          <Button variant="containedError"  startIcon={<CircleX/>} sx={{ mr: 2 }} onClick={resetFormFields}  disabled={loading}>
             Cancel
           </Button>
-          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={loading}>
+          <Button variant="containedSecondary" startIcon={<CirclePlus/>} onClick={handleSubmit} disabled={loading}>
             {loading ? "Adding..." : "Add Product"}
           </Button>
         </Box>
@@ -279,7 +280,7 @@ formData.forEach((value, key) => {
         </Typography>
       )}
 
-      <Box sx={{ backgroundColor: "#ECF4EE", borderRadius: 2, p: 3 }}>
+      <Box sx={{ backgroundColor: "#fff", borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', p: 3 }}>
         <Grid container spacing={3}>
           {/* General Info */}
           <Grid item xs={12}>
@@ -491,7 +492,7 @@ formData.forEach((value, key) => {
             />
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained" onClick={handleAddWeight} disabled={loading}>
+            <Button variant="contained" startIcon={<CirclePlus/>} onClick={handleAddWeight} disabled={loading}>
               Add Weight
             </Button>
           </Grid>
@@ -520,19 +521,29 @@ formData.forEach((value, key) => {
           ))}
 
           {/* Images */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold">
-              Product Images
-            </Typography>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-              disabled={loading}
-              style={{ marginTop: 8 }}
-            />
-          </Grid>
+         
+
+<Grid item xs={12}>
+  <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+    Product Images
+  </Typography>
+  <Button
+    variant="containedSecondary"
+    component="label"
+    startIcon={<ImageUp size={20} />}
+    disabled={loading}
+  >
+    Upload Images
+    <input
+      type="file"
+      multiple
+      accept="image/*"
+      hidden
+      onChange={handleImageUpload}
+    />
+  </Button>
+</Grid>
+
           {images.length > 0 && (
             <Grid item xs={12}>
               <PreviewContainer>

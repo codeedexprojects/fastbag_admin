@@ -16,11 +16,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  InputAdornment,
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Search, Add } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { deleteStore, viewStores, editStore } from "../../services/allApi";
 import { toast } from "react-toastify";
+import { CirclePlus, CircleX, Pencil, Save, Trash2 } from "lucide-react";
 
 const ViewStores = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,13 +60,13 @@ const ViewStores = () => {
   };
 
   const handleEdit = (store) => {
-    setCurrentStore(store); // Set the current store to edit
-    setOpenModal(true); // Open the modal
+    setCurrentStore(store);
+    setOpenModal(true);
   };
 
   const handleModalClose = () => {
-    setOpenModal(false); // Close the modal
-    setCurrentStore({ id: null, name: "", description: "" }); // Reset the form
+    setOpenModal(false);
+    setCurrentStore({ id: null, name: "", description: "" });
   };
 
   const handleEditSubmit = async () => {
@@ -87,19 +89,16 @@ const ViewStores = () => {
     }
   };
 
-  // Open delete confirmation dialog
   const openDeleteDialog = (store) => {
     setStoreToDelete(store);
     setDeleteDialogOpen(true);
   };
 
-  // Close delete confirmation dialog
   const closeDeleteDialog = () => {
     setStoreToDelete(null);
     setDeleteDialogOpen(false);
   };
 
-  // Confirm delete
   const confirmDelete = async () => {
     if (!storeToDelete) return;
 
@@ -120,51 +119,105 @@ const ViewStores = () => {
 
   return (
     <Box sx={{ padding: 4 }}>
+      {/* Top Search & Add Button */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 3,
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
         }}
       >
-        <TextField
-          label="Search Stores"
-          value={searchQuery}
-          onChange={handleSearch}
-          variant="outlined"
-          sx={{ width: "70%" }}
-        />
-        <Button variant="contained" sx={{ backgroundColor: "#1e1e2d" }} onClick={handleAddStore}>
-          Add Store
+       <TextField
+  label="Search Stores"
+  value={searchQuery}
+  onChange={handleSearch}
+  variant="outlined"
+  size="small"
+  sx={{
+    width: 300,
+    backgroundColor: '#f9fafb',
+    borderRadius: 2,
+    fontSize: 14,
+    boxShadow: '0 1px 6px rgba(0, 0, 0, 0.1)',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      '& fieldset': {
+        borderColor: '#d1d5db',
+      },
+      '&:hover fieldset': {
+        borderColor: '#9ca3af',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#6366f1',
+        borderWidth: 2,
+      },
+    },
+    '& .MuiInputBase-input': {
+      padding: '10px 12px',
+      color: '#111827',
+    },
+    '& .MuiSvgIcon-root': {
+      color: '#4b5563',
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <Search />
+      </InputAdornment>
+    ),
+  }}
+/>
+        <Button
+          variant="containedSecondary"
+         startIcon={<CirclePlus/>}
+        >
+           Add Store
         </Button>
       </Box>
 
+      {/* Loading Spinner */}
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
           <CircularProgress />
         </Box>
       )}
 
+      {/* Error Message */}
       {error && <Alert severity="error">{error}</Alert>}
 
+      {/* Store Grid */}
       {!loading && !error && (
         <Grid container spacing={3}>
           {filteredStores.map((store) => (
             <Grid item xs={12} sm={6} md={4} key={store.id}>
-              <Card sx={{ height: "100%" }}>
+              <Card
+                
+                sx={{
+                  borderRadius: 3,
+                  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+                  height: "100%",
+                  transition: "0.3s",
+                  "&:hover": { boxShadow: '0 1px 10px rgba(0, 0, 0, 0.29)',},
+                }}
+              >
                 <CardContent>
-                  <Typography variant="h6">{store.name}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {store.description}
+                  <Typography variant="h6" fontWeight={600}>
+                    {store.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" mt={1}>
+                    {store.description || "No description provided."}
                   </Typography>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ justifyContent: "flex-end", p: 3 }}>
                   <IconButton onClick={() => handleEdit(store)} color="primary">
-                    <Edit />
+                    <Pencil  />
                   </IconButton>
                   <IconButton onClick={() => openDeleteDialog(store)} color="error">
-                    <Delete />
+                    <Trash2 />
                   </IconButton>
                 </CardActions>
               </Card>
@@ -174,53 +227,44 @@ const ViewStores = () => {
       )}
 
       {/* Edit Modal */}
-      <Modal
-        open={openModal}
-        onClose={handleModalClose}
-        aria-labelledby="edit-store-modal"
-        aria-describedby="edit-store-description"
-      >
+      <Modal open={openModal} onClose={handleModalClose}>
         <Box
           sx={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
+            width: { xs: 300, sm: 400 },
             bgcolor: "background.paper",
-            borderRadius: 2,
+            borderRadius: 3,
             boxShadow: 24,
             p: 4,
           }}
         >
-          <Typography id="edit-store-modal" variant="h6" component="h2" mb={2}>
+          <Typography variant="h6" mb={2} fontWeight={600}>
             Edit Store
           </Typography>
           <TextField
             label="Store Name"
             fullWidth
-            margin="normal"
+            margin="dense"
             value={currentStore.name}
             onChange={(e) => setCurrentStore({ ...currentStore, name: e.target.value })}
           />
           <TextField
-            label="Store Description"
+            label="Description"
             fullWidth
-            margin="normal"
+            margin="dense"
             value={currentStore.description}
-            onChange={(e) => setCurrentStore({ ...currentStore, description: e.target.value })}
+            onChange={(e) =>
+              setCurrentStore({ ...currentStore, description: e.target.value })
+            }
           />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mt: 3,
-            }}
-          >
-            <Button onClick={handleModalClose} color="error">
+          <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+            <Button onClick={handleModalClose} startIcon={<CircleX size={20}/>} variant="containedError" color="inherit">
               Cancel
             </Button>
-            <Button onClick={handleEditSubmit} variant="contained" color="primary">
+            <Button onClick={handleEditSubmit} startIcon={<Save size={20}/>} variant="contained" color="primary">
               Save Changes
             </Button>
           </Box>
@@ -228,18 +272,19 @@ const ViewStores = () => {
       </Modal>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Confirm Delete</DialogTitle>
+      <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog}>
+        <DialogTitle>Delete Store</DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete store "{storeToDelete?.name}"?
+          <Typography variant="body1">
+            Are you sure you want to delete store{" "}
+            <strong>{storeToDelete?.name}</strong>?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDeleteDialog} color="secondary">
+          <Button startIcon={<CircleX size={20}/>} variant="contained" onClick={closeDeleteDialog} >
             Cancel
           </Button>
-          <Button onClick={confirmDelete} variant="contained" color="error">
+          <Button onClick={confirmDelete} color="error" startIcon={<Trash2 size={20}/>} variant="containedError">
             Delete
           </Button>
         </DialogActions>

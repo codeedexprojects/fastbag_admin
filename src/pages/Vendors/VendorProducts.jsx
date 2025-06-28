@@ -93,6 +93,8 @@ const Products = ({ vendorId }) => {
       })
     : productsData;
 
+    console.log(productsData)
+
   // Sorting products by name or price
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortConfig.key === 'name') {
@@ -120,28 +122,43 @@ const Products = ({ vendorId }) => {
     <Box sx={{ mt: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6">Vendor Products</Typography>
-        <Box sx={{ mb: 2, maxWidth: 200 }}>
-          <Select
-            fullWidth
-            value={categoryFilter}
-            onChange={handleCategoryChange}
-            displayEmpty
-            size="small"
-            sx={{ bgcolor: '#f5f5f5' }}
-          >
-            <MenuItem value="">All Categories</MenuItem>
-            {uniqueCategories.map((cat) => (
-              <MenuItem key={cat} value={cat}>
-                {cat}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
+       <Box sx={{ mb: 2, maxWidth: 220 }}>
+  <Select
+    fullWidth
+    value={categoryFilter}
+    onChange={handleCategoryChange}
+    displayEmpty
+    size="small"
+    sx={{
+      bgcolor: '#f9fafb',
+      borderRadius: 2,
+      boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+      fontSize: 14,
+      '& .MuiOutlinedInput-notchedOutline': {
+        border: 'none',
+      }
+    }}
+  >
+    <MenuItem value="" sx={{ fontWeight: 500 }}>
+      All Categories
+    </MenuItem>
+    {uniqueCategories.map((cat) => (
+      <MenuItem key={cat} value={cat} sx={{ fontWeight: 500 }}>
+        {cat}
+      </MenuItem>
+    ))}
+  </Select>
+</Box>
+
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
+      <TableContainer
+               component={Paper}
+               elevation={3}
+               sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+             >
+               <Table sx={{ minWidth: 650 }} aria-label="category table">
+                 <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
                             <TableCell>No</TableCell>
 
@@ -217,16 +234,32 @@ const Products = ({ vendorId }) => {
                     <TableCell>
                       {typeof product.subcategory === 'string'
                         ? product.subcategory
-                        : product.sub_category_name || ''}
+                        : product.subcategory_name || ''}
                     </TableCell>
                     <TableCell>Rs.{product.price}</TableCell>
                     <TableCell>Rs.{product.offer_price || product.price}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={product.is_available ? 'In Stock' : 'Out of Stock'}
-                        color={product.is_available ? 'success' : 'error'}
-                      />
-                    </TableCell>
+                   <TableCell>
+  <Typography
+    variant="caption"
+    sx={{
+      fontWeight: 600,
+      textTransform: 'capitalize',
+      letterSpacing: 0.6,
+      color: product.is_available ? 'success.main' : 'error.main',
+      fontSize: '0.75rem',
+      px: 1,
+      py: 0.5,
+      borderRadius: 1,
+      bgcolor: product.is_available ? 'success.light' : 'error.light',
+      display: 'inline-block',
+      textAlign: 'center',
+      minWidth: 80,
+    }}
+  >
+    {product.is_available ? 'In Stock' : 'Out of Stock'}
+  </Typography>
+</TableCell>
+
                   </TableRow>
                 ))
             )}

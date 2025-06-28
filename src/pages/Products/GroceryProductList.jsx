@@ -7,12 +7,13 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { Edit, Delete, Visibility } from '@mui/icons-material';
+import { Edit, Delete, Visibility, Add } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getGroceryProducts, deleteGroceryProduct } from '../../services/allApi';
 import EditGroceryProductModal from './EditGrocery';
 import { toast } from 'react-toastify';
 import { Backdrop } from '@mui/material';
+import { CirclePlus, CircleX, Eye, Trash2 } from 'lucide-react';
 
 
 const GroceryProductList = () => {
@@ -131,19 +132,22 @@ const GroceryProductList = () => {
           Dashboard &gt; Product List
         </Typography>
         <Button
-          variant="contained"
+          variant="containedSecondary"
 
           onClick={handleAddProduct}
-          sx={{ backgroundColor: "#1E1E2D", "&:hover": { backgroundColor: "#333" }, boxShadow: 3 }}      >
-          + Add Product
+          startIcon={<CirclePlus />}      >
+          Add Product
         </Button>
       </Box>
 
 
-      <TableContainer sx={{ borderRadius: 1, boxShadow: 10, overflow: "hidden", mt: 3 }} component={Paper}>
+      <TableContainer sx={{
+        borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+        overflow: "hidden", mt: 3
+      }} component={Paper}>
         <Table sx={{ minWidth: 650 }}>
           {/* Table Header */}
-          <TableHead sx={{ backgroundColor: '' }}>
+          <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
@@ -226,12 +230,42 @@ const GroceryProductList = () => {
                   <TableCell>
                     {Array.isArray(product.weights) && product.weights.length > 0 ? (
                       product.weights.map((weight, index) => (
-                        <Typography
-                          key={index}
-                        >
-                          {weight.weight}: <Typography color={weight.is_in_stock ? "green" : "red"}
-                          >{weight.is_in_stock ? "In Stock" : "Out of Stock"}</Typography>
-                        </Typography>
+    <Box
+    key={index}
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 1,
+      mb: 0.5,
+    }}
+  >
+    <Typography
+      variant="body2"
+      sx={{
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {weight.weight} :
+    </Typography>
+    <Box
+      component="span"
+      sx={{
+        px: 1.5,
+        py: 0.3,
+        borderRadius: 999,
+        fontSize: '0.75rem',
+        fontWeight: 500,
+        color: weight.is_in_stock ? 'success.main' : 'error.main',
+        backgroundColor: weight.is_in_stock ? 'success.light' : 'error.light',
+        textAlign: 'center',
+        width: '80px',
+      }}
+    >
+      {weight.is_in_stock ? 'In Stock' : 'Out of Stock'}
+    </Box>
+  </Box>
                       ))
                     ) : (
                       <Typography color="textSecondary">No Weights Available</Typography>
@@ -243,10 +277,10 @@ const GroceryProductList = () => {
                       <Edit />
                     </IconButton> */}
                     <IconButton color='error' onClick={() => handleDeleteClick(product)}>
-                      <Delete />
+                      <Trash2 />
                     </IconButton>
                     <IconButton color='info' onClick={() => navigate(`/view-groceryproduct/${product.id}`)}>
-                      <Visibility />
+                      <Eye />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -287,13 +321,15 @@ const GroceryProductList = () => {
         <DialogActions>
           <Button
             onClick={() => setDeleteDialogOpen(false)}
-            color="secondary"
+            variant="contained"
+            startIcon={<CircleX/>}
           >
             Cancel
           </Button>
           <Button
             onClick={confirmDeleteProduct}
-            color="primary"
+            variant="containedError"
+            startIcon={<Trash2/>}
           >
             Delete
           </Button>

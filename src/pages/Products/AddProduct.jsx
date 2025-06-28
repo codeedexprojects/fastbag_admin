@@ -13,8 +13,10 @@ import {
   FormControl,
   RadioGroup,
   Radio,
+  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { PlusCircle, ImageUp, Trash2, Save } from "lucide-react";
 import {
   addFashionProduct,
   viewCategory,
@@ -23,6 +25,7 @@ import {
   addImage_fashion,
 } from "../../services/allApi";
 
+// Styled file input
 const Input = styled("input")({
   display: "none",
 });
@@ -44,20 +47,21 @@ function AddFashionProduct() {
     discount: "",
     material: "",
     is_active: true,
-    colors: [], // each with: { color_name, color_code, sizes: [{ size, price, offer_price, stock }] }
+    colors: [],
   });
 
-  const [imageFiles, setImageFiles] = useState({}); // { colorIndex: File }
-  const [previewImages, setPreviewImages] = useState({}); // { colorIndex: ObjectURL }
-
+  const [imageFiles, setImageFiles] = useState({});
+  const [previewImages, setPreviewImages] = useState({});
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const vendorRes = await viewVendors();
-        const categoryRes = await viewCategory();
-        const subcategoryRes = await viewsubCategory();
+        const [vendorRes, categoryRes, subcategoryRes] = await Promise.all([
+          viewVendors(),
+          viewCategory(),
+          viewsubCategory(),
+        ]);
         setVendors(vendorRes.filter((v) => v.store_type === 3));
         setCategories(categoryRes.filter((c) => c.store_type === 3));
         setSubcategories(subcategoryRes);
@@ -70,155 +74,112 @@ function AddFashionProduct() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const val = type === "checkbox" ? checked : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: val,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleColorChange = (index, field, value) => {
-    const updatedColors = [...formData.colors];
-    updatedColors[index][field] = value;
-    setFormData({ ...formData, colors: updatedColors });
+    const updated = [...formData.colors];
+    updated[index][field] = value;
+    setFormData({ ...formData, colors: updated });
   };
 
   const handleSizeChange = (colorIndex, sizeIndex, field, value) => {
-    const updatedColors = [...formData.colors];
-    updatedColors[colorIndex].sizes[sizeIndex][field] = value;
-    setFormData({ ...formData, colors: updatedColors });
+    const updated = [...formData.colors];
+    updated[colorIndex].sizes[sizeIndex][field] = value;
+    setFormData({ ...formData, colors: updated });
   };
 
   const addColor = () => {
     const newColor = {
       color_name: "",
       color_code: "",
-      sizes: sizes.map((size) => ({
-        size,
-        price: "",
-        offer_price: "",
-        stock: "",
-      })),
+      sizes: sizes.map((s) => ({ size: s, price: "", offer_price: "", stock: "" })),
     };
     setFormData((prev) => ({ ...prev, colors: [...prev.colors, newColor] }));
   };
 
   const removeColor = (index) => {
-    const updatedColors = [...formData.colors];
-    updatedColors.splice(index, 1);
-    setFormData({ ...formData, colors: updatedColors });
-
-    const newImageFiles = { ...imageFiles };
-    delete newImageFiles[index];
-    setImageFiles(newImageFiles);
-
-    const newPreviews = { ...previewImages };
-    delete newPreviews[index];
-    setPreviewImages(newPreviews);
+    const updated = [...formData.colors];
+    updated.splice(index, 1);
+    setFormData({ ...formData, colors: updated });
+    const newImg = { ...imageFiles };
+    delete newImg[index];
+    setImageFiles(newImg);
+    const newPrev = { ...previewImages };
+    delete newPrev[index];
+    setPreviewImages(newPrev);
   };
 
   const handleImageFileChange = (e, index) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFiles((prev) => ({
-        ...prev,
-        [index]: file,
-      }));
-      setPreviewImages((prev) => ({
-        ...prev,
-        [index]: URL.createObjectURL(file),
-      }));
+      setImageFiles((prev) => ({ ...prev, [index]: file }));
+      setPreviewImages((prev) => ({ ...prev, [index]: URL.createObjectURL(file) }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      // Filter sizes with valid data
       const payload = { ...formData };
       payload.colors = payload.colors.map((color) => ({
         ...color,
-        sizes: color.sizes.filter(
-          (size) =>
-            size.price !== "" && size.offer_price !== "" && size.stock !== ""
-        ),
+        sizes: color.sizes.filter((s) => s.price && s.offer_price && s.stock),
       }));
-
-      // 1) Create the product
       const res = await addFashionProduct(payload);
       const productId = res.data.id;
-      console.log(res)
-
-      // 2) Upload images with only clothing and image fields
       for (const file of Object.values(imageFiles)) {
-        const formDataImg = new FormData();
-        formDataImg.append("clothing", productId);
-        formDataImg.append("image", file);
-
-       const res2= await addImage_fashion(formDataImg);
-       console.log(res2)
+        const fd = new FormData();
+        fd.append("clothing", productId);
+        fd.append("image", file);
+        await addImage_fashion(fd);
       }
-
       alert("Product and images uploaded successfully!");
     } catch (err) {
-      console.error("Submission error:", err);
-      alert("Failed to submit product or upload images.");
+      console.error("Submit error:", err);
+      alert("Failed to submit product or images.");
     }
   };
 
-  const selectedCategory = categories.find(
-    (cat) => cat.id === parseInt(formData.category_id)
-  );
+  const selectedCategory = categories.find((c) => c.id === parseInt(formData.category_id));
   const filteredSubcategories = selectedCategory
     ? subcategories.filter((sc) => sc.category_name === selectedCategory.name)
     : [];
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
+    <Box p={4} sx={{ background: "#F9FAFB", borderRadius: 2 }}>
+      <Typography variant="h5" fontWeight="bold" mb={3}>
         Add Fashion Product
       </Typography>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          {/* Vendor */}
-          <Grid item xs={12} sm={6}>
+      <form style={{padding:20,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',borderRadius:10}} onSubmit={handleSubmit} sx>
+        <Grid container spacing={3}>
+          {/* Vendor & Category */}
+          <Grid item xs={6}>
             <FormControl fullWidth required>
               <InputLabel>Vendor</InputLabel>
-              <Select
-                name="vendor"
-                value={formData.vendor}
-                onChange={handleChange}
-              >
+              <Select name="vendor" value={formData.vendor} onChange={handleChange}>
                 {vendors.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>
-                    {v.business_name}
-                  </MenuItem>
+                  <MenuItem key={v.id} value={v.id}>{v.business_name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
-
-          {/* Category */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={6}>
             <FormControl fullWidth required>
               <InputLabel>Category</InputLabel>
-              <Select
-                name="category_id"
-                value={formData.category_id}
-                onChange={handleChange}
-              >
-                {categories.map((cat) => (
-                  <MenuItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </MenuItem>
+              <Select name="category_id" value={formData.category_id} onChange={handleChange}>
+                {categories.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
           {/* Subcategory */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <FormControl fullWidth required>
               <InputLabel>Subcategory</InputLabel>
               <Select
@@ -227,89 +188,31 @@ function AddFashionProduct() {
                 onChange={handleChange}
                 disabled={!formData.category_id}
               >
-                {filteredSubcategories.map((sub) => (
-                  <MenuItem key={sub.id} value={sub.id}>
-                    {sub.name}
-                  </MenuItem>
+                {filteredSubcategories.map((sc) => (
+                  <MenuItem key={sc.id} value={sc.id}>{sc.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
-          {/* Name */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Product Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
+          {/* Product Name, Description */}
+          <Grid item xs={6}>
+            <TextField name="name" label="Product Name" value={formData.name} onChange={handleChange} fullWidth required />
           </Grid>
-
-          {/* Description */}
           <Grid item xs={12}>
-            <TextField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              multiline
-              rows={3}
-              fullWidth
-            />
+            <TextField name="description" label="Description" multiline rows={3} value={formData.description} onChange={handleChange} fullWidth />
           </Grid>
 
-          {/* Prices */}
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Wholesale Price"
-              name="wholesale_price"
-              value={formData.wholesale_price}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
+          {/* Pricing */}
+          <Grid item xs={4}><TextField name="wholesale_price" label="Wholesale Price" value={formData.wholesale_price} onChange={handleChange} fullWidth /></Grid>
+          <Grid item xs={4}><TextField name="price" label="Price" value={formData.price} onChange={handleChange} fullWidth /></Grid>
+          <Grid item xs={4}><TextField name="discount" label="Discount (%)" value={formData.discount} onChange={handleChange} fullWidth /></Grid>
 
-          {/* Discount and Material */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Discount (%)"
-              name="discount"
-              value={formData.discount}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Material"
-              name="material"
-              value={formData.material}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-
-          {/* Gender */}
-          <Grid item xs={12}>
-            <Typography>Gender</Typography>
-            <RadioGroup
-              row
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-            >
+          {/* Material & Gender */}
+          <Grid item xs={6}><TextField name="material" label="Material" value={formData.material} onChange={handleChange} fullWidth /></Grid>
+          <Grid item xs={6}>
+            <Typography sx={{ mb: 1 }}>Gender</Typography>
+            <RadioGroup row name="gender" value={formData.gender} onChange={handleChange}>
               <FormControlLabel value="M" control={<Radio />} label="Men" />
               <FormControlLabel value="W" control={<Radio />} label="Women" />
               <FormControlLabel value="U" control={<Radio />} label="Unisex" />
@@ -317,156 +220,61 @@ function AddFashionProduct() {
             </RadioGroup>
           </Grid>
 
-          {/* Active Toggle */}
+          {/* Is Active */}
           <Grid item xs={12}>
             <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.is_active}
-                  onChange={(e) =>
-                    setFormData({ ...formData, is_active: e.target.checked })
-                  }
-                />
-              }
-              label="Is Active"
+              control={<Switch checked={formData.is_active} onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })} />}
+              label="Active"
             />
           </Grid>
 
-          {/* Colors Section */}
-          <Grid item xs={12}>
-            <Typography variant="h6">Colors</Typography>
-            {formData.colors.map((color, index) => (
-              <Box
-                key={index}
-                mb={3}
-                p={2}
-                border="1px solid #ccc"
-                borderRadius={2}
-              >
+          {/* Colors + Sizes */}
+          <Grid item xs={12}><Typography variant="h6" fontWeight="bold">Colors & Sizes</Typography></Grid>
+          {formData.colors.map((color, index) => (
+            <Grid item xs={12} key={index}>
+              <Box sx={{ border: "1px solid #ccc", borderRadius: 2, p: 2 }}>
                 <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={5}>
-                    <TextField
-                      label="Color Name"
-                      value={color.color_name}
-                      onChange={(e) =>
-                        handleColorChange(index, "color_name", e.target.value)
-                      }
-                      fullWidth
-                      required
-                    />
+                  <Grid item xs={4}><TextField label="Color Name" value={color.color_name} onChange={(e) => handleColorChange(index, "color_name", e.target.value)} fullWidth /></Grid>
+                  <Grid item xs={4}><TextField label="Color Code" value={color.color_code} onChange={(e) => handleColorChange(index, "color_code", e.target.value)} fullWidth /></Grid>
+                  <Grid item xs={2}>
+                    <label htmlFor={`upload-image-${index}`}>
+                      <Input id={`upload-image-${index}`} type="file" accept="image/*" onChange={(e) => handleImageFileChange(e, index)} />
+                      <Button variant="containedSecondary" component="span" startIcon={<ImageUp size={20} />}>
+                        Upload
+                      </Button>
+                    </label>
                   </Grid>
-                  <Grid item xs={10} sm={5}>
-                    <TextField
-                      label="Color Code"
-                      value={color.color_code}
-                      onChange={(e) =>
-                        handleColorChange(index, "color_code", e.target.value)
-                      }
-                      fullWidth
-                      required
-                      placeholder="#FFFFFF"
-                    />
-                  </Grid>
-                  <Grid item xs={2} sm={2}>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => removeColor(index)}
-                    >
-                      Remove
-                    </Button>
+                  <Grid item xs={2}>
+                    <IconButton color="error" onClick={() => removeColor(index)}>
+                      <Trash2 size={20} />
+                    </IconButton>
                   </Grid>
                 </Grid>
 
-                {/* Image upload */}
-                <Box mt={2} mb={2}>
-                  <Input
-                    accept="image/*"
-                    id={`color-image-upload-${index}`}
-                    type="file"
-                    onChange={(e) => handleImageFileChange(e, index)}
-                  />
-                  <label htmlFor={`color-image-upload-${index}`}>
-                    <Button variant="contained" component="span">
-                      Upload Color Image
-                    </Button>
-                  </label>
-                  {previewImages[index] && (
-                    <Box mt={1}>
-                      <img
-                        src={previewImages[index]}
-                        alt={`Color Preview ${index}`}
-                        style={{ maxWidth: "150px", maxHeight: "150px" }}
-                      />
-                    </Box>
-                  )}
-                </Box>
+                {previewImages[index] && (
+                  <Box mt={1}><img src={previewImages[index]} alt="" style={{ width: 100, height: 100, borderRadius: 8 }} /></Box>
+                )}
 
-                {/* Sizes inputs */}
-                <Typography variant="subtitle1" mt={2} mb={1}>
-                  Sizes & Prices
-                </Typography>
-                {color.sizes.map((size, sIdx) => (
-                  <Grid
-                    container
-                    spacing={1}
-                    key={sIdx}
-                    alignItems="center"
-                    mb={1}
-                  >
-                    <Grid item xs={12} sm={2}>
-                      <Typography variant="body2">{size.size}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label="Price"
-                        value={size.price}
-                        onChange={(e) =>
-                          handleSizeChange(index, sIdx, "price", e.target.value)
-                        }
-                        fullWidth
-                        type="number"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label="Offer Price"
-                        value={size.offer_price}
-                        onChange={(e) =>
-                          handleSizeChange(
-                            index,
-                            sIdx,
-                            "offer_price",
-                            e.target.value
-                          )
-                        }
-                        fullWidth
-                        type="number"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label="Stock"
-                        value={size.stock}
-                        onChange={(e) =>
-                          handleSizeChange(index, sIdx, "stock", e.target.value)
-                        }
-                        fullWidth
-                        type="number"
-                      />
-                    </Grid>
+                {color.sizes.map((s, sIdx) => (
+                  <Grid container spacing={1} mt={1} key={sIdx}>
+                    <Grid item xs={2}><Typography>{s.size}</Typography></Grid>
+                    <Grid item xs={3}><TextField label="Price" type="number" value={s.price} onChange={(e) => handleSizeChange(index, sIdx, "price", e.target.value)} fullWidth /></Grid>
+                    <Grid item xs={3}><TextField label="Offer Price" type="number" value={s.offer_price} onChange={(e) => handleSizeChange(index, sIdx, "offer_price", e.target.value)} fullWidth /></Grid>
+                    <Grid item xs={3}><TextField label="Stock" type="number" value={s.stock} onChange={(e) => handleSizeChange(index, sIdx, "stock", e.target.value)} fullWidth /></Grid>
                   </Grid>
                 ))}
               </Box>
-            ))}
-            <Button variant="outlined" onClick={addColor}>
+            </Grid>
+          ))}
+          <Grid item xs={12}>
+            <Button variant="containedSecondary" startIcon={<PlusCircle size={20} />} onClick={addColor}>
               Add Color
             </Button>
           </Grid>
 
           {/* Submit */}
           <Grid item xs={12}>
-            <Button variant="contained" color="primary" type="submit">
+            <Button variant="contained" startIcon={<Save size={20} />} color="primary" type="submit">
               Submit Product
             </Button>
           </Grid>
@@ -476,4 +284,4 @@ function AddFashionProduct() {
   );
 }
 
-export default AddFashionProduct;  
+export default AddFashionProduct;

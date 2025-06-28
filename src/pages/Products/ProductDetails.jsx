@@ -17,9 +17,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { toast } from "react-toastify";
 import {
   viewProduct,
@@ -27,6 +24,10 @@ import {
   deleteProductImage,
   addImage_fashion,
 } from "../../services/allApi";
+
+// Lucide icons
+import { Pencil, Trash2, ArrowLeft, ImageUp, X, CircleX } from "lucide-react";
+
 import EditProductModal from "./EditProduct";
 
 export default function ProductDetails() {
@@ -41,7 +42,7 @@ export default function ProductDetails() {
   const [newImages, setNewImages] = useState([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [imageToDeleteConfirm, setImageToDeleteConfirm] = useState(null);
-  const [backdropOpen, setBackdropOpen] = useState(false); // Backdrop state
+  const [backdropOpen, setBackdropOpen] = useState(false);
 
   useEffect(() => {
     fetchProduct();
@@ -77,13 +78,10 @@ export default function ProductDetails() {
     }
   };
 
-  const handleSave = async (updatedForm) => {
-    // Your edit logic here if needed
-  };
+  const handleSave = async (updatedForm) => {};
 
   const confirmDeleteExistingImage = async () => {
     if (!imageToDeleteConfirm) return;
-
     try {
       setBackdropOpen(true);
       const res = await deleteProductImage(imageToDeleteConfirm.id);
@@ -152,49 +150,50 @@ export default function ProductDetails() {
     }
   };
 
-if (loading) {
-  return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      height="60vh"
-    >
-      <CircularProgress />
-    </Box>
-  );
-}
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   if (!product) return <Typography align="center">Product not found</Typography>;
 
   return (
     <Box p={3} maxWidth={900} mx="auto">
+      {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">{product.name}</Typography>
         <Box>
           <Tooltip title="Edit">
             <IconButton color="primary" onClick={() => setEditOpen(true)}>
-              <EditIcon />
+              <Pencil size={20} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
             <IconButton color="error" onClick={() => setDeleteDialogOpen(true)}>
-              <DeleteIcon />
+              <Trash2 size={20} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Back">
             <IconButton onClick={() => navigate(-1)}>
-              <ArrowBackIcon />
+              <ArrowLeft size={20} />
             </IconButton>
           </Tooltip>
         </Box>
       </Box>
 
-      <Typography color="text.secondary" gutterBottom>{product.description}</Typography>
+      <Typography color="text.secondary" gutterBottom>
+        {product.description}
+      </Typography>
       <Divider sx={{ my: 2 }} />
 
       <Grid container spacing={3}>
+        {/* Left info */}
         <Grid item xs={12} md={7}>
-          {[["Category", product.category],
+          {[
+            ["Category", product.category],
             ["Subcategory", product.subcategory],
             ["Store Type", product.store_type],
             ["Material", product.material],
@@ -205,13 +204,15 @@ if (loading) {
             ["Total Stock", product.total_stock],
             ["Status", product.is_active ? "Active" : "Inactive"],
             ["Created At", product.created_at],
-            ["Updated At", product.updated_at]].map(([label, value]) => (
-              <Typography key={label} variant="body1">
-                <strong>{label}:</strong> {value || "N/A"}
-              </Typography>
-            ))}
+            ["Updated At", product.updated_at],
+          ].map(([label, value]) => (
+            <Typography key={label} variant="body1">
+              <strong>{label}:</strong> {value || "N/A"}
+            </Typography>
+          ))}
         </Grid>
 
+        {/* Right images */}
         <Grid item xs={12} md={5} sx={{ position: "relative" }}>
           <Box
             sx={{
@@ -222,7 +223,7 @@ if (loading) {
               maxHeight: 400,
               overflowY: "auto",
               border: "1px solid #ddd",
-              borderRadius: 1,
+              borderRadius: 2,
               position: "relative",
             }}
           >
@@ -252,16 +253,18 @@ if (loading) {
               }}
               size="small"
               color="primary"
-              aria-label="edit images"
             >
-              <EditIcon />
+              <Pencil size={18} />
             </IconButton>
           </Box>
         </Grid>
       </Grid>
 
+      {/* Colors & Sizes */}
       <Box mt={4}>
-        <Typography variant="h6" gutterBottom>Colors & Sizes</Typography>
+        <Typography variant="h6" gutterBottom>
+          Colors & Sizes
+        </Typography>
         {product.colors?.map((color, idx) => (
           <Box key={idx} p={1} mb={1} border="1px solid #ddd" borderRadius={1}>
             <Box display="flex" alignItems="center" mb={1}>
@@ -291,6 +294,7 @@ if (loading) {
         ))}
       </Box>
 
+      {/* Delete product dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Delete Product?</DialogTitle>
         <DialogContent>
@@ -299,19 +303,16 @@ if (loading) {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button color="error" onClick={handleDelete}>Delete</Button>
+          <Button startIcon={<CircleX size={18} />} onClick={() => setDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button startIcon={<Trash2 size={18} />} color="error" onClick={handleDelete}>
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <EditProductModal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        product={product}
-        onSave={handleSave}
-        onUpdated={fetchProduct}
-      />
-
+      {/* Edit images dialog */}
       <Dialog open={editImagesOpen} onClose={() => setEditImagesOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Edit Images</DialogTitle>
         <DialogContent dividers>
@@ -332,7 +333,7 @@ if (loading) {
                     }}
                     onClick={() => openConfirmDelete(img)}
                   >
-                    <DeleteIcon fontSize="small" />
+                    <Trash2 size={16} />
                   </IconButton>
                 </Grid>
               ))
@@ -343,20 +344,14 @@ if (loading) {
 
           <Divider sx={{ my: 3 }} />
           <Typography variant="subtitle1" gutterBottom>Add New Images</Typography>
-          <Button variant="contained" component="label" sx={{ mb: 2 }}>
+          <Button variant="contained" component="label" startIcon={<ImageUp size={18} />}>
             Upload Images
-            <input
-              type="file"
-              hidden
-              multiple
-              accept="image/*"
-              onChange={handleNewImagesChange}
-            />
+            <input type="file" hidden multiple accept="image/*" onChange={handleNewImagesChange} />
           </Button>
 
           {newImages.length > 0 && (
             <>
-              <Typography variant="subtitle2" gutterBottom>Preview of new images</Typography>
+              <Typography variant="subtitle2" mt={2} gutterBottom>Preview</Typography>
               <Grid container spacing={2}>
                 {newImages.map((file, idx) => {
                   const previewUrl = URL.createObjectURL(file);
@@ -374,7 +369,7 @@ if (loading) {
                         }}
                         onClick={() => handleDeleteNewImage(idx)}
                       >
-                        <DeleteIcon fontSize="small" />
+                        <X size={16} />
                       </IconButton>
                     </Grid>
                   );
@@ -384,11 +379,16 @@ if (loading) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditImagesOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpdateImages}>Update</Button>
+          <Button startIcon={<CircleX size={18} />} variant="containedError" onClick={() => setEditImagesOpen(false)}>
+            Cancel
+          </Button>
+          <Button startIcon={<ImageUp size={18} />} variant="containedSecondary" onClick={handleUpdateImages}>
+            Update
+          </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Confirm delete image dialog */}
       <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
         <DialogTitle>Delete Image?</DialogTitle>
         <DialogContent>
@@ -404,15 +404,24 @@ if (loading) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDeleteOpen(false)}>Cancel</Button>
-          <Button color="error" onClick={confirmDeleteExistingImage}>Delete</Button>
+          <Button startIcon={<X size={18} />} onClick={() => setConfirmDeleteOpen(false)}>
+            Cancel
+          </Button>
+          <Button startIcon={<Trash2 size={18} />} color="error" onClick={confirmDeleteExistingImage}>
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={backdropOpen}
-      >
+      <EditProductModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        product={product}
+        onSave={handleSave}
+        onUpdated={fetchProduct}
+      />
+
+      <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }} open={backdropOpen}>
         <CircularProgress color="inherit" />
       </Backdrop>
     </Box>

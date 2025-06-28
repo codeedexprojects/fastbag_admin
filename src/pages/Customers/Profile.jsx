@@ -1,36 +1,89 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Avatar, CircularProgress } from '@mui/material';
+import {
+  Box, Typography, Paper, Avatar, CircularProgress, Modal,
+  TextField, IconButton, Button, MenuItem, Select, InputLabel, FormControl
+} from '@mui/material';
 import { Email, Phone, LocationOn, Person, CalendarToday } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
-import { viewUsersById } from '../../services/allApi';
+import { Pencil, Save, CircleX } from 'lucide-react';
+import {
+  viewUsersById,
+  updateUserDetails,
+  updateUserAddress
+} from '../../services/allApi';
 
 const UserDetails = () => {
   const { id } = useParams();
   const [user, setUser] = useState(null);
+  const [form, setForm] = useState({});
+  const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const fetchUserDetails = async () => {
+    try {
+      setLoading(true);
+      const data = await viewUsersById(id);
+      setUser(data);
+      setForm({
+        name: data.name || '',
+        email: data.email || '',
+        address_line1: data.addresses[0]?.address_line1 || '',
+        city: data.addresses[0]?.city || '',
+        state: data.addresses[0]?.state || '',
+        country: data.addresses[0]?.country || '',
+        address_id: data.addresses[0]?.id,
+      });
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        setLoading(true);
-        const data = await viewUsersById(id);
-        setUser(data);
-      } catch (err) {
-        setError('Failed to load user details');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUserDetails();
-
   }, [id]);
-              // console.log(user)
 
-              
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
+  const handleSave = async () => {
+    try {
+      const changes = [];
 
-  if (loading) {
+      if (form.name !== user.name || form.email !== user.email) {
+        changes.push(updateUserDetails({ name: form.name, email: form.email }, user.id));
+      }
+
+      const original = user.addresses[0] || {};
+      const addressChanged =
+        form.address_line1 !== original.address_line1 ||
+        form.city !== original.city ||
+        form.state !== original.state ||
+        form.country !== original.country;
+
+      if (addressChanged && form.address_id) {
+        const addressData = new FormData();
+        addressData.append('address_line1', form.address_line1);
+        addressData.append('city', form.city);
+        addressData.append('state', form.state);
+        addressData.append('country', form.country);
+        changes.push(updateUserAddress(form.address_id, addressData));
+      }
+
+      if (changes.length > 0) {
+        await Promise.all(changes);
+        await fetchUserDetails();
+      }
+
+      setEditOpen(false);
+    } catch (err) {
+      console.error('Update failed', err);
+    }
+  };
+
+  if (loading || !user) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
         <CircularProgress />
@@ -38,22 +91,10 @@ const UserDetails = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
   return (
-    <Paper sx={{ p: 3 }}>
-      <Avatar
-        sx={{ width: 100, height: 100, mx: 'auto', bgcolor: 'purple' }}
-      />
-      <Typography variant="h6" align="center" sx={{ mt: 2 }}>
-        {user.name}
-      </Typography>
+    <Paper sx={{ p: 5, position: 'relative', borderRadius:3,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
+      <Avatar sx={{ width: 100, height: 100, mx: 'auto', bgcolor: 'purple' }} />
+      <Typography variant="h6" align="center" sx={{ mt: 2 }}>{user.name}</Typography>
       <Typography variant="body2" align="center" color="primary">
         {user.is_verified ? 'Verified' : 'Unverified'}
       </Typography>
@@ -82,6 +123,100 @@ const UserDetails = () => {
           <Typography variant="body2">Joined: {user.date_joined}</Typography>
         </Box>
       </Box>
+
+      {/* Circular Pencil Button */}
+      <IconButton
+        onClick={() => setEditOpen(true)}
+        color="primary"
+        
+        sx={{
+  position: 'absolute',
+  top: 20,
+  right: 20,
+  // border: '1px solid',
+  // borderColor: 'primary.main',
+  // borderRadius: '50%',
+  width: 40,
+  height: 40,
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'primary.main',
+    color: '#fff',
+    borderColor: 'primary.main',
+    svg: {
+      color: '#fff',
+    },
+  },
+}}
+
+      >
+        <Pencil  />
+      </IconButton>
+
+      {/* Edit Modal */}
+      <Modal open={editOpen} onClose={() => setEditOpen(false)}>
+        <Box
+        
+          sx={{
+            width: 420,
+            bgcolor: 'background.paper',
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            mx: 'auto',
+            mt: '10vh',
+            outline: 'none',
+          }}
+        >
+          <Typography variant="h6" fontWeight={600} mb={2}>
+            Edit User
+          </Typography>
+
+          {['name', 'email', 'address_line1', 'city', 'state', 'country'].map((field) => (
+            <TextField
+              key={field}
+              label={field.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              name={field}
+              fullWidth
+              size="small"
+              margin="dense"
+              value={form[field]}
+              onChange={handleChange}
+              sx={{
+                backgroundColor: '#f9fafb',
+                borderRadius: 1,
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#e5e7eb',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#9ca3af',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#6366f1',
+                },
+              }}
+            />
+          ))}
+
+          <Box display="flex" justifyContent="flex-end" mt={3}>
+            <Button
+              startIcon={<CircleX size={20} />}
+              variant="containedError"
+              onClick={() => setEditOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              startIcon={<Save size={20} />}
+              variant="contained"
+              onClick={handleSave}
+              sx={{ ml: 2 }}
+            >
+              Save
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </Paper>
   );
 };

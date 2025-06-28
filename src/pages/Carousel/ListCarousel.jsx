@@ -133,8 +133,7 @@ function CarouselList() {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Carousel Advertisements</Typography>
         <Tooltip title="Add Carousel">
-          <Button variant="contained" color="primary" onClick={handleAdd} startIcon={<AddIcon />}>
-            Add
+          <Button variant="containedSecondary"  onClick={handleAdd} startIcon={<AddIcon />}>Add Carousel
           </Button>
         </Tooltip>
       </Box>

@@ -15,16 +15,20 @@ import {
   TextField,
 } from "@mui/material";
 import {
-  LocationOn,
-  Phone,
-  Email,
-  AccessTime,
-  Business,
   Store,
-  Article,
-  Edit,
-  Description,
-} from "@mui/icons-material";
+  Mail,
+  Phone,
+  MapPin,
+  Landmark,
+  Clock,
+  FileBadge,
+  FileCheck,
+  FileImage,
+  Info,
+  Pencil
+} from "lucide-react";
+
+import { BadgeCheck, CircleX,FileSignature,FileText,ImageUp,Save } from "lucide-react";
 import { viewSingleVendor, updateVendor, viewStores } from "../../services/allApi";
 
 const FileInput = ({ label, name, onChange }) => (
@@ -132,135 +136,114 @@ for (let pair of updatedData.entries()) {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Paper sx={{ p: 3, position: "relative" }}>
-      <IconButton
-        onClick={handleEditClick}
-        sx={{ position: "absolute", top: 16, right: 16, color: "text.secondary" }}
-        aria-label="edit vendor details"
-      >
-        <Edit />
-      </IconButton>
-      <Avatar
-        src={storeDetails.store_logo}
-        alt={storeDetails.business_name}
-        sx={{ width: 100, height: 100, mx: "auto" }}
-      />
-      <Typography variant="h6" align="center" sx={{ mt: 2 }}>
-        {storeDetails.business_name}
-      </Typography>
-      <Typography variant="body2" align="center" color="text.secondary">
-        Store ID: {storeDetails.store_id}
-      </Typography>
-      <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 2 }}>
-        Store Type: {storeDetails.store_type_name}
-      </Typography>
+ <Paper sx={{ p: 3, position: "relative" ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', borderRadius:3}}>
+  <IconButton
+    onClick={handleEditClick}
+    sx={{ position: "absolute", top: 16, right: 16,  }}
+    aria-label="edit vendor details"
+  >
+    <Pencil  size={20} />
+  </IconButton>
 
-      <Box sx={{ mt: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Store sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Owner</b>: {storeDetails.owner_name}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Email sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Email</b>: {storeDetails.email}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Email sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Alternative Email</b>: {storeDetails.alternate_email}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Phone sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Contact</b>: {storeDetails.contact_number}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Address</b>: {storeDetails.address}, {storeDetails.city}, {storeDetails.state} - {storeDetails.pincode}
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Business sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Landmark</b>: {storeDetails.business_landmark}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Latitude</b>: {storeDetails.latitude || "N/A"}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Longitude</b>: {storeDetails.longitude || "N/A"}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <AccessTime sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Operating Hours</b>: {storeDetails.opening_time} - {storeDetails.closing_time}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Article sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>FSSAI No</b>: {storeDetails.fssai_no}
-            <Link href={storeDetails.fssai_certificate} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
-              (View Certificate)
-            </Link>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Article sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>License</b>:
-            <Link href={storeDetails.license} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
-              (View License)
-            </Link>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Article sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Display Image</b>:
-            <Link href={storeDetails.display_image} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
-              (View Image)
-            </Link>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Description sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Description</b>: {storeDetails.store_description}</Typography>
-        </Box>
+  <Avatar
+    src={storeDetails.store_logo}
+    alt={storeDetails.business_name}
+    sx={{ width: 100, height: 100, mx: "auto" }}
+  />
+
+  <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+    {storeDetails.business_name}
+  </Typography>
+  <Typography variant="body2" align="center" color="text.secondary">
+    Store ID: {storeDetails.store_id}
+  </Typography>
+  <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
+    Store Type: {storeDetails.store_type_name}
+  </Typography>
+
+  <Box sx={{ mt: 3 }}>
+    {[
+      { icon: <Store size={20} />, label: "Owner", value: storeDetails.owner_name },
+      { icon: <Mail size={20} />, label: "Email", value: storeDetails.email },
+      { icon: <Mail size={20} />, label: "Alternative Email", value: storeDetails.alternate_email },
+      { icon: <Phone size={20} />, label: "Contact", value: storeDetails.contact_number },
+      {
+        icon: <MapPin size={20} />,
+        label: "Address",
+        value: `${storeDetails.address}, ${storeDetails.city}, ${storeDetails.state} - ${storeDetails.pincode}`,
+      },
+      { icon: <Landmark size={20} />, label: "Landmark", value: storeDetails.business_landmark },
+      { icon: <MapPin size={20} />, label: "Latitude", value: storeDetails.latitude || "N/A" },
+      { icon: <MapPin size={20} />, label: "Longitude", value: storeDetails.longitude || "N/A" },
+      {
+        icon: <Clock size={20} />,
+        label: "Operating Hours",
+        value: `${storeDetails.opening_time} - ${storeDetails.closing_time}`,
+      },
+    ].map((item, i) => (
+      <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <Box >{item.icon}</Box>
+        <Typography variant="body2">
+          <b>{item.label}</b>: {item.value}
+        </Typography>
       </Box>
+    ))}
 
-      {/* Edit Modal */}
-      <Dialog open={isEditing} onClose={() => setIsEditing(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Vendor Details</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-            <TextField label="Business Name" name="business_name" value={formData.business_name || ""} onChange={handleFormChange} fullWidth />
-           
-            <TextField label="Owner Name" name="owner_name" value={formData.owner_name || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Email" name="email" value={formData.email || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Alternative Email" name="alternate_email" value={formData.alternate_email || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Contact Number" type="text" name="contact_number" value={formData.contact_number || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Address" name="address" value={formData.address || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="City" name="city" value={formData.city || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="State" name="state" value={formData.state || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Pincode" name="pincode" value={formData.pincode || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Business Landmark" name="business_landmark" value={formData.business_landmark || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Latitude" name="latitude" value={formData.latitude || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Longitude" name="longitude" value={formData.longitude || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Opening Time" name="opening_time" type="time" value={formData.opening_time || ""} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} />
-            <TextField label="Closing Time" name="closing_time" type="time" value={formData.closing_time || ""} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} />
-            <TextField label="FSSAI Number" name="fssai_no" value={formData.fssai_no || ""} onChange={handleFormChange} fullWidth />
-            <FileInput label="Store Logo" name="store_logo" onChange={handleFileChange} />
-            <FileInput label="FSSAI Certificate" name="fssai_certificate" onChange={handleFileChange} />
-            <FileInput label="License" name="license" onChange={handleFileChange} />
-            <FileInput label="Display Image" name="display_image" onChange={handleFileChange} />
-            <TextField label="Store Description" name="store_description" value={formData.store_description || ""} onChange={handleFormChange} multiline rows={3} fullWidth />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleFormSubmit}>Save</Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+      <FileBadge size={20} />
+      <Typography variant="body2">
+        <b>FSSAI No</b>: {storeDetails.fssai_no}
+        <Link
+          href={storeDetails.fssai_certificate}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ ml: 1 }}
+        >
+          (View Certificate)
+        </Link>
+      </Typography>
+    </Box>
+
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+      <FileCheck size={20} />
+      <Typography variant="body2">
+        <b>License</b>:
+        <Link
+          href={storeDetails.license}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ ml: 1 }}
+        >
+          (View License)
+        </Link>
+      </Typography>
+    </Box>
+
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+      <FileImage size={20} />
+      <Typography variant="body2">
+        <b>Display Image</b>:
+        <Link
+          href={storeDetails.display_image}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ ml: 1 }}
+        >
+          (View Image)
+        </Link>
+      </Typography>
+    </Box>
+
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Info size={20} />
+      <Typography variant="body2">
+        <b>Description</b>: {storeDetails.store_description}
+      </Typography>
+    </Box>
+  </Box>
+</Paper>
+
+
   );
 };
 
