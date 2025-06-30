@@ -173,23 +173,21 @@ const ViewStores = () => {
 />
         <Button
           variant="containedSecondary"
+          onClick={handleAddStore}
          startIcon={<CirclePlus/>}
         >
            Add Store
         </Button>
       </Box>
 
-      {/* Loading Spinner */}
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
           <CircularProgress />
         </Box>
       )}
 
-      {/* Error Message */}
       {error && <Alert severity="error">{error}</Alert>}
 
-      {/* Store Grid */}
       {!loading && !error && (
         <Grid container spacing={3}>
           {filteredStores.map((store) => (
@@ -226,7 +224,6 @@ const ViewStores = () => {
         </Grid>
       )}
 
-      {/* Edit Modal */}
       <Modal open={openModal} onClose={handleModalClose}>
         <Box
           sx={{
@@ -271,7 +268,6 @@ const ViewStores = () => {
         </Box>
       </Modal>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog}>
         <DialogTitle>Delete Store</DialogTitle>
         <DialogContent>

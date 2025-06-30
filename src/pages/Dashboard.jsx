@@ -114,11 +114,17 @@ const Dashboard = () => {
   };
 
   return (
-    <Box sx={{ padding: '24px', minHeight: '100vh' }}>
+    <Box sx={{ px: { xs: 2, sm: 3, md: 5 },
+    py: { xs: 2, sm: 3, md: 4 },
+    minHeight: '100vh', }}>
       <Box
         sx={{
-          display: 'flex', flexWrap: 'wrap', gap: 2,
-          justifyContent: 'space-between', alignItems: 'center', mb: 3
+           display: 'flex',
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: { xs: 'stretch', sm: 'center' },
+    justifyContent: 'space-between',
+    gap: 2,
+    mb: { xs: 2, sm: 3 },
         }}
       >
         <Box sx={{

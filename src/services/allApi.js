@@ -780,20 +780,21 @@ export const updateUserDetails = async (data,id) => {
     };
 
     const response = await commonApi(
-      "PUT",
-      `${BASE_URL}/users/user/${id}/update/`,
-      headers,
-      data
+      "PATCH",
+      `${BASE_URL}/users/users/${id}/`,
+     
+      data,
+       headers,
     );
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Failed to update user details:", error);
     throw error;
   }
 };
 //update user adress
-export const updateUserAddress = async (id, formData) => {
+export const updateUserAddress = async (formData,userId,addressId) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -806,12 +807,13 @@ export const updateUserAddress = async (id, formData) => {
 
     const response = await commonApi(
       "PATCH",
-      `${BASE_URL}/users/address/${id}/update/`,
-      formData,
-      headers
+      `${BASE_URL}/users/admin/users/${userId}/addresses/${addressId}/`,
+     formData,
+      headers,
+     
     );
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Failed to update user address:", error);
     throw error;

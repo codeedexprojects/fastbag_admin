@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box, Typography, Button, TextField, IconButton, Chip, Table, TableBody, TableCell,
+  Box, Typography, Button, TextField, IconButton, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, TablePagination, Modal, Select, MenuItem,
   InputLabel, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  CircularProgress, Backdrop,
-  InputAdornment
+  CircularProgress, Backdrop, InputAdornment
 } from "@mui/material";
-import { Edit, Delete, Search, Add, IosShare } from "@mui/icons-material";
+import { IosShare, Search } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   viewsubCategory,
@@ -15,7 +14,30 @@ import {
   deleteSubCategory
 } from "../../services/allApi";
 import { toast } from "react-toastify";
-import { CircleX, ImageUp, Pencil, PencilIcon, Save, Trash2 } from "lucide-react";
+import { CirclePlus, CircleX, ImageUp, Pencil, Save, Trash2 } from "lucide-react";
+
+// CSV Export Helper
+const exportToCSV = (data, filename = "subcategories.csv") => {
+  const headers = ["Name", "Category", "Active Status"];
+  const csvRows = [
+    headers.join(","),
+    ...data.map((row) =>
+      [
+        `"${row.name}"`,
+        `"${row.category_name}"`,
+        row.is_active ? "Active" : "Inactive"
+      ].join(",")
+    ),
+  ];
+  const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const SubCategoryPage = () => {
   const [loading, setLoading] = useState(true);
@@ -55,13 +77,12 @@ const SubCategoryPage = () => {
     fetchData();
   }, []);
 
-  // Handle Search
   useEffect(() => {
     const filtered = subcategories.filter((sub) =>
       sub.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredSubCategories(filtered);
-    setPage(0); // reset to first page when searching
+    setPage(0);
   }, [searchTerm, subcategories]);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
@@ -112,14 +133,12 @@ const SubCategoryPage = () => {
 
       if (updatedSubCategory.status === 200) {
         toast.success("Successfully edited");
+        const updatedList = subcategories.map((sub) =>
+          sub.id === selectedSubCategory.id ? { ...sub, ...updatedSubCategory } : sub
+        );
+        setSubCategories(updatedList);
+        setIsEditModalOpen(false);
       }
-
-      const updatedList = subcategories.map((sub) =>
-        sub.id === selectedSubCategory.id ? { ...sub, ...updatedSubCategory } : sub
-      );
-
-      setSubCategories(updatedList);
-      setIsEditModalOpen(false);
     } catch (error) {
       console.error("Failed to update subcategory:", error);
     }
@@ -149,7 +168,6 @@ const SubCategoryPage = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      {/* Loading Backdrop */}
       <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
         <CircularProgress color="inherit" />
       </Backdrop>
@@ -157,7 +175,6 @@ const SubCategoryPage = () => {
       <Typography variant="h4" sx={{ marginBottom: "20px" }}>Sub Categories</Typography>
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        {/* Search Box on the left */}
         <TextField
           label="Search Subcategories"
           variant="outlined"
@@ -168,14 +185,12 @@ const SubCategoryPage = () => {
             width: 300,
             backgroundColor: '#f9fafb',
             boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',
-
             borderRadius: 2,
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               '& fieldset': {
                 border: "none",
               },
-
             },
             '& .MuiInputLabel-root': {
               color: '#6b7280',
@@ -194,31 +209,28 @@ const SubCategoryPage = () => {
           }}
         />
 
-
-        {/* Buttons on right */}
         <Box display="flex" gap={2}>
           <Button
             variant="contained"
             startIcon={<IosShare />}
-
+            onClick={() => exportToCSV(filteredSubCategories)}
           >
             Export
           </Button>
-          <Button variant="containedSecondary"
-            startIcon={<Add />} onClick={handleAddCategory}>
+          <Button
+            variant="containedSecondary"
+            startIcon={<CirclePlus />}
+            onClick={handleAddCategory}
+          >
             Add SubCategory
           </Button>
         </Box>
       </Box>
 
-      <TableContainer
-        component={Paper}
-        elevation={3}
-        sx={{ borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', overflow: "hidden", mt: 3 }}
-      >
+      <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 3, mt: 3 }}>
         <Table sx={{ minWidth: 650 }} aria-label="category table">
           <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
-            <TableRow sx={{ backgroundColor: "" }}>
+            <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>No</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Image</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
@@ -252,19 +264,18 @@ const SubCategoryPage = () => {
                     <Typography
                       variant="body2"
                       sx={{
-                        px: 2, // horizontal padding
-                        py: 0.8, // vertical padding
+                        px: 2,
+                        py: 0.8,
                         borderRadius: '12px',
                         fontWeight: 600,
-                        fontSize: '0.875rem', // ~14px
+                        fontSize: '0.875rem',
                         display: 'inline-block',
-                        color: subcategory.is_active ? '#15803d' : '#374151', // green-700 / gray-700
-                        backgroundColor: subcategory.is_active ? '#dcfce7' : '#e5e7eb', // green-100 / gray-200
+                        color: subcategory.is_active ? '#15803d' : '#374151',
+                        backgroundColor: subcategory.is_active ? '#dcfce7' : '#e5e7eb',
                       }}
                     >
                       {subcategory.is_active ? 'Active' : 'Inactive'}
                     </Typography>
-
                   </TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleEditClick(subcategory)}>
@@ -280,7 +291,6 @@ const SubCategoryPage = () => {
         </Table>
       </TableContainer>
 
-
       <TablePagination
         component="div"
         count={filteredSubCategories.length}
@@ -291,7 +301,6 @@ const SubCategoryPage = () => {
         rowsPerPageOptions={[5, 10, 15]}
       />
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -304,8 +313,6 @@ const SubCategoryPage = () => {
           <Button variant="containedError" startIcon={<Trash2 size={20} />} onClick={handleDeleteConfirm} color="error">Delete</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Edit Modal */}
 
       <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <Box
@@ -320,10 +327,7 @@ const SubCategoryPage = () => {
             outline: 'none',
           }}
         >
-          <Typography variant="h6" fontWeight={600} mb={2}>
-            Edit Subcategory
-          </Typography>
-
+          <Typography variant="h6" fontWeight={600} mb={2}>Edit Subcategory</Typography>
           <TextField
             label="Subcategory Name"
             fullWidth
@@ -345,7 +349,6 @@ const SubCategoryPage = () => {
               },
             }}
           />
-
           <FormControl fullWidth size="small" margin="dense">
             <InputLabel>Category</InputLabel>
             <Select
@@ -367,9 +370,7 @@ const SubCategoryPage = () => {
               }}
             >
               {categories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </MenuItem>
+                <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -382,12 +383,7 @@ const SubCategoryPage = () => {
               size="small"
             >
               Upload Image
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleImageChange}
-              />
+              <input type="file" hidden accept="image/*" onChange={handleImageChange} />
             </Button>
 
             {formData.subcategory_image && (
@@ -416,25 +412,11 @@ const SubCategoryPage = () => {
           </Box>
 
           <Box display="flex" justifyContent="flex-end" mt={3}>
-            <Button
-              startIcon={<CircleX />}
-              variant="containedError"
-              onClick={() => setIsEditModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              startIcon={<Save size={20} />}
-              variant="contained"
-              onClick={handleEditSave}
-              sx={{ ml: 2 }}
-            >
-              Save
-            </Button>
+            <Button startIcon={<CircleX />} variant="containedError" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button startIcon={<Save size={20} />} variant="contained" onClick={handleEditSave} sx={{ ml: 2 }}>Save</Button>
           </Box>
         </Box>
       </Modal>
-
     </Box>
   );
 };

@@ -193,8 +193,8 @@ const ViewSubAdmin = () => {
               <TableCell sx={{ fontWeight: "bold" }}>No</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Mobile Number</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Permissions</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Is Superuser</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }} align="right">Actions</TableCell>
+              {/* <TableCell sx={{ fontWeight: "bold" }}>Is Superuser</TableCell> */}
+              <TableCell sx={{ fontWeight: "bold" }} >Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -207,8 +207,8 @@ const ViewSubAdmin = () => {
                     ? subAdmin.permissions.join(", ")
                     : "No Permissions"}
                 </TableCell>
-                <TableCell>{subAdmin.is_superuser ? "Yes" : "No"}</TableCell>
-                <TableCell align="right">
+                {/* <TableCell>{subAdmin.is_superuser ? "Yes" : "No"}</TableCell> */}
+                <TableCell >
                   <IconButton color="primary" onClick={() => handleEditClick(subAdmin)}>
                     <Pencil />
                   </IconButton>

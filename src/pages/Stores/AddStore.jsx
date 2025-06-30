@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Box, Typography, TextField, Button, Grid, Alert } from "@mui/material";
 import { addStore } from "../../services/allApi";
+import { CircleX, Save } from "lucide-react";
 
 const AddStore = () => {
   const [storeData, setStoreData] = useState({
@@ -87,10 +88,10 @@ const AddStore = () => {
 
       {/* Buttons */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
+        <Button variant="contained" startIcon={<Save/>} color="primary" onClick={handleSubmit}>
           Save
         </Button>
-        <Button variant="outlined" color="secondary" onClick={handleReset}>
+        <Button startIcon={<CircleX/>} variant="containedError"  onClick={handleReset}>
           Reset
         </Button>
       </Box>

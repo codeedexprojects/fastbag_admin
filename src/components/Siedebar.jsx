@@ -169,6 +169,8 @@ const Sidebar = () => {
           transition: 'width 0.3s ease',
           overflowX: 'hidden',
           boxSizing: 'border-box',
+          border:'none',
+          
         },
       }}
     >
