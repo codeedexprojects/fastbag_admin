@@ -66,76 +66,76 @@ const UserDetails = () => {
   };
 
   const handleSave = async () => {
-  try {
-    const updates = [];
+    try {
+      const updates = [];
 
-    if (
-      form.name !== user.name ||
-      form.email !== user.email ||
-      form.mobile_number !== user.mobile_number
-    ) {
-      const userData = {
-        name: form.name,
-        email: form.email,
-        mobile_number: form.mobile_number,
-      };
+      if (
+        form.name !== user.name ||
+        form.email !== user.email ||
+        form.mobile_number !== user.mobile_number
+      ) {
+        const userData = {
+          name: form.name,
+          email: form.email,
+          mobile_number: form.mobile_number,
+        };
 
-      updates.push(
-        updateUserDetails(userData,user.id).then(res => {
-          toast.success("User details updated")
-          console.log("User details updated:", res);
-          return res;
-        }).catch(err => {
-          toast.error("Failed to update user details")
-          console.error("Failed to update user details", err);
-          throw err;
-        })
-      );
+        updates.push(
+          updateUserDetails(userData, user.id).then(res => {
+            toast.success("User details updated")
+            console.log("User details updated:", res);
+            return res;
+          }).catch(err => {
+            toast.error("Failed to update user details")
+            console.error("Failed to update user details", err);
+            throw err;
+          })
+        );
+      }
+
+      const original = user.addresses[0] || {};
+      const addressChanged =
+        form.address_line1 !== original.address_line1 ||
+        form.city !== original.city ||
+        form.state !== original.state ||
+        form.country !== original.country;
+
+      if (addressChanged && form.address_id) {
+        const addressData = {
+          address_line1: form.address_line1,
+          city: form.city,
+          state: form.state,
+          country: form.country,
+        };
+
+        updates.push(
+          updateUserAddress(addressData, user.id, form.address_id).then(res => {
+            console.log(" Address updated:", res);
+            toast.success("Address updated")
+
+            return res;
+          }).catch(err => {
+            toast.error("Failed to update address")
+
+            console.error("Failed to update address", err);
+            throw err;
+          })
+        );
+      }
+
+      if (updates.length > 0) {
+        await Promise.all(updates);
+        await fetchUserDetails();
+      }
+
+      setEditOpen(false);
+    } catch (err) {
+      console.error("Update failed", err);
+      if (err.response?.data) {
+        alert(JSON.stringify(err.response.data, null, 2));
+      }
     }
-
-    const original = user.addresses[0] || {};
-    const addressChanged =
-      form.address_line1 !== original.address_line1 ||
-      form.city !== original.city ||
-      form.state !== original.state ||
-      form.country !== original.country;
-
-    if (addressChanged && form.address_id) {
-      const addressData = {
-        address_line1: form.address_line1,
-        city: form.city,
-        state: form.state,
-        country: form.country,
-      };
-
-      updates.push(
-        updateUserAddress(addressData, user.id, form.address_id).then(res => {
-          console.log(" Address updated:", res);
-                    toast.success("Address updated")
-
-          return res;
-        }).catch(err => {
-                              toast.error("Failed to update address")
-
-          console.error("Failed to update address", err);
-          throw err;
-        })
-      );
-    }
-
-    if (updates.length > 0) {
-      await Promise.all(updates);
-      await fetchUserDetails();
-    }
-
-    setEditOpen(false);
-  } catch (err) {
-    console.error("Update failed", err);
-    if (err.response?.data) {
-      alert(JSON.stringify(err.response.data, null, 2));
-    }
-  }
-};
+  };
 
 
   if (loading || !user) {

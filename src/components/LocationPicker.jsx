@@ -10,97 +10,97 @@ const containerStyle = {
 
 const fallbackCenter = { lat: 11.247689, lng: 75.803559 };
 
-const GoogleMapPicker = ({  setVendorData }) => {
+const GoogleMapPicker = ({ setVendorData }) => {
   const [map, setMap] = useState(null);
-  const [markerPosition, setMarkerPosition] = useState( 
-   fallbackCenter
+  const [markerPosition, setMarkerPosition] = useState(
+    fallbackCenter
   );
 
   const autocompleteRef = useRef(null);
   const inputRef = useRef(null);
 
-const updatePosition = (lat, lng, zoomLevel = null) => {
-  setMarkerPosition({ lat, lng });
-  setVendorData((prev) => ({
-    ...prev,
-    latitude: lat,
-    longitude: lng,
-  }));
+  const updatePosition = (lat, lng, zoomLevel = null) => {
+    setMarkerPosition({ lat, lng });
+    setVendorData((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+    }));
 
-  if (map) {
-    map.panTo({ lat, lng });
+    if (map) {
+      map.panTo({ lat, lng });
 
-    if (zoomLevel !== null) {
-      const currentZoom = map.getZoom();
-      const step = zoomLevel > currentZoom ? 1 : -1;
-      let zoom = currentZoom;
-      const interval = setInterval(() => {
-        zoom += step;
-        map.setZoom(zoom);
-        if ((step > 0 && zoom >= zoomLevel) || (step < 0 && zoom <= zoomLevel)) {
-          clearInterval(interval);
-        }
-      }, 100);
+      if (zoomLevel !== null) {
+        const currentZoom = map.getZoom();
+        const step = zoomLevel > currentZoom ? 1 : -1;
+        let zoom = currentZoom;
+        const interval = setInterval(() => {
+          zoom += step;
+          map.setZoom(zoom);
+          if ((step > 0 && zoom >= zoomLevel) || (step < 0 && zoom <= zoomLevel)) {
+            clearInterval(interval);
+          }
+        }, 100);
+      }
     }
-  }
 
-  getAddressFromCoordinates(lat, lng);
-};
+    getAddressFromCoordinates(lat, lng);
+  };
 
-const getAddressFromCoordinates = (lat, lng) => {
-  const geocoder = new window.google.maps.Geocoder();
+  const getAddressFromCoordinates = (lat, lng) => {
+    const geocoder = new window.google.maps.Geocoder();
 
-  geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-    if (status === "OK" && results[0]) {
-      const address = results[0].formatted_address;
-      const components = results[0].address_components;
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        const address = results[0].formatted_address;
+        const components = results[0].address_components;
 
-      let city = "";
-      let state = "";
-      let pincode = "";
+        let city = "";
+        let state = "";
+        let pincode = "";
 
-      components.forEach((component) => {
-        const types = component.types;
+        components.forEach((component) => {
+          const types = component.types;
 
-        if (types.includes("locality")) {
-          city = component.long_name;
-        }
+          if (types.includes("locality")) {
+            city = component.long_name;
+          }
 
-        if (types.includes("administrative_area_level_1")) {
-          state = component.long_name;
-        }
+          if (types.includes("administrative_area_level_1")) {
+            state = component.long_name;
+          }
 
-        if (types.includes("postal_code")) {
-          pincode = component.long_name;
-        }
-      });
+          if (types.includes("postal_code")) {
+            pincode = component.long_name;
+          }
+        });
 
-      setVendorData((prev) => ({
-        ...prev,
-        address,
-        city,
-        state,
-        pincode,
-      }));
-    } else {
-      console.error("Geocoder failed:", status);
-    }
-  });
-};
+        setVendorData((prev) => ({
+          ...prev,
+          address,
+          city,
+          state,
+          pincode,
+        }));
+      } else {
+        console.error("Geocoder failed:", status);
+      }
+    });
+  };
 
 
 
   const onPlaceChanged = () => {
-  const place = autocompleteRef.current?.getPlace();
-  if (place?.geometry?.location) {
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
-    updatePosition(lat, lng, 17); 
-  }
-};
+    const place = autocompleteRef.current?.getPlace();
+    if (place?.geometry?.location) {
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      updatePosition(lat, lng, 17);
+    }
+  };
 
   return (
-    <Box  sx={{borderRadius:2,p:2,boxShadow:2}}>
+    <Box sx={{ borderRadius: 2, p: 2, boxShadow: 2 }}>
       <Autocomplete
         onLoad={(ref) => (autocompleteRef.current = ref)}
         onPlaceChanged={onPlaceChanged}
@@ -142,12 +142,12 @@ const getAddressFromCoordinates = (lat, lng) => {
           mapTypeControl: false,
           fullscreenControl: false,
         }}
-       
+
       >
         <Marker
           position={markerPosition}
           draggable
-         
+
           onDragEnd={(e) => updatePosition(e.latLng.lat(), e.latLng.lng())}
         />
       </GoogleMap>
