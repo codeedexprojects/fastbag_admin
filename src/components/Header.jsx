@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -14,6 +14,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { Paper, styled } from '@mui/material';
 import { BellDot } from 'lucide-react';
+import { getNotificationCounts } from '../services/allApi';
 
 const GlassPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -23,6 +24,8 @@ const GlassPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const Header = () => {
+    const [unreadCount, setUnreadCount] = useState(0);
+  
   const navigate = useNavigate();
 
   const role = localStorage.getItem('role');
@@ -33,6 +36,17 @@ const Header = () => {
     localStorage.clear();
     navigate('/admin-login');
   };
+    useEffect(() => {
+      const fetchUnreadCount = async () => {
+        try {
+          const data = await getNotificationCounts();
+          setUnreadCount(data.unread_count || 0);
+        } catch (error) {
+          console.error("Failed to fetch unread notification count:", error);
+        }
+      };
+      fetchUnreadCount();
+    }, []);
 
   return (
     <AppBar
@@ -71,7 +85,7 @@ const Header = () => {
       },
     }}
   >
-    <Badge badgeContent={3} color="error">
+    <Badge badgeContent={unreadCount} color="error">
       <BellDot color='white' />
     </Badge>
   </IconButton>

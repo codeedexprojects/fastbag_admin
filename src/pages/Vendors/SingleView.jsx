@@ -25,10 +25,10 @@ const VendorDetails = () => {
       </Typography>
 
       <Grid container spacing={3} sx={{ mt: 3 }}>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
           <ProfileSection vendorId={vendorId} key={reloadProfile}/>
         </Grid>
-        <Grid item xs={12} sm={8}>
+        <Grid item xs={12} sm={9}>
           <StatsAndTransactions vendorId={vendorId} onApprove={handleReloadProfile}/>
           <Products vendorId={vendorId} />
         </Grid>

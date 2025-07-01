@@ -243,14 +243,20 @@ const Dashboard = () => {
           },
         ].map((item, i) => (
           <Grid item xs={12} sm={6} md={3} key={i}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                backgroundColor: '#fff',
-                boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
-                p: 2,
-              }}
-            >
+           <Card
+  sx={{
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+    p: 2,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: `0 0 12px 2px ${item.iconColor}40`,
+      // transform: 'translateY(-2px)',
+    },
+  }}
+>
+
               <CardContent>
                 <Typography variant="body2" sx={{ color: '#6b7280', fontWeight: 600 }}>
                   {item.title}
@@ -260,18 +266,21 @@ const Dashboard = () => {
                     {item.value}
                   </Typography>
                   <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '50%',
-                      backgroundColor: item.iconColor,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {item.icon}
-                  </Box>
+  sx={{
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    backgroundColor: item.iconColor,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.3s ease',
+    
+  }}
+>
+  {item.icon}
+</Box>
+
                 </Box>
                 {/* Optional trend indicator can be added here */}
               </CardContent>
@@ -281,13 +290,19 @@ const Dashboard = () => {
 
         <Grid item xs={12} md={6}>
           <Card
-            sx={{
-              borderRadius: 3,
-              backgroundColor: '#fff',
-              boxShadow: '0 1px 10px rgba(0, 0, 0, 0.08)',
-              p: 2,
-            }}
-          >
+  sx={{
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    boxShadow: '0 1px 10px rgba(0, 0, 0, 0.08)',
+    p: 2,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: '0 0 12px 2px rgba(161, 161, 170, 0.51)', // Green glow
+      // transform: 'translateY(-2px)',
+    },
+  }}
+>
+
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -345,13 +360,19 @@ const Dashboard = () => {
 
         <Grid item xs={12} md={6}>
           <Card
-            sx={{
-              borderRadius: 3,
-              backgroundColor: '#fff',
-              boxShadow: '0 1px 10px rgba(0, 0, 0, 0.08)',
-              p: 2,
-            }}
-          >
+  sx={{
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    boxShadow: '0 1px 10px rgba(0, 0, 0, 0.08)',
+    p: 2,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: '0 0 12px 2px rgba(99,102,241,0.3)', // Indigo glow
+      // transform: 'translateY(-2px)',
+    },
+  }}
+>
+
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="subtitle2" sx={{ color: '#6b7280', fontWeight: 600 }}>
                 Statistics
