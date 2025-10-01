@@ -1725,3 +1725,49 @@ export const deleteCarouselAd = async (id) => {
     throw error;
   }
 };
+
+
+
+export const listCommission = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    
+    const response = await commonApi("GET",`${BASE_URL}/vendors/admin/vendor-commissions`, headers);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch commissions:", error);
+    throw error;
+  }
+};
+
+export const updateCommissionStatus = async (commissionId, paymentStatus) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+    
+    const body = {
+      commission_id: commissionId,
+      payment_status: paymentStatus,
+    };
+    
+    const response = await commonApi("POST",`${BASE_URL}/vendors/admin/vendor-commissions/`, headers, body);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update commission status:", error);
+    throw error;
+  }
+};

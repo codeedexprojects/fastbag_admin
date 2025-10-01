@@ -51,6 +51,8 @@ import ProductDetails from "./pages/Products/ProductDetails";
 import FoodProductDetails from "./pages/Products/FoodProductDetails";
 import GroceryProductDetailsPage from "./pages/Products/GroceryPrdouctdetails";
 import GoogleMapsWrapper from "./components/GoogleMapsWrapper";
+import VendorCommissionPage from "./pages/VendorCommission/listVendorCommission";
+import AddDeliveryBoy from "./pages/Delivery/addDeliveryBoy";
 
 const App = () => {
   const location = useLocation();
@@ -118,6 +120,8 @@ const App = () => {
                   <Route path="/view-deliveryboydetails/:id" element={<GoogleMapsWrapper><DeliveryBoyDetails /></GoogleMapsWrapper>} />
                   <Route path="/view-carousel" element={<CarouselList />} />
                   <Route path="/add-carousel" element={<AddCarousel />} />
+                  <Route path="/vendor-commission" element={<VendorCommissionPage />} />
+                  <Route path="/add-deliveryboy" element={<AddDeliveryBoy />} />
                 </>
               )}
 

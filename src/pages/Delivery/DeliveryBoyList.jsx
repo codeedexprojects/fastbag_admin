@@ -5,7 +5,7 @@ import {
   Box, Dialog, DialogTitle, DialogContent, DialogActions,
   Backdrop, CircularProgress, Button
 } from '@mui/material';
-import { CircleX, Eye, Pencil, Trash2 } from 'lucide-react';
+import { CircleX, Eye, Pencil, Trash2, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getDeliveryBoys, deleteDeliveryBoy, updateDeliveryBoy } from '../../services/allApi';
 import { toast } from 'react-toastify';
@@ -110,6 +110,20 @@ const DeliveryBoyList = () => {
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight={600}>Delivery Boys</Typography>
+        <Button
+          variant="contained"
+          startIcon={<Plus size={20} />}
+          onClick={() => navigate('/add-deliveryboy')}
+          sx={{
+            textTransform: 'none',
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            fontWeight: 600
+          }}
+        >
+          Add Delivery Boy
+        </Button>
       </Box>
 
       <TableContainer
