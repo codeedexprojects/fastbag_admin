@@ -1771,3 +1771,60 @@ export const updateCommissionStatus = async (commissionId, paymentStatus) => {
     throw error;
   }
 };
+
+
+
+
+export const listVendorStories = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    
+    const response = await fetch(`${BASE_URL}/vendors/vendor-videos-admin/`, {
+      method: 'GET',
+      headers: headers
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch stories');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch stories:", error);
+    throw error;
+  }
+};
+
+export const getStoryDetail = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    
+    const response = await fetch(`${BASE_URL}/vendors/vendor-videoadmin/${id}/`, {
+      method: 'GET',
+      headers: headers
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch story detail');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch story detail:", error);
+    throw error;
+  }
+};
