@@ -13,34 +13,46 @@ import {
   DialogActions,
   Button,
   TextField,
+  MenuItem,
 } from "@mui/material";
 import {
-  LocationOn,
-  Phone,
-  Email,
-  AccessTime,
-  Business,
   Store,
-  Article,
-  Edit,
-  Description,
-} from "@mui/icons-material";
+  Mail,
+  Phone,
+  MapPin,
+  Landmark,
+  Clock,
+  FileBadge,
+  FileCheck,
+  FileImage,
+  Info,
+  Pencil,
+  Save,
+  X
+} from "lucide-react";
+
 import { viewSingleVendor, updateVendor, viewStores } from "../../services/allApi";
 
-const FileInput = ({ label, name, onChange }) => (
-  <Button
-    variant="outlined"
-    component="label"
-    fullWidth
-    sx={{
-      mb: 2,
-      borderColor: "primary.main",
-      "&:hover": { borderColor: "primary.dark" },
-    }}
-  >
-    {label}
-    <input type="file" name={name} onChange={onChange} hidden />
-  </Button>
+const FileInput = ({ label, name, onChange, currentFile }) => (
+  <Box sx={{ mb: 2 }}>
+    <Button
+      variant="outlined"
+      component="label"
+      fullWidth
+      sx={{
+        borderColor: "primary.main",
+        "&:hover": { borderColor: "primary.dark" },
+      }}
+    >
+      {label}
+      <input type="file" name={name} onChange={onChange} hidden />
+    </Button>
+    {currentFile && (
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+        Current: {typeof currentFile === 'string' ? 'File uploaded' : currentFile.name}
+      </Typography>
+    )}
+  </Box>
 );
 
 const ProfileSection = ({ vendorId }) => {
@@ -50,6 +62,7 @@ const ProfileSection = ({ vendorId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [storeTypes, setStoreTypes] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchVendorDetails = async () => {
@@ -82,7 +95,10 @@ const ProfileSection = ({ vendorId }) => {
     setIsEditing(true);
   };
 
-  console.log(storeDetails)
+  const handleCloseDialog = () => {
+    setIsEditing(false);
+    setFormData(storeDetails); // Reset form data
+  };
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -96,35 +112,38 @@ const ProfileSection = ({ vendorId }) => {
 
   const handleFormSubmit = async () => {
     try {
+      setSubmitting(true);
       const updatedData = new FormData();
 
+      // List of file fields
+      const fileFields = ["store_logo", "fssai_certificate", "license", "display_image", "id_proof", "passbook_image"];
+
       Object.keys(formData).forEach((key) => {
-        if (
-          key === "store_logo" ||
-          key === "fssai_certificate" ||
-          key === "license" ||
-          key === "display_image"
-        ) {
+        // Only append file fields if they are new File objects
+        if (fileFields.includes(key)) {
           if (formData[key] instanceof File) {
             updatedData.append(key, formData[key]);
           }
+          // Skip if it's a string (existing URL) - don't append it
         } else {
-          updatedData.append(key, formData[key]);
+          // Append all non-file fields
+          if (formData[key] !== null && formData[key] !== undefined) {
+            updatedData.append(key, formData[key]);
+          }
         }
       });
 
-for (let pair of updatedData.entries()) {
-  console.log(`${pair[0]}:`, pair[1]);
-}
-      const res=await updateVendor(updatedData, vendorId);
+      const res = await updateVendor(updatedData, vendorId);
       setIsEditing(false);
 
       const updatedVendor = await viewSingleVendor(vendorId);
-       console.log(res)
       setStoreDetails(updatedVendor);
       setFormData(updatedVendor);
     } catch (error) {
       console.error("Error updating vendor:", error);
+      alert("Failed to update vendor details. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -132,135 +151,360 @@ for (let pair of updatedData.entries()) {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Paper sx={{ p: 3, position: "relative" }}>
-      <IconButton
-        onClick={handleEditClick}
-        sx={{ position: "absolute", top: 16, right: 16, color: "text.secondary" }}
-        aria-label="edit vendor details"
-      >
-        <Edit />
-      </IconButton>
-      <Avatar
-        src={storeDetails.store_logo}
-        alt={storeDetails.business_name}
-        sx={{ width: 100, height: 100, mx: "auto" }}
-      />
-      <Typography variant="h6" align="center" sx={{ mt: 2 }}>
-        {storeDetails.business_name}
-      </Typography>
-      <Typography variant="body2" align="center" color="text.secondary">
-        Store ID: {storeDetails.store_id}
-      </Typography>
-      <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 2 }}>
-        Store Type: {storeDetails.store_type_name}
-      </Typography>
+    <>
+      <Paper sx={{ p: 3, position: "relative", boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', borderRadius: 3 }}>
+        <IconButton
+          onClick={handleEditClick}
+          sx={{ position: "absolute", top: 16, right: 16 }}
+          aria-label="edit vendor details"
+        >
+          <Pencil size={20} />
+        </IconButton>
 
-      <Box sx={{ mt: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Store sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Owner</b>: {storeDetails.owner_name}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Email sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Email</b>: {storeDetails.email}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Email sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Alternative Email</b>: {storeDetails.alternate_email}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Phone sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Contact</b>: {storeDetails.contact_number}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Address</b>: {storeDetails.address}, {storeDetails.city}, {storeDetails.state} - {storeDetails.pincode}
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Business sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Landmark</b>: {storeDetails.business_landmark}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Latitude</b>: {storeDetails.latitude || "N/A"}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Longitude</b>: {storeDetails.longitude || "N/A"}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <AccessTime sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Operating Hours</b>: {storeDetails.opening_time} - {storeDetails.closing_time}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Article sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>FSSAI No</b>: {storeDetails.fssai_no}
-            <Link href={storeDetails.fssai_certificate} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
-              (View Certificate)
-            </Link>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Article sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>License</b>:
-            <Link href={storeDetails.license} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
-              (View License)
-            </Link>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Article sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            <b>Display Image</b>:
-            <Link href={storeDetails.display_image} target="_blank" rel="noopener noreferrer" sx={{ ml: 1 }}>
-              (View Image)
-            </Link>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Description sx={{ mr: 1 }} />
-          <Typography variant="body2"><b>Description</b>: {storeDetails.store_description}</Typography>
-        </Box>
-      </Box>
+        <Avatar
+          src={storeDetails.store_logo}
+          alt={storeDetails.business_name}
+          sx={{ width: 100, height: 100, mx: "auto" }}
+        />
 
-      {/* Edit Modal */}
-      <Dialog open={isEditing} onClose={() => setIsEditing(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Vendor Details</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-            <TextField label="Business Name" name="business_name" value={formData.business_name || ""} onChange={handleFormChange} fullWidth />
-           
-            <TextField label="Owner Name" name="owner_name" value={formData.owner_name || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Email" name="email" value={formData.email || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Alternative Email" name="alternate_email" value={formData.alternate_email || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Contact Number" type="text" name="contact_number" value={formData.contact_number || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Address" name="address" value={formData.address || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="City" name="city" value={formData.city || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="State" name="state" value={formData.state || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Pincode" name="pincode" value={formData.pincode || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Business Landmark" name="business_landmark" value={formData.business_landmark || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Latitude" name="latitude" value={formData.latitude || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Longitude" name="longitude" value={formData.longitude || ""} onChange={handleFormChange} fullWidth />
-            <TextField label="Opening Time" name="opening_time" type="time" value={formData.opening_time || ""} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} />
-            <TextField label="Closing Time" name="closing_time" type="time" value={formData.closing_time || ""} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} />
-            <TextField label="FSSAI Number" name="fssai_no" value={formData.fssai_no || ""} onChange={handleFormChange} fullWidth />
-            <FileInput label="Store Logo" name="store_logo" onChange={handleFileChange} />
-            <FileInput label="FSSAI Certificate" name="fssai_certificate" onChange={handleFileChange} />
-            <FileInput label="License" name="license" onChange={handleFileChange} />
-            <FileInput label="Display Image" name="display_image" onChange={handleFileChange} />
-            <TextField label="Store Description" name="store_description" value={formData.store_description || ""} onChange={handleFormChange} multiline rows={3} fullWidth />
+        <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+          {storeDetails.business_name}
+        </Typography>
+        <Typography variant="body2" align="center" color="text.secondary">
+          Store ID: {storeDetails.store_id}
+        </Typography>
+        <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
+          Store Type: {storeDetails.store_type_name}
+        </Typography>
+
+        <Box sx={{ mt: 3 }}>
+          {[
+            { icon: <Store size={20} />, label: "Owner", value: storeDetails.owner_name },
+            { icon: <Mail size={20} />, label: "Email", value: storeDetails.email },
+            { icon: <Mail size={20} />, label: "Alternative Email", value: storeDetails.alternate_email },
+            { icon: <Phone size={20} />, label: "Contact", value: storeDetails.contact_number },
+            {
+              icon: <MapPin size={20} />,
+              label: "Address",
+              value: `${storeDetails.address}, ${storeDetails.city}, ${storeDetails.state} - ${storeDetails.pincode}`,
+            },
+            { icon: <Landmark size={20} />, label: "Landmark", value: storeDetails.business_landmark },
+            { icon: <MapPin size={20} />, label: "Latitude", value: storeDetails.latitude || "N/A" },
+            { icon: <MapPin size={20} />, label: "Longitude", value: storeDetails.longitude || "N/A" },
+            {
+              icon: <Clock size={20} />,
+              label: "Operating Hours",
+              value: `${storeDetails.opening_time} - ${storeDetails.closing_time}`,
+            },
+          ].map((item, i) => (
+            <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+              <Box>{item.icon}</Box>
+              <Typography variant="body2">
+                <b>{item.label}</b>: {item.value}
+              </Typography>
+            </Box>
+          ))}
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <FileBadge size={20} />
+            <Typography variant="body2">
+              <b>FSSAI No</b>: {storeDetails.fssai_no}
+              <Link
+                href={storeDetails.fssai_certificate}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ ml: 1 }}
+              >
+                (View Certificate)
+              </Link>
+            </Typography>
           </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <FileCheck size={20} />
+            <Typography variant="body2">
+              <b>License</b>:
+              <Link
+                href={storeDetails.license}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ ml: 1 }}
+              >
+                (View License)
+              </Link>
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <FileImage size={20} />
+            <Typography variant="body2">
+              <b>Display Image</b>:
+              <Link
+                href={storeDetails.display_image}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ ml: 1 }}
+              >
+                (View Image)
+              </Link>
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Info size={20} />
+            <Typography variant="body2">
+              <b>Description</b>: {storeDetails.store_description}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Store size={20} />
+            <Typography variant="body2">
+              <b>Commission</b>: {storeDetails.commission ? `${storeDetails.commission}%` : "N/A"}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <FileImage size={20} />
+            <Typography variant="body2">
+              <b>Passbook Image</b>:
+              {storeDetails.passbook_image ? (
+                <Link
+                  href={storeDetails.passbook_image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ ml: 1 }}
+                >
+                  (View Image)
+                </Link>
+              ) : (
+                " N/A"
+              )}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditing} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Edit Vendor Details
+          <IconButton
+            onClick={handleCloseDialog}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <X size={20} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            label="Business Name"
+            name="business_name"
+            value={formData.business_name || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Owner Name"
+            name="owner_name"
+            value={formData.owner_name || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            name="email"
+            type="email"
+            value={formData.email || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Alternative Email"
+            name="alternate_email"
+            type="email"
+            value={formData.alternate_email || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Contact Number"
+            name="contact_number"
+            value={formData.contact_number || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Address"
+            name="address"
+            value={formData.address || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="City"
+            name="city"
+            value={formData.city || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="State"
+            name="state"
+            value={formData.state || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Pincode"
+            name="pincode"
+            value={formData.pincode || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Landmark"
+            name="business_landmark"
+            value={formData.business_landmark || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Latitude"
+            name="latitude"
+            value={formData.latitude || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Longitude"
+            name="longitude"
+            value={formData.longitude || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Opening Time"
+            name="opening_time"
+            type="time"
+            value={formData.opening_time || ""}
+            onChange={handleFormChange}
+            InputLabelProps={{ shrink: true }}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Closing Time"
+            name="closing_time"
+            type="time"
+            value={formData.closing_time || ""}
+            onChange={handleFormChange}
+            InputLabelProps={{ shrink: true }}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="FSSAI No"
+            name="fssai_no"
+            value={formData.fssai_no || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            select
+            label="Store Type"
+            name="store_type"
+            value={formData.store_type || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          >
+            {storeTypes.map((type) => (
+              <MenuItem key={type.id} value={type.id}>
+                {type.name}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            fullWidth
+            label="Store Description"
+            name="store_description"
+            multiline
+            rows={3}
+            value={formData.store_description || ""}
+            onChange={handleFormChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Commission (%)"
+            name="commission"
+            type="number"
+            value={formData.commission || ""}
+            onChange={handleFormChange}
+            inputProps={{ min: 0, max: 100, step: 0.01 }}
+            sx={{ mb: 2 }}
+          />
+
+          <FileInput
+            label="Upload Store Logo"
+            name="store_logo"
+            onChange={handleFileChange}
+            currentFile={formData.store_logo}
+          />
+          <FileInput
+            label="Upload FSSAI Certificate"
+            name="fssai_certificate"
+            onChange={handleFileChange}
+            currentFile={formData.fssai_certificate}
+          />
+          <FileInput
+            label="Upload License"
+            name="license"
+            onChange={handleFileChange}
+            currentFile={formData.license}
+          />
+          <FileInput
+            label="Upload Display Image"
+            name="display_image"
+            onChange={handleFileChange}
+            currentFile={formData.display_image}
+          />
+          <FileInput
+            label="Upload Passbook Image"
+            name="passbook_image"
+            onChange={handleFileChange}
+            currentFile={formData.passbook_image}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleFormSubmit}>Save</Button>
+          <Button onClick={handleCloseDialog} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleFormSubmit}
+            variant="contained"
+            startIcon={<Save size={18} />}
+            disabled={submitting}
+          >
+            {submitting ? "Saving..." : "Save Changes"}
+          </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </>
   );
 };
 

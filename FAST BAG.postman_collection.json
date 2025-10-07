@@ -1,0 +1,5134 @@
+{
+	"info": {
+		"_postman_id": "fb17d230-860c-44c3-be2c-b119d96b1707",
+		"name": "FAST BAG",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32627893"
+	},
+	"item": [
+		{
+			"name": "register",
+			"item": [
+				{
+					"name": "reg",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mobile_number\": \"8075189808\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}users/register/",
+							"host": [
+								"{{local}}users"
+							],
+							"path": [
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vendors",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "LOGIN",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "email",
+											"value": "praveen.codeedex@gmail.com",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}/vendors/vendor/login/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"vendors",
+										"vendor",
+										"login",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "VERIFY",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{local}}/vendors/vendor/verify-otp/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"vendors",
+										"vendor",
+										"verify-otp",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "REFRESH TOKEN",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "refresh",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczMjg1OTI4NCwiaWF0IjoxNzMyMjU0NDg0LCJqdGkiOiJhOGNiZTVmNTYxNGY0ZmEwYTY4ZjM3NjlkYjgxYzJhMyIsInVzZXJfaWQiOjF9.J0Tn42tc5cmxElwix9Lqikit9AJ62MOTNi1mp5pqsd8",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}vendors/vendor/token/refresh/",
+									"host": [
+										"{{local}}vendors"
+									],
+									"path": [
+										"vendor",
+										"token",
+										"refresh",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "TeST",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "product",
+					"item": [
+						{
+							"name": "add product",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{local}}vendors/add-product/",
+									"host": [
+										"{{local}}vendors"
+									],
+									"path": [
+										"add-product",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "product count",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "available prod",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "out of stock count",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Product list",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}vendors/products/vendor/",
+									"host": [
+										"{{fastbag}}vendors"
+									],
+									"path": [
+										"products",
+										"vendor",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "orders",
+					"item": [
+						{
+							"name": "view all orders",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{vendor43}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}cart/vendor/orders/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"vendor",
+										"orders",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "notifications",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "order update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{vendor35}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "order_status",
+											"value": "reject",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}cart/vendor/orders/ORD-20250524055808-1/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"vendor",
+										"orders",
+										"ORD-20250524055808-1",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "STORES- ADD",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MzU1MzYxLCJpYXQiOjE3MzU4MTkzNjEsImp0aSI6IjE3ZTA2MzJmOGJlYzQwMjBiYzFiZWViODk4N2ViZTMyIiwidXNlcl9pZCI6MX0.hN9VszYbU0LICJvIRP8F6v-Xc3iRsnL12_Bz-VQvPKQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Grocery\",\r\n    \"description\":\"Products\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}vendors/store-types/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"store-types",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VENDORS - ADD",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "store_logo",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/pink-blue-abstract-logo/OIHE480.jpg"
+								},
+								{
+									"key": "fssai_certificate",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/dlsnse.jpeg"
+								},
+								{
+									"key": "display_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/sore.jpg",
+									"disabled": true
+								},
+								{
+									"key": "display_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/flat-sale-background/228058-P2LF2Q-631.jpg"
+								},
+								{
+									"key": "license",
+									"type": "file",
+									"src": "/C:/Users/prith/OneDrive/Pictures/Screenshots/Screenshot 2023-11-08 123113.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}vendors/vendors/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendors",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VENDORS ACCEPT REJECT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MzU1MzYxLCJpYXQiOjE3MzU4MTkzNjEsImp0aSI6IjE3ZTA2MzJmOGJlYzQwMjBiYzFiZWViODk4N2ViZTMyIiwidXNlcl9pZCI6MX0.hN9VszYbU0LICJvIRP8F6v-Xc3iRsnL12_Bz-VQvPKQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"is_approved\": 1\r\n    \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}vendors/vendor-accept-reject/12/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendor-accept-reject",
+								"12",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FILTER VENDORS - ACCP-REJ",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NTQyMDI2LCJpYXQiOjE3MzcwMDYwMjYsImp0aSI6IjJjODBiMDIyN2FiNDQ1NzZiMWE2ZTBjYTI2OGRhNTczIiwidXNlcl9pZCI6MX0.52jPaUZxWnWazzdXMbPiHfqUtcFWPjz_-MVyJO6MpIQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}vendors/vendors/filter/?status=1",
+							"host": [
+								"{{local}}vendors"
+							],
+							"path": [
+								"vendors",
+								"filter",
+								""
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VENDORS BY STORE TYPE",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}vendors/stores/by-type/1/",
+							"host": [
+								"{{local}}vendors"
+							],
+							"path": [
+								"stores",
+								"by-type",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VENDORS EDIT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2ODQ0MTEwLCJpYXQiOjE3NDUzMDgxMTAsImp0aSI6IjNkMmU1OTI3ZDdkYTRjN2NhMDVmMTkzYWU1MzhkZmI4IiwidXNlcl9pZCI6MX0.cqd24QMSWARbXlc17GVVmpGS9k4l3b1bMbd_1QNCWmk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "contact_number",
+									"value": "8073285630",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "fssai_certificate",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/green_shirt_TLP5zhQ_sfEbs1w.webp",
+									"disabled": true
+								},
+								{
+									"key": "is_staff",
+									"value": "1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "store_description",
+									"value": "Fashion store",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "owner_name",
+									"value": "jubair",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "contact_number",
+									"value": "9947953599",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "vjubi1234@gmail.com",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "business_name",
+									"value": "New Fashion",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}vendors/vendors/34/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendors",
+								"34",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stores get",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NTQyMDI2LCJpYXQiOjE3MzcwMDYwMjYsImp0aSI6IjJjODBiMDIyN2FiNDQ1NzZiMWE2ZTBjYTI2OGRhNTczIiwidXNlcl9pZCI6MX0.52jPaUZxWnWazzdXMbPiHfqUtcFWPjz_-MVyJO6MpIQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"description\":\"Grocery Products\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/vendors/store-types/",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"vendors",
+								"store-types",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "vendor listing home",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NTQyMDI2LCJpYXQiOjE3MzcwMDYwMjYsImp0aSI6IjJjODBiMDIyN2FiNDQ1NzZiMWE2ZTBjYTI2OGRhNTczIiwidXNlcl9pZCI6MX0.52jPaUZxWnWazzdXMbPiHfqUtcFWPjz_-MVyJO6MpIQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}vendors/vendors-home/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendors-home",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "vendors get",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NjI4MjcyLCJpYXQiOjE3MzcwOTIyNzIsImp0aSI6IjliNmJlYTgxOTZkYTRmMWM5NDdjYTQzZDkxZTM1NDA3IiwidXNlcl9pZCI6MX0.g2SNpAAgYKOk7wy0WTQy6rk8bFd68sG9uAeV72DB9lg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}/vendors/vendors/",
+							"host": [
+								"{{fastbag}}"
+							],
+							"path": [
+								"vendors",
+								"vendors",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "enable - disable",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NTQyMDI2LCJpYXQiOjE3MzcwMDYwMjYsImp0aSI6IjJjODBiMDIyN2FiNDQ1NzZiMWE2ZTBjYTI2OGRhNTczIiwidXNlcl9pZCI6MX0.52jPaUZxWnWazzdXMbPiHfqUtcFWPjz_-MVyJO6MpIQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "is_active",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{local}}vendors/vendor-enable-disable/2/",
+							"host": [
+								"{{local}}vendors"
+							],
+							"path": [
+								"vendor-enable-disable",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "approved stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}/vendors/vendor/approval-status/5/",
+							"host": [
+								"{{fastbag}}"
+							],
+							"path": [
+								"vendors",
+								"vendor",
+								"approval-status",
+								"5",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "forgot mail",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"alternate_email\":\"praveen.codeedex@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}vendors/forgot-email/send-otp/",
+							"host": [
+								"{{local}}vendors"
+							],
+							"path": [
+								"forgot-email",
+								"send-otp",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify otp recovery",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0MDE0MTgyLCJpYXQiOjE3MzM3MjA2NjYsImp0aSI6IjY1NDgzY2IzMDYzNjQwMmY5YmQ5ZjdjM2YwOGUzZGQwIiwidXNlcl9pZCI6MX0.WhHa21S3qtvnnOIedhHS2O5gvugSL7CIBQKQrc9AA3s",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"alternate_email\":\"praveen.codeedex@gmail.com\",\r\n    \"otp\": \"3506\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}vendors/forgot-email/verify-otp/",
+							"host": [
+								"{{local}}vendors"
+							],
+							"path": [
+								"forgot-email",
+								"verify-otp",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FOOD-VENDOR PRODUCTS BY ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}food/vendors/products/1/",
+							"host": [
+								"{{local}}food"
+							],
+							"path": [
+								"vendors",
+								"products",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GROCERY-VENDOR PRODUCTS BY ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}grocery/grocery/vendors/products/1/",
+							"host": [
+								"{{local}}grocery"
+							],
+							"path": [
+								"grocery",
+								"vendors",
+								"products",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pending detail view",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTc4NTExLCJpYXQiOjE3MzgwNDI1MTEsImp0aSI6ImExNzBkMmY5NGQ1ZjQyZDU4ZjYxZTg0MWZiM2JmNDhjIiwidXNlcl9pZCI6NH0.B09nJ1eyw9VMIfkmoFFWI6SRr7GJCvyshI5ZeW7UZXY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}vendors/vendors/pending/2/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendors",
+								"pending",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "filter by store type",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "analytics",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "search",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "order analytics",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SUB CAT",
+			"item": [
+				{
+					"name": "Sub cat create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "main_category",
+									"value": "4",
+									"type": "text"
+								},
+								{
+									"key": "Sub_category_image",
+									"type": "file",
+									"src": "/C:/Users/prith/OneDrive/Pictures/Screenshots/Screenshot 2024-10-19 154816.png"
+								},
+								{
+									"key": "name",
+									"value": "New York Pizza",
+									"type": "text"
+								},
+								{
+									"key": "Enable_subcategory",
+									
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}subcategories/",
+							"host": [
+								"{{fastbag}}subcategories"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sub cat edit",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "sub cat filter",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RESTAURENT",
+			"item": [
+				{
+					"name": "FOOD CATEGORY - SUB CATEGORY",
+					"item": [
+						{
+							"name": "LIST CATEGORY",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}food/food-categories/view/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"food-categories",
+										"view",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SUB CATEGORIES",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4MDIxNzMwLCJpYXQiOjE3MzY0ODU3MzAsImp0aSI6ImRhZTE3Nzc3YTMwZTQxMzA4MDYzNzMyNGViODY4YzRmIiwidXNlcl9pZCI6MX0.zOSDfGJPJwTQhv-ogoTimOxqxCMe1B6VCI0VGKnfYeM",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "category",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "name",
+											"value": "Meals",
+											"type": "text"
+										},
+										{
+											"key": "Sub_category_image",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/dosa.jpg"
+										},
+										{
+											"key": "enable_subcategory",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "vendor",
+											"value": "4",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}food/subcategories/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"subcategories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "LIST SUBCATEGORIES",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxMTQ0NzU1LCJpYXQiOjE3MzA5NTgyMDMsImp0aSI6IjI4NmQ0MTEwZDZiODRmYTk5NDFlMDZkZDAwNTU1M2QyIiwidXNlcl9pZCI6MX0.3cfO3x_kgSb2rsbtGKQsgfIWblh9y-m8o5eHa8juRVU",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}food/subcategories/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"subcategories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "CATEGORY BY VENDOR",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "By Sub Cat name",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "CATEGORY LIST - BY VENDOR",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}food/vendor-categories/1/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"vendor-categories",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SUB CAT LIST",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}food/vendor-sub-categories/1/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"vendor-sub-categories",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "CATEGORY EDIT",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat by categories",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc3MDkzOTUwLCJpYXQiOjE3NDU1NTc5NTAsImp0aSI6ImNkMTlhOTdmMDAzNjRhYWY5MDIxZWNkMDg2Y2UxNmJiIiwidXNlcl9pZCI6MzV9.XvOmkD8H13ujz227Kb3hxsxxaMD2AQSxeioYH7KPSZk",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}food/subcategories/by-category/11/",
+									"host": [
+										"{{fastbag}}food"
+									],
+									"path": [
+										"subcategories",
+										"by-category",
+										"11",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "FOOD PRODUCTS",
+					"item": [
+						{
+							"name": "ADD ON PRODUCT",
+							"item": [
+								{
+									"name": "CREATE ADDON",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "images",
+							"item": [
+								{
+									"name": "add",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								},
+								{
+									"name": "delete",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Create",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc3MzY2NTI1LCJpYXQiOjE3NDU4MzA1MjUsImp0aSI6IjFhMjc0MzRjOTYyODQ0NzRhZDMyYjdkZjA2ZDA5MGQwIiwidXNlcl9pZCI6MzV9.UXxrcpXpOsat80E8zkrw3zufP3-4Ya1QDm5sPidLKf4",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "vendor",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "category",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "name",
+											"value": "Masala Dosa",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Masala Dosa",
+											"type": "text"
+										},
+										{
+											"key": "price",
+											"value": "100",
+											"type": "text"
+										},
+										{
+											"key": "offer_price",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "discount",
+											"value": "5",
+											"type": "text"
+										},
+										{
+											"key": "is_available",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "is_offer_product",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "subcategory",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "images",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/dosa.jpg"
+										},
+										{
+											"key": "images",
+											"type": "file",
+											"src": [],
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}food/dishes/",
+									"host": [
+										"{{fastbag}}food"
+									],
+									"path": [
+										"dishes",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRODUCT LIST BY VENDOR",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}food/vendors/products/1/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"vendors",
+										"products",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRODUCTS FILTER BY CAT - SUB CAT",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}food/food/dishes/1/1/1/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"food",
+										"dishes",
+										"1",
+										"1",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product get",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTE3NDA0LCJpYXQiOjE3Mzg1ODE0MDQsImp0aSI6ImRjNmYyMDY0MWUzMDRjMzJiM2MyOTAwOGFkYmFkZThhIiwidXNlcl9pZCI6NH0.gc2sEDDxrn0NOLUojISxECYUvcZpm6qTA9XfB16R7ys",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Noodles",
+											"type": "text"
+										},
+										{
+											"key": "discount",
+											"value": "2",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "price",
+											"value": "100",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}food/dishes/1/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"dishes",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "OFFER PRODUCTS",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "POPULAR PRODUCTS",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "SEARCH",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Edit product",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMyMzg4Njg2LCJpYXQiOjE3MzIyNTQ0ODQsImp0aSI6IjdhYzc1YTdjN2IxMjQzY2ZiMjY4NmQ1MWNiNzUyNjcxIiwidXNlcl9pZCI6MX0.wvU3i-J9sfcDFw3LW4gG5khxI2AxU-3PKTR2uH6_rxI",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Plane Dosa",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "plane dosa",
+											"type": "text"
+										},
+										{
+											"key": "is_available",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}food/dishes/1/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"dishes",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Dish Stats view",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "single dish",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "All products-food",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "edit reported item",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "products by sub cat",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "wishlist",
+					"item": [
+						{
+							"name": "Get items",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Add items",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "REVIEW & RATINGS",
+					"item": [
+						{
+							"name": "post rating and reviews",
+							"request": {
+								"method": "POST",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "List review",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "TOTAL REVIEWS",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "BANNERS",
+					"item": [
+						{
+							"name": "CREATE",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0NzkwMDk3LCJpYXQiOjE3MzQ3NTc2OTcsImp0aSI6ImY4ZDYyOTA3YzI0ZjRkYjhiZjI5MDQ5MTE2MTY3ZGVkIiwidXNlcl9pZCI6M30.u168GJuueSdq6VhjtDK34HqVfqgEkRwU4ELOFiwKhzI",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "vendor",
+											"value": "3",
+											"type": "text"
+										},
+										{
+											"key": "product",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "banner_image",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/download (1).jpeg"
+										},
+										{
+											"key": "description",
+											"value": "grab now",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}/food/create-banner/food/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"food",
+										"create-banner",
+										"food",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "UPDATE",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0NzkwMDk3LCJpYXQiOjE3MzQ3NTc2OTcsImp0aSI6ImY4ZDYyOTA3YzI0ZjRkYjhiZjI5MDQ5MTE2MTY3ZGVkIiwidXNlcl9pZCI6M30.u168GJuueSdq6VhjtDK34HqVfqgEkRwU4ELOFiwKhzI",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "is_active",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}/food/food-banner/1/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"food",
+										"food-banner",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "LIST",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Coupons",
+					"item": [
+						{
+							"name": "add",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MTcyMzA4LCJpYXQiOjE3MzU2MzYzMDgsImp0aSI6ImRiZmUwYzc3ZWI4NjRmZjU5NjcwYWZjNzVjZjcyNmU1IiwidXNlcl9pZCI6NH0.vJ72ggUmUFi2a5-Z_tilSs2kNEK4XRA0YGDWXUfgslY",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"code\":\"NEWYEAR25\",\r\n    \"discount_value\":20,\r\n    \"discount_type\":\"fixed\",\r\n    \"valid_from\":\"01/01/2025\",\r\n    \"valid_to\":\"31/01/2025\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}food/food-coupons/",
+									"host": [
+										"{{local}}food"
+									],
+									"path": [
+										"food-coupons",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "apply coupon",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "edit",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Report list",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GROCERY",
+			"item": [
+				{
+					"name": "GROCERY PRODUCTS",
+					"item": [
+						{
+							"name": "ADD PRODUCT",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5MTQ2NjA4LCJpYXQiOjE3Mzc2MTA2MDgsImp0aSI6IjcyNWYyNzhhYmE5MjQyOTU5OTNhOWYzNmQ4M2VhNGE5IiwidXNlcl9pZCI6MX0.cQvNtygE7CC7Vvcsyxpzr3YdeiVSIbKMw4ZMZuGw9nQ",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"vendor\": 1,\r\n    \"category\": 1,\r\n    \"sub_category\": 1,\r\n    \"name\": \"Fresh Apples\",\r\n    \"wholesale_price\": 50.00,\r\n    \"price\": 60.00,\r\n    \"discount\": 8.33,\r\n    \"description\": \"Fresh and organic apples from local farms.\",\r\n    \"weight_measurement\": \"kg\",\r\n    \"Available\": true,\r\n    \"is_offer_product\": true,\r\n    \"is_popular_product\": true,\r\n    \"weights\": {\r\n        \"250g\": {\"price\": 15.00, \"quantity\": 10, \"in_stock\": true},\r\n        \"500g\": {\"price\": 30.00, \"quantity\": 8, \"in_stock\": true},\r\n        \"1kg\": {\"price\": 60.00, \"quantity\": 5, \"in_stock\": true}\r\n    }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}grocery/products/admin/",
+									"host": [
+										"{{local}}grocery"
+									],
+									"path": [
+										"products",
+										"admin",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRODUCT DETAIL",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}grocery/products/1/",
+									"host": [
+										"{{local}}grocery"
+									],
+									"path": [
+										"products",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "UPDATE",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/images (1).jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}grocery/products/1/",
+									"host": [
+										"{{local}}grocery"
+									],
+									"path": [
+										"products",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Offer Products",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Popular Projects",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Product Search",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "All products-grocery",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}grocery/grocery-products/list/",
+									"host": [
+										"{{local}}grocery"
+									],
+									"path": [
+										"grocery-products",
+										"list",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "products stats",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "All products list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "prod by sub cat and vendor id",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "REVIEWS AND RATINGS",
+					"item": [
+						{
+							"name": "REVIEW POST",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMzODU4MjI4LCJpYXQiOjE3MzM4MjU4MjgsImp0aSI6IjkxYzYyODNlZDVlODQ5YmY4NjNhZDk2ZjljMDAyM2M2IiwidXNlcl9pZCI6MX0.QcKlSPxUeaURiKCjIdi8sH11A6hVfpdAsah5eQ1nip4",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "product",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "rating",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "review",
+											"value": "good",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}/grocery/product/reviews/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"grocery",
+										"product",
+										"reviews",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "list review by product",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "REVIEW LIST",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "GRO SUB CAT CREATE",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "Category",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Milk",
+									"type": "text"
+								},
+								{
+									"key": "Sub_category_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/milk.jpg"
+								},
+								{
+									"key": "Enable_subcategory",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{local}}grocery/gro-Subcategories/",
+							"host": [
+								"{{local}}grocery"
+							],
+							"path": [
+								"gro-Subcategories",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CAT GET",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "SUB CAT - GET",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}grocery/gro-Subcategories/1/",
+							"host": [
+								"{{local}}grocery"
+							],
+							"path": [
+								"gro-Subcategories",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "vendors by category",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "category list",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "vendors by sub category",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "grocery sub cat list",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "vendors by grocery categories",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "REport product list",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "sub cat by categories",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ADMIN",
+			"item": [
+				{
+					"name": "vendor",
+					"item": [
+						{
+							"name": "vendor detail",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "view vendor",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "ADD GLOBAL CATEGORY",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NTU5Nzk0LCJpYXQiOjE3MzcwMjM3OTQsImp0aSI6IjFhYmU1YTExYTljYjRhYWY4NTMzNzhlZDZmNjgyM2IxIiwidXNlcl9pZCI6MX0.DAN3VwDIvijUvs2EcNZ6U6ps9mhbTJDCOo5OqK-LvpU",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Casual waerings",
+											"type": "text"
+										},
+										{
+											"key": "category_image",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/Green.webp"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}/vendors/categories/",
+									"host": [
+										"{{fastbag}}"
+									],
+									"path": [
+										"vendors",
+										"categories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "approve changes",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat food",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat grocery",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat fashion",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "product by vendors",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "users",
+					"item": [
+						{
+							"name": "user list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "COUPONS",
+					"item": [
+						{
+							"name": "Add coupons",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "REPORT -REVIEW-WISHLIST",
+					"item": [
+						{
+							"name": "Wishlist by user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NTA1ODA1LCJpYXQiOjE3MzU5Njk4MDUsImp0aSI6ImRjYjNhNDE2YmUwMjRmNzNiMGFlNmFhOWM0ZDM5YWVkIiwidXNlcl9pZCI6NH0.x6t9RyUxRFa5vCtUu5EuUlyR9Lsc2rxsvhA-HumoeCU",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}users/admin/users/wishlists/2/",
+									"host": [
+										"{{local}}users"
+									],
+									"path": [
+										"admin",
+										"users",
+										"wishlists",
+										"2",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Report product list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Review by users",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "SUB-ADMIN",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NTA1ODA1LCJpYXQiOjE3MzU5Njk4MDUsImp0aSI6ImRjYjNhNDE2YmUwMjRmNzNiMGFlNmFhOWM0ZDM5YWVkIiwidXNlcl9pZCI6NH0.x6t9RyUxRFa5vCtUu5EuUlyR9Lsc2rxsvhA-HumoeCU",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mobile_number\":\"9947953599\",\r\n    \"password\":\"subadmin1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}users/create-staff/",
+									"host": [
+										"{{local}}users"
+									],
+									"path": [
+										"create-staff",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "list sub admin",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NTA1ODA1LCJpYXQiOjE3MzU5Njk4MDUsImp0aSI6ImRjYjNhNDE2YmUwMjRmNzNiMGFlNmFhOWM0ZDM5YWVkIiwidXNlcl9pZCI6NH0.x6t9RyUxRFa5vCtUu5EuUlyR9Lsc2rxsvhA-HumoeCU",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}users/staff/",
+									"host": [
+										"{{fastbag}}users"
+									],
+									"path": [
+										"staff",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Staff details",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NTA1ODA1LCJpYXQiOjE3MzU5Njk4MDUsImp0aSI6ImRjYjNhNDE2YmUwMjRmNzNiMGFlNmFhOWM0ZDM5YWVkIiwidXNlcl9pZCI6NH0.x6t9RyUxRFa5vCtUu5EuUlyR9Lsc2rxsvhA-HumoeCU",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}users/staff/9947953599/",
+									"host": [
+										"{{local}}users"
+									],
+									"path": [
+										"staff",
+										"9947953599",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Staff Update",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Staff delete",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}users/staff/9947953599/delete/",
+									"host": [
+										"{{local}}users"
+									],
+									"path": [
+										"staff",
+										"9947953599",
+										"delete",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "notifications",
+					"item": [
+						{
+							"name": "view",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "unread-count",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "mark all as read",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "detail",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "category",
+					"item": [
+						{
+							"name": "add",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}/vendors/categories/view/",
+									"host": [
+										"{{fastbag}}"
+									],
+									"path": [
+										"vendors",
+										"categories",
+										"view",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "view total cat",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}vendors/categories/filter/?store_type_name=Restaurent&name=Break Fast",
+									"host": [
+										"{{fastbag}}vendors"
+									],
+									"path": [
+										"categories",
+										"filter",
+										""
+									],
+									"query": [
+										{
+											"key": "store_type_name",
+											"value": "Restaurent"
+										},
+										{
+											"key": "name",
+											"value": "Break Fast"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "New Request",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ORDERS",
+					"item": [
+						{
+							"name": "order-list",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczODk4NTE1LCJpYXQiOjE3NDIzNjI1MTUsImp0aSI6ImM4MzI3ZTg3ZjNiYTQ0NWE4YWJjMWM1OTY3OTQ4MzM2IiwidXNlcl9pZCI6MX0.z9E9gFP0D1f9RiZWDw7uATRdn9yf8LptJLlorXv74Zw",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}cart/order-list-admin/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"order-list-admin",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "single order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin }}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}cart/orders/admin/25/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"orders",
+										"admin",
+										"25",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "order status update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin }}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "order_status",
+											"value": "processing",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}cart/orders/update-status/ORD-20250507074056-1/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"orders",
+										"update-status",
+										"ORD-20250507074056-1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete all order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin }}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}cart/delete-all-orders/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"delete-all-orders",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "SUB CAT",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2ODQ0MTEwLCJpYXQiOjE3NDUzMDgxMTAsImp0aSI6IjNkMmU1OTI3ZDdkYTRjN2NhMDVmMTkzYWU1MzhkZmI4IiwidXNlcl9pZCI6MX0.cqd24QMSWARbXlc17GVVmpGS9k4l3b1bMbd_1QNCWmk",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "shirt",
+											"type": "text"
+										},
+										{
+											"key": "category",
+											"value": "17",
+											"type": "text"
+										},
+										{
+											"key": "sub_category_image",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/B Q.png"
+										},
+										{
+											"key": "is_active",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}vendors/admin/subcategories/create/",
+									"host": [
+										"{{fastbag}}vendors"
+									],
+									"path": [
+										"admin",
+										"subcategories",
+										"create",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "edit",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "BIG BUY",
+					"item": [
+						{
+							"name": "Update Order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin }}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"amount\":1500,\r\n    \"status\":\"CONFIRMED\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{fastbag}}/users/admin/big-buy-order/16/update/",
+									"host": [
+										"{{fastbag}}"
+									],
+									"path": [
+										"users",
+										"admin",
+										"big-buy-order",
+										"16",
+										"update",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "LOGIN",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "mobile_number",
+									"value": "8075189808",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin123",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}users/admin/login/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"admin",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TOKEN REFRESH",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "LOGIN - HOST",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "USER",
+			"item": [
+				{
+					"name": "AUTH",
+					"item": [
+						{
+							"name": "REGister",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mobile_number\":8113871489\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "LOGIN",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "mobile_number",
+											"value": "7907025147",
+											"type": "text"
+										},
+										{
+											"key": "otp",
+											"value": "889357",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}users/login/",
+									"host": [
+										"{{fastbag}}users"
+									],
+									"path": [
+										"login",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Token refresh-id -1",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "token refresh 2",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "logout",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0NTAyNzExLCJpYXQiOjE3NDI5NjY3MTEsImp0aSI6ImZlMmYxODI1N2Y1NzQ0YjY4ZmZmNjYxZjMyMGJhYTU4IiwidXNlcl9pZCI6MX0.UkOs_CtXeIIyNDlBoLMoVWmwBKoUcty-RJbDRsohU3U",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}users/login/",
+									"host": [
+										"{{fastbag}}users"
+									],
+									"path": [
+										"login",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Grocery Wishlist",
+					"item": [
+						{
+							"name": "view wishlist",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "ADD WISHLSIT",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMzNzY5NzUwLCJpYXQiOjE3MzMzOTYxNDMsImp0aSI6IjdhODA3Mjc0OTdmMTRiZjQ5M2IyN2Y4Y2I4ZTc4MjRlIiwidXNlcl9pZCI6Mn0.3iT43VjaeKXlcxFunKWAIDkrbF96ChlkojJcu799M-k",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "product",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}/grocery/wishlist/add/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"grocery",
+										"wishlist",
+										"add",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Food wishlist",
+					"item": [
+						{
+							"name": "ADD",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5MjM0MjQyLCJpYXQiOjE3Mzc2OTgyNDIsImp0aSI6ImYwZGUzZTE0NGYxYjQ4OTg4ZTlmMDAwZmJlYzYzMjNkIiwidXNlcl9pZCI6MTl9.eIqx0-kfQZHOgZkgwpT8ikp0Kn1Cq4w0uXVVfz8X3AQ",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "dish",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}food/wishlist/add/",
+									"host": [
+										"{{fastbag}}food"
+									],
+									"path": [
+										"wishlist",
+										"add",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Coupons",
+					"item": [
+						{
+							"name": "food coupons",
+							"item": [
+								{
+									"name": "view usage",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								},
+								{
+									"name": "apply coupon",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "fashion coupons",
+							"item": []
+						},
+						{
+							"name": "grocery coupons",
+							"item": [
+								{
+									"name": "Apply coupon",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "user details",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "favorite vendors",
+					"item": [
+						{
+							"name": "add fav vendors",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "fav vendors list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "remove",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "BIG BUY",
+					"item": [
+						{
+							"name": "add",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTk3MjYzLCJpYXQiOjE3Mzg2NjEyNjMsImp0aSI6IjE4ZGRmN2IzMGZiYTRhN2M5MmM0MGFlNWU1YTA1MDkwIiwidXNlcl9pZCI6M30.ZkJf54aMR4DlTeTclb02MAXMtliO_SY0aXouQymYtfI",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"food_item\": \"Paneer Butter Masala\",\r\n  \"quantity_in_kg\": \"12.5\",\r\n  \"number_of_people\": 60,\r\n  \"preferred_delivery_date\": \"2025-04-30\",\r\n  \"special_occasion\": \"Birthday\",\r\n  \"diet_category\": \"Vegetarian\",\r\n  \"additional_notes\": \"Mild spice, serve with rice.\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}/users/big-buy-orders/",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"users",
+										"big-buy-orders",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "edit",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "cancel",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ORDERS",
+					"item": [
+						{
+							"name": "VIEW orders",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0NTAyNzExLCJpYXQiOjE3NDI5NjY3MTEsImp0aSI6ImZlMmYxODI1N2Y1NzQ0YjY4ZmZmNjYxZjMyMGJhYTU4IiwidXNlcl9pZCI6MX0.UkOs_CtXeIIyNDlBoLMoVWmwBKoUcty-RJbDRsohU3U",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{fastbag}}cart/user/orders/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"user",
+										"orders",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "order detail",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "order cancel",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{user1}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "order_id",
+											"value": "ORD-20250508111218-1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "product_id",
+											"value": "115",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "product_type",
+											"value": "grocery",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "reason",
+											"value": "not good",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "reason",
+											"value": "bad",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}cart/orders/ORD-20250510102957-1/items/25/cancel/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"orders",
+										"ORD-20250510102957-1",
+										"items",
+										"25",
+										"cancel",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "order details - new",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "return order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{user1}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "status",
+											"value": "delivered",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}cart/orders/ORD-20250513090420-1/items/58/return/",
+									"host": [
+										"{{fastbag}}cart"
+									],
+									"path": [
+										"orders",
+										"ORD-20250513090420-1",
+										"items",
+										"58",
+										"return",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update status",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "notification",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "user details update",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NDE3NzA3LCJpYXQiOjE3MzU4ODE3MDcsImp0aSI6ImM0NTY1NGZiYWRmOTQxZmZiMWUxMjQ4MTZhMGY2MWI4IiwidXNlcl9pZCI6Mn0.IGCYOruFh4qTq6h5Ck4w0B1eEyI-njGZT-Wm1qy_kQs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"hameem\",\r\n    \"email\":\"Hameem.codeedex@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}users/user/update/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"user",
+								"update",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User address update",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0NTAyNzExLCJpYXQiOjE3NDI5NjY3MTEsImp0aSI6ImZlMmYxODI1N2Y1NzQ0YjY4ZmZmNjYxZjMyMGJhYTU4IiwidXNlcl9pZCI6MX0.UkOs_CtXeIIyNDlBoLMoVWmwBKoUcty-RJbDRsohU3U",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "city",
+									"value": "Kottayam",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "address_line2",
+									"value": "test address 4",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "achuu",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}users/address/13/update/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"address",
+								"13",
+								"update",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User side All product listing",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Report food-product",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "report grocery",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "user info",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "category view",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "product by category",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "sub cat by category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}users/subcategories/11/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"subcategories",
+								"11",
+								""
+							],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "wishlist",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0MzMxNTY1LCJpYXQiOjE3NDI3OTU1NjUsImp0aSI6IjkxODc4Y2YxMzcxYzRmMGY5ZmUxMzY2MGVlYzEzY2IxIiwidXNlcl9pZCI6MX0.EJTaUpwgcssAh9w6YGQiTM9cvg66zkYrk0XxUWuJm6E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "product_type",
+									"value": "groceryproducts",
+									"type": "text"
+								},
+								{
+									"key": "product_id",
+									"value": "3",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{local}}users/user-wishlist/",
+							"host": [
+								"{{local}}users"
+							],
+							"path": [
+								"user-wishlist",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "prod by sub cat and type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}users/subcategory-products/Grocery/1/",
+							"host": [
+								"{{local}}users"
+							],
+							"path": [
+								"subcategory-products",
+								"Grocery",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sub cat by vendors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}users/vendor-subcategories/<int:vendor_id>/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"vendor-subcategories",
+								"<int:vendor_id>",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"address_line1\": \"123 MG Road\",\r\n  \"address_line2\": \"Near City Mall\",\r\n  \"address_name\": \"Home\",\r\n  \"city\": \"Bangalore\",\r\n  \"state\": \"Karnataka\",\r\n  \"country\": \"India\",\r\n  \"pincode\": \"560001\",\r\n  \"contact_number\": \"9876543210\",\r\n  \"is_primary\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}users/addresses/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"addresses",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mark primary address",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_27}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}users/set-primary/87/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"set-primary",
+								"87",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CLOTHING",
+			"item": [
+				{
+					"name": "Sub - Cat",
+					"item": [
+						{
+							"name": "ADD",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM1NTY3MDQyLCJpYXQiOjE3MzU1MzQ2NDIsImp0aSI6IjM4YmM1OGJiMjc4YjRmYzI5YzM5NjUxNjVkMTFlMGViIiwidXNlcl9pZCI6NH0.R2u8iMNA59NbS0bk7wgqLL9AKm4rkUU9arOM04n5p1g",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "category",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "name",
+											"value": "Shirts",
+											"type": "text"
+										},
+										{
+											"key": "subcategory_image",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/mens-category.jpg"
+										},
+										{
+											"key": "is_active",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Men's clothings",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}fashion/clothing-subcategories/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"clothing-subcategories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM1NTY3MDQyLCJpYXQiOjE3MzU1MzQ2NDIsImp0aSI6IjM4YmM1OGJiMjc4YjRmYzI5YzM5NjUxNjVkMTFlMGViIiwidXNlcl9pZCI6NH0.R2u8iMNA59NbS0bk7wgqLL9AKm4rkUU9arOM04n5p1g",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"is_active\":1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}fashion/clothing-subcategories/1/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"clothing-subcategories",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat by category",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczODExNzIwLCJpYXQiOjE3NDIyNzU3MjAsImp0aSI6Ijg2NTJkNzVkZGUwYTRmNTZhZjVkNThiZTAzYjRjYjExIiwidXNlcl9pZCI6NH0.iBcwVUZtCzPf5uP8OVRmyiwWnbXXeFixuEb6ktSAMX8",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local}}fashion/subcategories/by-category/15/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"subcategories",
+										"by-category",
+										"15",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Products",
+					"item": [
+						{
+							"name": "colors",
+							"item": [
+								{
+									"name": "Add",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM1NTY3MDQyLCJpYXQiOjE3MzU1MzQ2NDIsImp0aSI6IjM4YmM1OGJiMjc4YjRmYzI5YzM5NjUxNjVkMTFlMGViIiwidXNlcl9pZCI6NH0.R2u8iMNA59NbS0bk7wgqLL9AKm4rkUU9arOM04n5p1g",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "name",
+													"value": "Green",
+													"type": "text"
+												},
+												{
+													"key": "image",
+													"type": "file",
+													"src": "/C:/Users/prith/Downloads/Green.webp"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{local}}fashion/colors/create/",
+											"host": [
+												"{{local}}fashion"
+											],
+											"path": [
+												"colors",
+												"create",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								},
+								{
+									"name": "edit",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM1NTY3MDQyLCJpYXQiOjE3MzU1MzQ2NDIsImp0aSI6IjM4YmM1OGJiMjc4YjRmYzI5YzM5NjUxNjVkMTFlMGViIiwidXNlcl9pZCI6NH0.R2u8iMNA59NbS0bk7wgqLL9AKm4rkUU9arOM04n5p1g",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{local}}fashion/colors/detail/1/",
+											"host": [
+												"{{local}}fashion"
+											],
+											"path": [
+												"colors",
+												"detail",
+												"1",
+												""
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "images add",
+							"item": [
+								{
+									"name": "add",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								},
+								{
+									"name": "image edit",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5MTQ2NjA4LCJpYXQiOjE3Mzc2MTA2MDgsImp0aSI6IjcyNWYyNzhhYmE5MjQyOTU5OTNhOWYzNmQ4M2VhNGE5IiwidXNlcl9pZCI6MX0.cQvNtygE7CC7Vvcsyxpzr3YdeiVSIbKMw4ZMZuGw9nQ",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{fastbag}}fashion/clothing/images/55/delete/",
+											"host": [
+												"{{fastbag}}fashion"
+											],
+											"path": [
+												"clothing",
+												"images",
+												"55",
+												"delete",
+												""
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "create product",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4MDIxNzMwLCJpYXQiOjE3MzY0ODU3MzAsImp0aSI6ImRhZTE3Nzc3YTMwZTQxMzA4MDYzNzMyNGViODY4YzRmIiwidXNlcl9pZCI6MX0.zOSDfGJPJwTQhv-ogoTimOxqxCMe1B6VCI0VGKnfYeM",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"vendor\": 4,\r\n    \"category_id\": 3,\r\n    \"subcategory\": 1,\r\n    \"name\": \"Premium Cotton T-Shirt\",\r\n    \"description\": \"High-quality cotton t-shirt available in multiple colors and sizes.\",\r\n    \"gender\": \"M\",\r\n    \"wholesale_price\": \"500.00\",\r\n    \"price\": \"1200.00\",\r\n    \"offer_price\": \"999.00\",\r\n    \"discount\": \"20.00\",\r\n    \"colors\": [\r\n        {\r\n            \"color_name\": \"Red\",\r\n            \"color_image\": \"/media/colors/red_tshirt.jpg\",\r\n            \"sizes\": [\r\n                {\"size\": \"S\", \"price\": \"1500.00\", \"stock\": 15},\r\n                {\"size\": \"M\", \"price\": \"1200.00\", \"stock\": 20},\r\n                {\"size\": \"L\", \"price\": \"1000.00\", \"stock\": 10}\r\n            ]\r\n        },\r\n        {\r\n            \"color_name\": \"Blue\",\r\n            \"color_image\": \"/media/colors/blue_tshirt.jpg\",\r\n            \"sizes\": [\r\n                {\"size\": \"S\", \"price\": \"1200.00\", \"stock\": 12},\r\n                {\"size\": \"M\", \"price\": \"1200.00\", \"stock\": 18},\r\n                {\"size\": \"L\", \"price\": \"1200.00\", \"stock\": 8}\r\n            ]\r\n        }\r\n    ],\r\n    \"material\": \"100% Cotton\",\r\n    \"is_active\": true\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}fashion/clothing/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"clothing",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "remove image",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "product  by category",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "product by sub category",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "products by category and subcategory",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "search",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Add images",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "count",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "product details",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczNDY3NTU5LCJpYXQiOjE3NDE5MzE1NTksImp0aSI6ImMxZTY4M2JmODE5NjQ5YTI5M2M2ZjkyZDdkNDkxMDhkIiwidXNlcl9pZCI6NH0.n-u7hzvBjSxuCfTHsMf99_IT062luk_ulcEuBpW7Cak",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image_files",
+											"type": "file",
+											"src": "/C:/Users/prith/Downloads/puttu 2.jpg"
+										},
+										{
+											"key": "name",
+											"value": "awer",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}fashion/clothing/details/7/",
+									"host": [
+										"{{fastbag}}fashion"
+									],
+									"path": [
+										"clothing",
+										"details",
+										"7",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sub cat by cat",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "coupons",
+					"item": [
+						{
+							"name": "Add coupon",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MTcyMzA4LCJpYXQiOjE3MzU2MzYzMDgsImp0aSI6ImRiZmUwYzc3ZWI4NjRmZjU5NjcwYWZjNzVjZjcyNmU1IiwidXNlcl9pZCI6NH0.vJ72ggUmUFi2a5-Z_tilSs2kNEK4XRA0YGDWXUfgslY",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \r\n    \"code\": \"HOLIDAY25\",\r\n    \"discount_type\": \"fixed\",\r\n    \"discount_value\": 50,\r\n    \"valid_from\": \"01/01/2025\",\r\n    \"valid_to\": \"31/01/2025\",\r\n    \"is_active\": true\r\n\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}fashion/coupons/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"coupons",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Apply coupon",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "coupon usage",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MTcyMzA4LCJpYXQiOjE3MzU2MzYzMDgsImp0aSI6ImRiZmUwYzc3ZWI4NjRmZjU5NjcwYWZjNzVjZjcyNmU1IiwidXNlcl9pZCI6NH0.vJ72ggUmUFi2a5-Z_tilSs2kNEK4XRA0YGDWXUfgslY",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{local}}fashion/coupons/update/1/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"coupons",
+										"update",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "wishlist",
+					"item": [
+						{
+							"name": "LIST - ADD",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3Njg3MzAzLCJpYXQiOjE3MzYxNTEzMDMsImp0aSI6ImI1MmI3ZjMyNzcwZTRjMzhiYmVhMmMxODRlOTg0YmUyIiwidXNlcl9pZCI6NX0.HMBNyA8sROG9rbrTwyoi_t3-XDqw4vXG2GtMLsLEZso",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "cloth",
+											"value": "2",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{local}}fashion/wishlist/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"wishlist",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Review",
+					"item": [
+						{
+							"name": "Add",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3Njg3MzAzLCJpYXQiOjE3MzYxNTEzMDMsImp0aSI6ImI1MmI3ZjMyNzcwZTRjMzhiYmVhMmMxODRlOTg0YmUyIiwidXNlcl9pZCI6NX0.HMBNyA8sROG9rbrTwyoi_t3-XDqw4vXG2GtMLsLEZso",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"cloth\":2,\r\n    \"rating\":4\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{local}}fashion/reviews/",
+									"host": [
+										"{{local}}fashion"
+									],
+									"path": [
+										"reviews",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "update image",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CART",
+			"item": [
+				{
+					"name": "view cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4MDQ4NjQ2LCJpYXQiOjE3NDY1MTI2NDYsImp0aSI6ImE2OWQ4MzdjMWFlYTQ0YmU4ZTY2ZDU5ZmJkOGM1ZGVmIiwidXNlcl9pZCI6NDl9.COJFvDL3qeLQMc7hcoZWzqYv5gQMr-oK2_5Mu8zkQ_E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}cart/view/",
+							"host": [
+								"{{fastbag}}cart"
+							],
+							"path": [
+								"view",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTk3MjYzLCJpYXQiOjE3Mzg2NjEyNjMsImp0aSI6IjE4ZGRmN2IzMGZiYTRhN2M5MmM0MGFlNWU1YTA1MDkwIiwidXNlcl9pZCI6M30.ZkJf54aMR4DlTeTclb02MAXMtliO_SY0aXouQymYtfI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"product_type\": \"clothing\",\r\n  \"product_id\": 160,\r\n  \"vendor\": 34,\r\n  \"quantity\": 2,\r\n  \"color\": \"Blue\",\r\n  \"size\": \"XL\"\r\n}\r\n\r\n\r\n// {\r\n//   \"product_type\": \"dish\",\r\n//   \"product_id\": 74,\r\n//   \"vendor\": 35,\r\n//   \"quantity\": 1,\r\n//   \"variant\": \"half\"\r\n// }\r\n\r\n\r\n\r\n// {\r\n//   \"product_type\": \"grocery\",\r\n//   \"product_id\": 106,\r\n//   \"vendor\": 31,\r\n//   \"quantity\": 1,\r\n//   \"variant\": \"500g\"\r\n// }\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}cart/add/",
+							"host": [
+								"{{fastbag}}cart"
+							],
+							"path": [
+								"add",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update delete",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTk3MjYzLCJpYXQiOjE3Mzg2NjEyNjMsImp0aSI6IjE4ZGRmN2IzMGZiYTRhN2M5MmM0MGFlNWU1YTA1MDkwIiwidXNlcl9pZCI6M30.ZkJf54aMR4DlTeTclb02MAXMtliO_SY0aXouQymYtfI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{local}}cart/remove/7/",
+							"host": [
+								"{{local}}cart"
+							],
+							"path": [
+								"remove",
+								"7",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "grocery-cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTk3MjYzLCJpYXQiOjE3Mzg2NjEyNjMsImp0aSI6IjE4ZGRmN2IzMGZiYTRhN2M5MmM0MGFlNWU1YTA1MDkwIiwidXNlcl9pZCI6M30.ZkJf54aMR4DlTeTclb02MAXMtliO_SY0aXouQymYtfI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}cart/grocery-cart/",
+							"host": [
+								"{{local}}cart"
+							],
+							"path": [
+								"grocery-cart",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dish cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTk3MjYzLCJpYXQiOjE3Mzg2NjEyNjMsImp0aSI6IjE4ZGRmN2IzMGZiYTRhN2M5MmM0MGFlNWU1YTA1MDkwIiwidXNlcl9pZCI6M30.ZkJf54aMR4DlTeTclb02MAXMtliO_SY0aXouQymYtfI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}cart/dishes-cart/",
+							"host": [
+								"{{local}}cart"
+							],
+							"path": [
+								"dishes-cart",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "fashion-cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMTk3MjYzLCJpYXQiOjE3Mzg2NjEyNjMsImp0aSI6IjE4ZGRmN2IzMGZiYTRhN2M5MmM0MGFlNWU1YTA1MDkwIiwidXNlcl9pZCI6M30.ZkJf54aMR4DlTeTclb02MAXMtliO_SY0aXouQymYtfI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}cart/fashion-cart/",
+							"host": [
+								"{{local}}cart"
+							],
+							"path": [
+								"fashion-cart",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cart grouped",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "cart single vendor",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ORDERS",
+			"item": [
+				{
+					"name": "View order",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sub cat Request",
+			"item": [
+				{
+					"name": "POST",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2OTIxNjg5LCJpYXQiOjE3NDUzODU2ODksImp0aSI6ImMwNzg4YWJkNjBiZDRmNGJhNGRiZjkwMGFkOTUxNzgzIiwidXNlcl9pZCI6MzV9.uSMjZf-O6TavZwjTegjSEEw2U8zg3jalG2JyyjQy-xU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"category\": 12,\r\n  \"name\": \"Pepper Powder\",\r\n  \"vendor_id\":30\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}vendors/request-subcategory/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"request-subcategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "request list view",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2OTIxNjg5LCJpYXQiOjE3NDUzODU2ODksImp0aSI6ImMwNzg4YWJkNjBiZDRmNGJhNGRiZjkwMGFkOTUxNzgzIiwidXNlcl9pZCI6MzV9.uSMjZf-O6TavZwjTegjSEEw2U8zg3jalG2JyyjQy-xU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}vendors/vendor/subcategory-requests/",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendor",
+								"subcategory-requests",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "admin requests",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "COUPON",
+			"item": [
+				{
+					"name": "coupon create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc3MDA3Mzg4LCJpYXQiOjE3NDU0NzEzODgsImp0aSI6IjVjMDVhMWJkZTJlOTQ3OWZiYzQ5ODViZTY0MzJiY2IxIiwidXNlcl9pZCI6MX0.Jsx-Q2rlrYNd50ZGHKtdAMHIWNN4-ikDimgNzPeRids",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"code\": \"WELCOME10\",\r\n  \"discount_type\": \"percentage\",\r\n  \"discount_value\": \"10.00\",\r\n  \"min_order_amount\": \"500.00\",\r\n  \"max_discount\": \"200.00\",\r\n  \"valid_from\": \"2025-04-24T00:00:00Z\",\r\n  \"valid_to\": \"2025-05-24T23:59:59Z\",\r\n  \"usage_limit\": 1,\r\n  \"created_by\": 1,\r\n  \"is_new_customer\": 0\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}users/coupons/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"coupons",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "coupon detail",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "view coupons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc3MDE4NzA2LCJpYXQiOjE3NDU0ODI3MDYsImp0aSI6ImFlYmE5NzA2OTlkMjQ4ZDJiNmIxNjdlODc0ZGJmODczIiwidXNlcl9pZCI6MzR9.R-oZz4JtBm478eJ22g83ZTDiUUGZ2yZ-cZ3ohl_5dpI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}users/coupons/view/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"coupons",
+								"view",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Checkout",
+			"item": [
+				{
+					"name": "checkout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4MDQ4NjQ2LCJpYXQiOjE3NDY1MTI2NDYsImp0aSI6ImE2OWQ4MzdjMWFlYTQ0YmU4ZTY2ZDU5ZmJkOGM1ZGVmIiwidXNlcl9pZCI6NDl9.COJFvDL3qeLQMc7hcoZWzqYv5gQMr-oK2_5Mu8zkQ_E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"shipping_address_id\": 88,\r\n  \"payment_method\": \"cod\",  \r\n  \"coupon_code\": \"WELCOME40\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}cart/checkout/34/",
+							"host": [
+								"{{fastbag}}cart"
+							],
+							"path": [
+								"checkout",
+								"34",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Delivery boy",
+			"item": [
+				{
+					"name": "ORDER- ASSIGN",
+					"item": [
+						{
+							"name": "ASSIGN",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin }}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "order",
+											"value": "31",
+											"type": "text"
+										},
+										{
+											"key": "delivery_boy",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{fastbag}}delivery/orderassign/",
+									"host": [
+										"{{fastbag}}delivery"
+									],
+									"path": [
+										"orderassign",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get assigned orders by dboy",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "CREATE _ ADMIN",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin }}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": " John Doe",
+									"type": "text"
+								},
+								{
+									"key": "mobile_number",
+									"value": " 1234567890",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": " johndoe@example.com",
+									"type": "text"
+								},
+								{
+									"key": "vehicle_type",
+									"value": "Bike",
+									"type": "text"
+								},
+								{
+									"key": "vehicle_number",
+									"value": "XYZ1234",
+									"type": "text"
+								},
+								{
+									"key": "gender",
+									"value": "M",
+									"type": "text"
+								},
+								{
+									"key": "dob",
+									"value": "1990-05-20",
+									"type": "text"
+								},
+								{
+									"key": "is_active",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "aadhar_card_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/download.jpeg"
+								},
+								{
+									"key": "driving_license_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/download.jpeg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}delivery/delivery_boys/",
+							"host": [
+								"{{fastbag}}delivery"
+							],
+							"path": [
+								"delivery_boys",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "D-Boy details - admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin }}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}delivery/delivery_boys/1/",
+							"host": [
+								"{{fastbag}}delivery"
+							],
+							"path": [
+								"delivery_boys",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delivery boy detail - user",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "otp request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "johndoe@example.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}delivery/request-otp/",
+							"host": [
+								"{{fastbag}}delivery"
+							],
+							"path": [
+								"request-otp",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"johndoe@example.com\",\r\n    \"otp\":166408\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{fastbag}}delivery/login-with-otp/",
+							"host": [
+								"{{fastbag}}delivery"
+							],
+							"path": [
+								"login-with-otp",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "accept order - dboy",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}delivery/accept_order/1/42/",
+							"host": [
+								"{{fastbag}}delivery"
+							],
+							"path": [
+								"accept_order",
+								"1",
+								"42",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "accepted oreders-Admin",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "accepted order list vendor",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "update order status - dboy",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "location",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "latitude",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}users/user-location/create/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"user-location",
+								"create",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-del",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "latitude",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}users/user-location/update/1/",
+							"host": [
+								"{{fastbag}}users"
+							],
+							"path": [
+								"user-location",
+								"update",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get vendor list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fastbag}}vendors/vendors/nearby/?latitude=1.000000000000000&longitude=-1.000000000000000",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendors",
+								"nearby",
+								""
+							],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "1.000000000000000"
+								},
+								{
+									"key": "longitude",
+									"value": "-1.000000000000000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get catg by loc",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "store_logo",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/pink-blue-abstract-logo/OIHE480.jpg"
+								},
+								{
+									"key": "fssai_certificate",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/dlsnse.jpeg"
+								},
+								{
+									"key": "display_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/sore.jpg",
+									"disabled": true
+								},
+								{
+									"key": "display_image",
+									"type": "file",
+									"src": "/C:/Users/prith/Downloads/flat-sale-background/228058-P2LF2Q-631.jpg"
+								},
+								{
+									"key": "license",
+									"type": "file",
+									"src": "/C:/Users/prith/OneDrive/Pictures/Screenshots/Screenshot 2023-11-08 123113.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{fastbag}}vendors/vendors/nearby-categories/?latitude=10.856390073346821&longitude=76.27193726599216",
+							"host": [
+								"{{fastbag}}vendors"
+							],
+							"path": [
+								"vendors",
+								"nearby-categories",
+								""
+							],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "10.856390073346821"
+								},
+								{
+									"key": "longitude",
+									"value": "76.27193726599216"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "vendor34",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "admin ",
+			"value": "",
+			"type": "default"
+		}
+	]
+}

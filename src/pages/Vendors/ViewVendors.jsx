@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardMedia,
-  IconButton,
   Switch,
   Dialog,
   DialogActions,
@@ -19,8 +18,9 @@ import {
   InputLabel,
   FormControl,
   Stack,
+  InputAdornment,
 } from "@mui/material";
-import { Search, FilterList, FileDownload, Delete } from "@mui/icons-material";
+import { Search, FileDownload, Delete, Visibility, IosShare, Add } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   viewVendors,
@@ -28,6 +28,9 @@ import {
   enableDisableVendor,
   deleteVendor,
 } from "../../services/allApi";
+import { Backdrop, CircularProgress } from "@mui/material";
+import { ChevronDown, CirclePlus, Eye, Filter, Trash2 } from "lucide-react";
+
 
 const ViewVendors = () => {
   const navigate = useNavigate();
@@ -46,6 +49,8 @@ const ViewVendors = () => {
       setLoading(true);
       const vendorsData = await viewVendors();
       setVendors(vendorsData);
+          console.log(vendorsData)
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -201,36 +206,88 @@ const ViewVendors = () => {
         mb={3}
       >
         <TextField
-          variant="outlined"
-          placeholder="Search vendors by name, owner or store type..."
-          size="small"
-          sx={{ width: { xs: "100%", sm: 300 } }}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: <Search sx={{ mr: 1, color: "#777" }} />,
-          }}
-        />
+  variant="outlined"
+  label="Search vendors"
+  // placeholder="Search vendors by name, owner or store type..."
+  size="small"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  sx={{
+    width: { xs: '100%', sm: 300 },
+    backgroundColor: '#f9fafb',
+    borderRadius: 2,
+    boxShadow: '0 1px 8px rgba(0, 0, 0, 0.1)',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      '& fieldset': {
+        border: 'none',
+      },
+     
+    },
+    '& .MuiInputBase-input': {
+      color: '#111827',
+      fontSize: 14,
+    },
+    '& .MuiSvgIcon-root': {
+      color: '#374151',
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <Search size={18} style={{ color: '#374151' }} />
+      </InputAdornment>
+    ),
+  }}
+/>
+
 
         <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Status Filter</InputLabel>
-            <Select
-              value={filterStatus}
-              label="Status Filter"
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="enabled">Enabled</MenuItem>
-              <MenuItem value="disabled">Disabled</MenuItem>
-              <MenuItem value="approved">Approved</MenuItem>
-              <MenuItem value="not_approved">Not Approved</MenuItem>
-            </Select>
-          </FormControl>
+
+<FormControl size="small" sx={{
+  minWidth: 160,
+  backgroundColor: '#f9fafb',
+  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+  borderRadius: 2,
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 2,
+    '& fieldset': {
+      border: 'none',
+    },
+   
+  },
+  '& .MuiInputBase-input': {
+    color: '#111827',
+    fontSize: 14,
+  },
+  '& .MuiSvgIcon-root': {
+    color: '#374151',
+  },
+}}>
+  <InputLabel>Status Filter</InputLabel>
+  <Select
+    value={filterStatus}
+    label="Status Filter"
+    
+    onChange={(e) => setFilterStatus(e.target.value)}
+    IconComponent={ChevronDown}
+    startAdornment={
+      <InputAdornment position="start">
+        <Filter size={18} style={{ color: '#374151' }} />
+      </InputAdornment>}
+  >
+    <MenuItem value="all">All</MenuItem>
+    <MenuItem value="enabled">Enabled</MenuItem>
+    <MenuItem value="disabled">Disabled</MenuItem>
+    <MenuItem value="approved">Approved</MenuItem>
+    <MenuItem value="not_approved">Not Approved</MenuItem>
+  </Select>
+</FormControl>
+
 
           <Button
-            variant="outlined"
-            startIcon={<FileDownload />}
+            variant="contained"
+            startIcon={<IosShare />}
             onClick={exportToCSV}
             disabled={filteredVendors.length === 0}
             sx={{ whiteSpace: "nowrap" }}
@@ -239,11 +296,11 @@ const ViewVendors = () => {
           </Button>
 
           <Button
-            variant="contained"
-            sx={{ backgroundColor: "#1e1e2d", whiteSpace: "nowrap" }}
+            variant="containedSecondary"
+            startIcon={<CirclePlus/>}
             onClick={handleAddVendor}
           >
-            + Add Vendor
+            Add Vendor
           </Button>
         </Box>
       </Stack>
@@ -281,7 +338,7 @@ const ViewVendors = () => {
                 backgroundColor: "#fff",
                 transition: "transform 0.2s",
                 "&:hover": {
-                  transform: "scale(1.03)",
+                  transform: "scale(1.01)",
                   boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
                 },
               }}
@@ -340,51 +397,80 @@ const ViewVendors = () => {
               </CardContent>
 
               {/* Action Buttons */}
-              <Box
-                display="flex"
-                flexDirection="column"
-                gap={1}
-                width="100%"
-                px={2}
-                mt={1}
-              >
-                {vendor.is_approved === false ? (
-                  <Box display="flex" justifyContent="space-between" mb={1} gap={1}>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      fullWidth
-                      onClick={() => handleAcceptReject(vendor.id, "accept")}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      fullWidth
-                      onClick={() => handleAcceptReject(vendor.id, "reject")}
-                    >
-                      Reject
-                    </Button>
-                  </Box>
-                ) : null}
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => handleViewVendor(vendor.id)}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="contained"
-                  color="error"
-                  startIcon={<Delete />}
-                  fullWidth
-                  onClick={() => handleOpenDeleteDialog(vendor)}
-                >
-                  Delete
-                </Button>
-              </Box>
+             {/* Action Buttons */}
+<Box
+  display="flex"
+  flexDirection="column"
+  gap={1}
+  width="100%"
+  px={2}
+  mt={1}
+>
+  {vendor.is_approved === false ? (
+    <Box display="flex" justifyContent="space-between" mb={1} gap={1}>
+      <Button
+        variant="contained"
+        color="success"
+        fullWidth
+        onClick={() => handleAcceptReject(vendor.id, "accept")}
+        startIcon={<span style={{ fontWeight: "bold" }}>✔</span>}
+        sx={{
+          borderRadius: "20px",
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        Accept
+      </Button>
+      <Button
+        variant="contained"
+        color="error"
+        fullWidth
+        onClick={() => handleAcceptReject(vendor.id, "reject")}
+        startIcon={<span style={{ fontWeight: "bold" }}>✖</span>}
+        sx={{
+          borderRadius: "20px",
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        Reject
+      </Button>
+    </Box>
+  ) : null}
+
+  <Box display="flex" justifyContent="space-between" gap={1}>
+    <Button
+      variant="contained"
+      color="primary"
+      fullWidth
+      onClick={() => handleViewVendor(vendor.id)}
+     
+      sx={{
+        borderRadius: "20px",
+        textTransform: "none",
+        fontWeight: 600,
+      }}
+    >
+      <Eye/>
+    </Button>
+
+    <Button
+      color="error"
+      variant="contained"
+      fullWidth
+      onClick={() => handleOpenDeleteDialog(vendor)}
+      sx={{
+        borderRadius: "20px",
+        textTransform: "none",
+        fontWeight: 600,
+      }}
+    >
+      <Trash2/>
+    </Button>
+  </Box>
+</Box>
+
             </Card>
           ))}
         </Box>
@@ -409,6 +495,13 @@ const ViewVendors = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+  sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+  open={loading}
+>
+  <CircularProgress color="inherit" />
+</Backdrop>
+
     </Box>
   );
 };

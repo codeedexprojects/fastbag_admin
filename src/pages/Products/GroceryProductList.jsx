@@ -7,10 +7,14 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { Edit, Delete, Visibility } from '@mui/icons-material';
+import { Edit, Delete, Visibility, Add } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getGroceryProducts, deleteGroceryProduct } from '../../services/allApi';
 import EditGroceryProductModal from './EditGrocery';
+import { toast } from 'react-toastify';
+import { Backdrop } from '@mui/material';
+import { CirclePlus, CircleX, Eye, Trash2 } from 'lucide-react';
+
 
 const GroceryProductList = () => {
   const [products, setProducts] = useState([]);
@@ -24,22 +28,22 @@ const GroceryProductList = () => {
   const navigate = useNavigate();
 
   // Fetch products when the component loads
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const data = await getGroceryProducts();
-        console.log('Fetched products:', data); // Log product data
-        setProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const data = await getGroceryProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProducts();
   }, []);
+
 
 
   // Handle page change
@@ -69,7 +73,7 @@ const GroceryProductList = () => {
     );
     setProducts(updatedProducts);
   };
-
+  console.log(products)
   const handleDeleteClick = (product) => {
     console.log('Product to delete:', product); // Check product data
     if (!product.id) {
@@ -80,22 +84,31 @@ const GroceryProductList = () => {
     setDeleteDialogOpen(true);
   };
 
-
   const confirmDeleteProduct = async () => {
     if (!productToDelete || !productToDelete.id) {
       console.error('Product ID is undefined:', productToDelete);
-      return; // Prevent API call if the product ID is undefined
+      return;
     }
 
+    setLoading(true); // <-- Start loading
+
     try {
-      await deleteGroceryProduct(productToDelete.id); // Call API with correct ID
-      setProducts(products.filter((product) => product.id !== productToDelete.id)); // Remove product from state
-      setDeleteDialogOpen(false); // Close dialog
+      const res = await deleteGroceryProduct(productToDelete.id);
+      if (res.status === 200) {
+        toast.success("Product deleted!");
+        setProducts(products.filter((product) => product.id !== productToDelete.id));
+      } else {
+        toast.error("Deletion failed!");
+      }
+      setDeleteDialogOpen(false);
       setProductToDelete(null);
     } catch (error) {
       console.error('Failed to delete product:', error);
+    } finally {
+      setLoading(false); // <-- End loading
     }
   };
+
 
 
 
@@ -119,120 +132,180 @@ const GroceryProductList = () => {
           Dashboard &gt; Product List
         </Typography>
         <Button
-          variant="contained"
-          
+          variant="containedSecondary"
+
           onClick={handleAddProduct}
-          sx={{ textTransform: 'none',backgroundColor:"#1e1e2d" }}
-        >
-          + Add Product
+          startIcon={<CirclePlus />}      >
+          Add Product
         </Button>
       </Box>
 
-      {/* Loading Indicator */}
-      {loading ? (
-        <Box display="flex" justifyContent="center" my={3}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            {/* Table Header */}
-            <TableHead>
-              <TableRow>
-                {/* <TableCell>
-                  <Checkbox />
-                </TableCell> */}
-                <TableCell><b>Product</b></TableCell>
-                <TableCell><b>Category</b></TableCell>
-                <TableCell><b>Subcategory</b></TableCell>
-                <TableCell><b>Images</b></TableCell>
-                <TableCell><b>Weight Details</b></TableCell>
-                <TableCell><b>Price</b></TableCell>
-                <TableCell><b>Offer Price</b></TableCell>
-                <TableCell><b>Stock Status</b></TableCell>
-                <TableCell><b>Actions</b></TableCell>
-              </TableRow>
-            </TableHead>
 
-            {/* Table Body */}
-            <TableBody>
-              {products
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((product) => (
-                  <TableRow key={product.id}>
-                    {/* <TableCell>
-                      <Checkbox />
-                    </TableCell> */}
-                    <TableCell>
-                      <Typography variant="body1">{product.name}</Typography>
+      <TableContainer sx={{
+        borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+        overflow: "hidden", mt: 3
+      }} component={Paper}>
+        <Table sx={{ minWidth: 650 }}>
+          {/* Table Header */}
+          <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Subcategory</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Images</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Weight / Price / Stock</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Offer Price</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Stock Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+
+          {/* Table Body */}
+          <TableBody>
+            {products
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((product, index) => (
+                <TableRow hover key={product.id}>
+                  <TableCell>
+                    {index + 1}                    </TableCell>
+                  <TableCell>
+                    <Typography variant="body1">{product.name}</Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {product.description}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{product.category_name}</TableCell>
+                  <TableCell>{product.sub_category_name}</TableCell>
+                  <TableCell>
+                    {product.images.map((img) => (
+                      <img
+                        key={img.id}
+                        src={img.image}
+                        alt={product.name}
+                        style={{ width: 50, height: 50, marginRight: 5 }}
+                      />
+                    ))}
+                  </TableCell>
+                  <TableCell>
+                    {Array.isArray(product.weights) && product.weights.length > 0 ? (
+                      <Table
+                        size="small"
+                        aria-label="weight-details"
+                        sx={{
+                          '& td, & th': { borderBottom: 'none', padding: '4px 8px' },
+                        }}
+                      >
+                        <TableHead>
+                          <TableRow>
+                            <TableCell><b>Weight</b></TableCell>
+                            <TableCell><b>Price</b></TableCell>
+                            <TableCell><b>Stock</b></TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {product.weights.map((weight, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{weight.weight}</TableCell>
+                              <TableCell>₹{weight.price}</TableCell>
+                              <TableCell>{weight.quantity}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
                       <Typography variant="body2" color="textSecondary">
-                        {product.description}
+                        No weight details available
                       </Typography>
-                    </TableCell>
-                    <TableCell>{product.category_name}</TableCell>
-                    <TableCell>{product.sub_category_name}</TableCell>
-                    <TableCell>
-                      {product.images.map((img) => (
-                        <img
-                          key={img.id}
-                          src={img.image}
-                          alt={product.name}
-                          style={{ width: 50, height: 50, marginRight: 5 }}
-                        />
-                      ))}
-                    </TableCell>
-                    <TableCell>
-                      {Array.isArray(product.weights) ? (
-                        product.weights.map((weight, index) => (
-                          <Typography key={index} variant="body2">
-                            {weight.weightMeasurment}: {weight.quantity} (Price: ₹{weight.price})
-                          </Typography>
-                        ))
-                      ) : (
-                        <Typography variant="body2" color="textSecondary">
-                          No weight details available
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>₹{product.price}</TableCell>
-                    <TableCell>₹{product.offer_price}</TableCell>
-                    <TableCell>
-                      {Array.isArray(product.weights) && product.weights.some((w) => w.stockStatus) ? (
-                        <Typography color="green">In Stock</Typography>
-                      ) : (
-                        <Typography color="red">Out of Stock</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <IconButton onClick={() => handleEditClick(product)}>
-                        <Edit />
-                      </IconButton>
-                      <IconButton onClick={() => handleDeleteClick(product)}>
-                        <Delete />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+                    )}
+                  </TableCell>
 
-          {/* Pagination */}
-          <TablePagination
-            component="div"
-            count={products.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-      )}
+
+
+
+
+                  <TableCell>₹{product.price}</TableCell>
+                  <TableCell>₹{product.offer_price}</TableCell>
+                  <TableCell>
+                    {Array.isArray(product.weights) && product.weights.length > 0 ? (
+                      product.weights.map((weight, index) => (
+    <Box
+    key={index}
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 1,
+      mb: 0.5,
+    }}
+  >
+    <Typography
+      variant="body2"
+      sx={{
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {weight.weight} :
+    </Typography>
+    <Box
+      component="span"
+      sx={{
+        px: 1.5,
+        py: 0.3,
+        borderRadius: 999,
+        fontSize: '0.75rem',
+        fontWeight: 500,
+        color: weight.is_in_stock ? 'success.main' : 'error.main',
+        backgroundColor: weight.is_in_stock ? 'success.light' : 'error.light',
+        textAlign: 'center',
+        width: '80px',
+      }}
+    >
+      {weight.is_in_stock ? 'In Stock' : 'Out of Stock'}
+    </Box>
+  </Box>
+                      ))
+                    ) : (
+                      <Typography color="textSecondary">No Weights Available</Typography>
+                    )}
+                  </TableCell>
+
+                  <TableCell>
+                    {/* <IconButton color='info' onClick={() => handleEditClick(product)}>
+                      <Edit />
+                    </IconButton> */}
+                    <IconButton color='error' onClick={() => handleDeleteClick(product)}>
+                      <Trash2 />
+                    </IconButton>
+                    <IconButton color='info' onClick={() => navigate(`/view-groceryproduct/${product.id}`)}>
+                      <Eye />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+
+        {/* Pagination */}
+        <TablePagination
+          component="div"
+          count={products.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </TableContainer>
+
 
       {/* Edit Modal */}
       <EditGroceryProductModal
         open={isEditModalOpen}
+        onReload={fetchProducts}
         onClose={() => setEditModalOpen(false)}
-        productData={selectedProduct}
+        product={selectedProduct}
         onSave={handleSaveProduct}
       />
 
@@ -248,18 +321,27 @@ const GroceryProductList = () => {
         <DialogActions>
           <Button
             onClick={() => setDeleteDialogOpen(false)}
-            color="secondary"
+            variant="contained"
+            startIcon={<CircleX/>}
           >
             Cancel
           </Button>
           <Button
             onClick={confirmDeleteProduct}
-            color="primary"
+            variant="containedError"
+            startIcon={<Trash2/>}
           >
             Delete
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
     </Box>
   );
 };

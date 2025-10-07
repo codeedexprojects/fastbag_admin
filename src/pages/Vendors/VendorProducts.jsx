@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Button,
   Paper,
   Table,
   TableBody,
@@ -11,13 +10,9 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Chip,
   Select,
   MenuItem,
-  TableSortLabel,
-  Link
 } from '@mui/material';
-import { CalendarToday, FilterList } from '@mui/icons-material';
 import { getVendorsProducts } from '../../services/allApi';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,55 +22,51 @@ const Products = ({ vendorId }) => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
-
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchVendorProducts = async () => {
       try {
         const data = await getVendorsProducts(vendorId);
-        setProductsData(data.results);
+        if (data?.response?.data?.detail === 'No products found for the given vendor ID.') {
+          setProductsData([]);
+        } else {
+          setProductsData(data.data.results || []);
+        }
       } catch (error) {
         console.error('Error fetching vendor products:', error);
+        if (
+          error?.response?.status === 404 &&
+          error?.response?.data?.detail === 'No products found for the given vendor ID.'
+        ) {
+          setProductsData([]);
+        } else {
+          setError(true);
+        }
       }
     };
-
-    if (vendorId) {
-      fetchVendorProducts();
-    }
+    if (vendorId) fetchVendorProducts();
   }, [vendorId]);
 
-  console.log(productsData)
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
+  const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
   const handleCategoryChange = (event) => {
     setCategoryFilter(event.target.value);
     setPage(0);
   };
 
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  if (error) return <Typography color="error">Failed to load vendor products.</Typography>;
+  if (productsData === null) return <Typography>Loading vendor products...</Typography>;
 
-  if (!productsData) {
-    return <Typography>Loading vendor products...</Typography>;
-  }
-
-  // Assuming productsData is a flat array of products now
   const filteredProducts = categoryFilter
-    ? productsData.filter((p) => p.category_name === categoryFilter)
+    ? productsData.filter((p) => {
+        const catName = typeof p.category === 'string' ? p.category : p.category_name || '';
+        return catName === categoryFilter;
+      })
     : productsData;
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -91,125 +82,261 @@ const Products = ({ vendorId }) => {
     return 0;
   });
 
-  const uniqueCategories = [...new Set(productsData.map((p) => p.category_name))];
+  const uniqueCategories = [
+    ...new Set(
+      productsData.map((p) =>
+        typeof p.category === 'string' ? p.category : p.category_name || ''
+      )
+    ),
+  ].filter((c) => c !== '');
+
+  const renderImages = (images) => {
+    if (!images || images.length === 0) {
+      return (
+        <Box
+          sx={{
+            width: 60,
+            height: 60,
+            bgcolor: '#f0f0f0',
+            borderRadius: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            color: '#888',
+            border: '1px solid #ddd',
+          }}
+        >
+          No Image
+        </Box>
+      );
+    }
+
+    const imageCount = images.length;
+
+    if (imageCount === 1 || imageCount === 2) {
+      return (
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {images.map((img, idx) => (
+            <Box
+              key={idx}
+              component="img"
+              src={img.image}
+              alt={`product-${idx}`}
+              sx={{
+                width: 80,
+                height: 80,
+                objectFit: 'cover',
+                borderRadius: 1,
+                border: '1px solid #ccc',
+              }}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return (
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 1,
+          width: 150,
+        }}
+      >
+        {images.map((img, idx) => (
+          <Box
+            key={idx}
+            component="img"
+            src={img.image}
+            alt={`product-${idx}`}
+            sx={{
+              width: '100%',
+              height: 70,
+              objectFit: 'cover',
+              borderRadius: 1,
+              border: '1px solid #ccc',
+            }}
+          />
+        ))}
+      </Box>
+    );
+  };
+
+  const renderVariantTable = (product) => {
+  const tableStyle = {
+    fontSize: 13,
+    '& .MuiTableCell-root': {
+      padding: '6px 4px',
+      fontSize: 13,
+      whiteSpace: 'nowrap',
+    },
+  };
+
+  const ScrollBox = ({ children }) => (
+    <Box sx={{ overflowX: 'auto', maxWidth: 330 }}>{children}</Box>
+  );
+
+  if (product.store_type === 'Fashion' && product.colors) {
+    return (
+      <ScrollBox>
+        <Table size="small" sx={tableStyle}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Color</TableCell>
+              <TableCell>Size</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Offer Price</TableCell>
+              <TableCell>Stock</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {product.colors.map((color) =>
+              color.sizes.map((s, i) => (
+                <TableRow key={`${color.color_name}-${i}`}>
+                  <TableCell>{color.color_name}</TableCell>
+                  <TableCell>{s.size}</TableCell>
+                  <TableCell>Rs.{s.price}</TableCell>
+                  <TableCell>Rs.{s.offer_price}</TableCell>
+                  <TableCell sx={{ color: s.stock > 0 ? 'success.main' : 'error.main' }}>
+                    {s.stock > 0 ? `${s.stock} Available` : 'Out of Stock'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </ScrollBox>
+    );
+  }
+
+  if (product.store_type === 'Grocery' && product.weights) {
+    return (
+      <ScrollBox>
+        <Table size="small" sx={tableStyle}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Weight</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Quantity</TableCell>
+              <TableCell>Stock</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {product.weights.map((w, i) => (
+              <TableRow key={i}>
+                <TableCell>{w.weight}</TableCell>
+                <TableCell>Rs.{w.price}</TableCell>
+                <TableCell>{w.quantity}</TableCell>
+                <TableCell sx={{ color: w.is_in_stock ? 'success.main' : 'error.main' }}>
+                  {w.is_in_stock ? 'Available' : 'Out of Stock'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollBox>
+    );
+  }
+
+  if (product.store_type === 'Restaurant' && product.variants) {
+    return (
+      <ScrollBox>
+        <Table size="small" sx={tableStyle}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Variant</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Stock</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {product.variants.map((v, i) => (
+              <TableRow key={i}>
+                <TableCell>{v.name}</TableCell>
+                <TableCell>Rs.{v.price}</TableCell>
+                <TableCell sx={{ color: v.is_in_stock ? 'success.main' : 'error.main' }}>
+                  {v.is_in_stock ? 'Available' : 'Out of Stock'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollBox>
+    );
+  }
+
+  return <Typography variant="body2" color="text.secondary">-</Typography>;
+};
+
 
   return (
     <Box sx={{ mt: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">Vendor Products</Typography>
-
-        <Box sx={{ mb: 2, maxWidth: 200 }}>
+        <Typography variant="h6" fontWeight={600}>Vendor Products</Typography>
+        <Box sx={{ maxWidth: 220 }}>
           <Select
             fullWidth
             value={categoryFilter}
             onChange={handleCategoryChange}
             displayEmpty
             size="small"
-            sx={{ bgcolor: '#f5f5f5' }}
+            sx={{
+              bgcolor: '#f9fafb',
+              borderRadius: 2,
+              boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
+              fontSize: 14,
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+            }}
           >
-            <MenuItem value="">All Categories</MenuItem>
+            <MenuItem value="" sx={{ fontWeight: 500 }}>All Categories</MenuItem>
             {uniqueCategories.map((cat) => (
-              <MenuItem key={cat} value={cat}>
-                {cat}
-              </MenuItem>
+              <MenuItem key={cat} value={cat} sx={{ fontWeight: 500 }}>{cat}</MenuItem>
             ))}
           </Select>
         </Box>
-        {/* <Box>
-          <Button variant="outlined" startIcon={<CalendarToday />} sx={{ mr: 1 }}>
-            Select Date
-          </Button>
-          <Button variant="outlined" startIcon={<FilterList />}>
-            Filters
-          </Button>
-        </Box> */}
       </Box>
 
-
-
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 3 }}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell>
-                <TableSortLabel
-                  active={sortConfig.key === 'name'}
-                  direction={sortConfig.direction}
-                  onClick={() => handleSort('name')}
-                >
-                  Product Name
-                </TableSortLabel>
-              </TableCell>
+              <TableCell>No</TableCell>
+              <TableCell>Product Name</TableCell>
               <TableCell>Image</TableCell>
-
               <TableCell>Category</TableCell>
               <TableCell>Sub Category</TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortConfig.key === 'price'}
-                  direction={sortConfig.direction}
-                  onClick={() => handleSort('price')}
-                >
-                  Price
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>Offer Price</TableCell>
-              <TableCell>Stock Status</TableCell>
+              <TableCell>Stock Details</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedProducts
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((product) => (
-                <TableRow key={product.id}>
-
-                  <TableCell>
-                    {/* <Link
-                      component="button"
-                      variant="body2"
-                      onClick={() => navigate(`/product/${product.id}`)}
-                      sx={{ cursor: 'pointer' }}
-                    > */}
-                      {product.name}
-                    {/* </Link> */}
-                  </TableCell>
-                  <TableCell>
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={product.images[0].image}
-                        alt={product.name}
-                        style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          width: 60,
-                          height: 60,
-                          bgcolor: '#e0e0e0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 4,
-                          color: '#9e9e9e',
-                          fontSize: 12,
-                        }}
-                      >
-                        No Image
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>{product.category_name}</TableCell>
-                  <TableCell>{product.sub_category_name}</TableCell>
-                  <TableCell>Rs.{product.price}</TableCell>
-                  <TableCell>Rs.{product.offer_price || product.price}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={product.is_available ? 'In Stock' : 'Out of Stock'}
-                      color={product.is_available ? 'success' : 'error'}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+            {sortedProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No products added yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              sortedProducts
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((product, index) => (
+                  <TableRow key={product.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{renderImages(product.images)}</TableCell>
+                    <TableCell>{product.category_name || product.category || '-'}</TableCell>
+                    <TableCell>
+                      {product.store_type === 'Grocery'
+                        ? product.sub_category_name || '-'
+                        : product.subcategory_name || product.subcategory || '-'}
+                    </TableCell>
+                    <TableCell>{renderVariantTable(product)}</TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -222,6 +349,7 @@ const Products = ({ vendorId }) => {
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[5, 10, 15]}
+        sx={{ mt: 2 }}
       />
     </Box>
   );

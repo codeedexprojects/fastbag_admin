@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Paper, Typography, Box, Button, Modal, IconButton } from '@mui/material';
-import { AccountBalanceWallet, ShoppingCart, Star, Close } from '@mui/icons-material';
-import { viewSpecificUserOrders, viewWishlist } from '../../services/allApi'; // Replace with actual API path
+import {
+  Grid, Paper, Typography, Box, Button, Modal, IconButton
+} from '@mui/material';
+import {
+  Wallet,
+  ShoppingCart,
+  X,
+  ListOrdered
+} from 'lucide-react';
+import { viewSpecificUserOrders, viewWishlist } from '../../services/allApi';
 import { useParams } from 'react-router-dom';
 
 const Stats = () => {
   const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
   const [wishlistData, setWishlistData] = useState(null);
-  const[orders,setOrders]=useState()
+  const [orders, setOrders] = useState();
   const [loadingWishlist, setLoadingWishlist] = useState(false);
   const [wishlistError, setWishlistError] = useState(null);
   const [totalWishlistCount, setTotalWishlistCount] = useState(0);
@@ -16,7 +23,7 @@ const Stats = () => {
   useEffect(() => {
     const fetchWishlistCount = async () => {
       try {
-        const data = await viewWishlist(id); // Replace `2` with dynamic user ID
+        const data = await viewWishlist(id);
         setTotalWishlistCount(data.total_wishlist_count || 0);
       } catch (error) {
         console.error('Error fetching total wishlist count:', error);
@@ -24,25 +31,26 @@ const Stats = () => {
     };
     fetchWishlistCount();
   }, []);
-   useEffect(() => {
-      const fetchOrders = async () => {
-        try {
-          const data = await viewSpecificUserOrders(id);
-          setOrders(data);
-        } catch (err) {
-          console.error('Failed to fetch orders', err);
-        }
-      };
-      fetchOrders();
-    }, [id]);
-          const totalOrders=orders?.length
 
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const data = await viewSpecificUserOrders(id);
+        setOrders(data);
+      } catch (err) {
+        console.error('Failed to fetch orders', err);
+      }
+    };
+    fetchOrders();
+  }, [id]);
+
+  const totalOrders = orders?.length;
 
   const handleViewWishlist = async () => {
     try {
       setLoadingWishlist(true);
       setWishlistError(null);
-      const wishlist = await viewWishlist(id); // Replace `2` with dynamic user ID
+      const wishlist = await viewWishlist(id);
       setWishlistData(wishlist);
       setWishlistModalOpen(true);
     } catch (error) {
@@ -58,8 +66,8 @@ const Stats = () => {
   };
 
   const stats = [
-    { title: 'Total Wishlist', value: totalWishlistCount, icon: AccountBalanceWallet, color: 'primary' },
-    { title: 'Total Orders', value: totalOrders, icon: ShoppingCart, color: 'primary', change: '+10%' },
+    { title: 'Total Wishlist', value: totalWishlistCount, icon: Wallet, color: 'primary' },
+    { title: 'Total Orders', value: totalOrders, icon: ShoppingCart, color: 'primary' },
   ];
 
   return (
@@ -67,20 +75,22 @@ const Stats = () => {
       <Grid container spacing={2}>
         {stats.map((stat, index) => (
           <Grid item xs={6} key={index}>
-            <Paper sx={{ p: 2 }}>
+            <Paper sx={{ p: 3, height: 150, borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
               <Box display="flex" alignItems="center">
-                <stat.icon sx={{ fontSize: 30, mr: 1 }} />
+                <Box mr={2}>
+                  <stat.icon size={28} />
+                </Box>
                 <Box>
-                  <Typography variant="subtitle1">{stat.title}</Typography>
+                  <Typography variant="subtitle1" fontWeight={600}>{stat.title}</Typography>
                   <Typography variant="h6" color={stat.color}>{stat.value}</Typography>
                 </Box>
               </Box>
               {stat.title === 'Total Wishlist' && (
                 <Button
+                startIcon={<ListOrdered/>}
                   variant="contained"
-                  color="primary"
                   size="small"
-                  sx={{ mt: 2 }}
+                  sx={{ mt: 2, borderRadius: 2 }}
                   onClick={handleViewWishlist}
                 >
                   View Wishlist
@@ -91,7 +101,6 @@ const Stats = () => {
         ))}
       </Grid>
 
-      {/* Wishlist Modal */}
       <Modal open={wishlistModalOpen} onClose={handleCloseModal}>
         <Paper
           sx={{
@@ -103,70 +112,45 @@ const Stats = () => {
             maxHeight: '80vh',
             overflowY: 'auto',
             p: 3,
+            borderRadius: 3,
           }}
         >
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">User Wishlist</Typography>
+            <Typography variant="h6" fontWeight={600}>User Wishlist</Typography>
             <IconButton onClick={handleCloseModal}>
-              <Close />
+              <X size={20} />
             </IconButton>
           </Box>
+
           {loadingWishlist ? (
             <Typography>Loading...</Typography>
           ) : wishlistError ? (
             <Typography color="error">{wishlistError}</Typography>
           ) : (
             <Box>
-              {/* Grocery Wishlist */}
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Grocery Wishlist
-              </Typography>
-              {wishlistData?.grocery_wishlist?.length ? (
-                wishlistData.grocery_wishlist.map((item) => (
-                  <Box key={item.id} sx={{ mb: 2 }}>
-                    <Typography variant="body2">{item.product_name}</Typography>
-                    <Typography variant="caption">Price: Rs.{item.price}</Typography>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  No items in grocery wishlist
-                </Typography>
-              )}
-
-              {/* Fashion Wishlist */}
-              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
-                Fashion Wishlist
-              </Typography>
-              {wishlistData?.fashion_wishlist?.length ? (
-                wishlistData.fashion_wishlist.map((item) => (
-                  <Box key={item.id} sx={{ mb: 2 }}>
-                    <Typography variant="body2">{item.cloth_name}</Typography>
-                    <Typography variant="caption">Price: Rs.{item.cloth_price}</Typography>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  No items in fashion wishlist
-                </Typography>
-              )}
-
-              {/* Food Wishlist */}
-              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
-                Food Wishlist
-              </Typography>
-              {wishlistData?.food_wishlist?.length ? (
-                wishlistData.food_wishlist.map((item) => (
-                  <Box key={item.id} sx={{ mb: 2 }}>
-                    <Typography variant="body2">{item.product_name}</Typography>
-                    <Typography variant="caption">Price: Rs.{item.price}</Typography>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  No items in food wishlist
-                </Typography>
-              )}
+              {['grocery', 'fashion', 'food'].map((type) => (
+                <Box key={type} mt={2}>
+                  <Typography variant="subtitle1" mb={1} textTransform="capitalize">
+                    {type} Wishlist
+                  </Typography>
+                  {wishlistData?.[`${type}_wishlist`]?.length ? (
+                    wishlistData[`${type}_wishlist`].map((item) => (
+                      <Box key={item.id} mb={1}>
+                        <Typography variant="body2">
+                          {item.product_name || item.cloth_name}
+                        </Typography>
+                        <Typography variant="caption">
+                          Price: Rs.{item.price || item.cloth_price}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No items in {type} wishlist
+                    </Typography>
+                  )}
+                </Box>
+              ))}
             </Box>
           )}
         </Paper>

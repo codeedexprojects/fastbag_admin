@@ -24,7 +24,7 @@ const CustomerDetails = () => {
 
         {/* Right Side: Stats and Transactions */}
         <Grid item xs={12} sm={8}>
-          <Stats />
+          <Stats  />
           <TransactionsAndOrders />
         </Grid>
       </Grid>

@@ -1,559 +1,227 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Modal, Box, Typography, TextField, Button, IconButton, FormControl, InputLabel, Select, MenuItem, Avatar,
-  FormControlLabel, Switch, Grid, RadioGroup, Radio,
-  InputAdornment,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { updateGroceryProduct, viewCategory, viewsubCategory, viewVendors } from '../../services/allApi';
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Grid,
+  FormControlLabel,
+  Switch,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  IconButton,
+} from "@mui/material";
+import { Trash2, Upload, Save, CircleX, Plus, CirclePlus } from "lucide-react";
+import { updateGroceryProduct } from "../../services/allApi";
+import { toast } from "react-toastify";
 
-const EditGroceryProductModal = ({ open, onClose, productData, onSave }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    offer_price: '',
-    discount: '',
-    category: '',
-    subcategory: '',
-    vendor: '',
-    weight_measurement: '',
-    is_available: true,
-    is_offer_product: false,
-    is_popular_product: false,
-    weights: [],
-    images: [],
-  });
-
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubCategories] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [newImages, setNewImages] = useState([]);
+const EditProductModal = ({ open, onClose, product, onReload }) => {
+  const [vendor, setVendor] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
-  const [filteredSubcategories, setFilteredSubcategories] = useState([]);
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [isOfferProduct, setIsOfferProduct] = useState(false);
+  const [isPopularProduct, setIsPopularProduct] = useState(false);
+  const [measurement, setMeasurement] = useState("Kg");
   const [availableWeights, setAvailableWeights] = useState([]);
+  const [images, setImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
 
-  // Fetch categories, subcategories, and vendors on mount
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const categories = await viewCategory();
-        const vendors = await viewVendors();
-        const subcategoryData = await viewsubCategory();
-        setCategories(categories);
-        setVendors(vendors);
+    if (product) {
+      setVendor(product.vendor ?? "");
+      setCategory(product.category ?? "");
+      setSubcategory(product.subcategory ?? "");
+      setProductName(product.name ?? "");
+      setProductDescription(product.description ?? "");
+      setPrice(product.price ?? "");
+      setDiscount(product.discount ?? "");
+      setIsAvailable(product.is_available ?? true);
+      setIsOfferProduct(product.is_offer_product ?? false);
+      setIsPopularProduct(product.is_popular_product ?? false);
+      setMeasurement(product.weight_measurement ?? "");
 
-        // Flatten the subcategories data
-        if (subcategoryData) {
-          const allSubcategories = [
-            ...subcategoryData.clothing_subcategories,
-            ...subcategoryData.grocery_subcategories,
-            ...subcategoryData.food_subcategories,
-          ];
-          setSubCategories(allSubcategories);
-        } else {
-          console.error('Subcategories API response is invalid:', subcategoryData);
-          setSubCategories([]);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setSubCategories([]); // Handle errors gracefully
+      if (Array.isArray(product.weights)) {
+        setAvailableWeights(
+          product.weights.map((w) => ({
+            weight: w.weight?.replace(/[^\d.]/g, "") || "",
+            weightPrice: w.price || "",
+            quantity: w.quantity || "",
+            stockStatus: w.is_in_stock ?? true,
+          }))
+        );
       }
+
+      setImages(
+        (product.images || []).map((img) => ({
+          preview: img.image,
+          id: img.id,
+        }))
+      );
     }
-    fetchData();
-  }, []);
+  }, [product]);
 
-  // Initialize formData and states when productData changes
-  useEffect(() => {
-    if (productData) {
-      setFormData({
-        name: productData.name || '',
-        description: productData.description || '',
-        price: productData.price || '',
-        offer_price: productData.offer_price || '',
-        discount: productData.discount || '',
-        category: productData.category || '',
-        subcategory: productData.sub_category || '',
-        vendor: productData.vendor || '',
-        weight_measurement: productData.weight_measurement || '',
-        is_available: productData.Available ?? true,
-        is_offer_product: productData.is_offer_product ?? false,
-        is_popular_product: productData.is_popular_product ?? false,
-        weights: productData.weights || [],
-        images: productData.images || [],
-      });
+  const handleImageChange = (e) => {
+    const selected = Array.from(e.target.files);
+    const previews = selected.map((file) => ({
+      preview: URL.createObjectURL(file),
+      file,
+    }));
+    setImages([]);
+    setNewImages(previews);
+  };
 
-      // Set category and subcategory states
-      setCategory(productData.category || "");
-      setSubcategory(productData.sub_category || "");
-
-      // Set available weights
-      setAvailableWeights(productData.weights || []);
-    }
-  }, [productData]);
-
-  // Filter subcategories based on selected category
-  useEffect(() => {
-    if (category && Array.isArray(subcategories)) {
-      const filtered = subcategories.filter(sc => sc.category === category);
-      setFilteredSubcategories(filtered);
+  const removeImage = (index, isNew) => {
+    if (isNew) {
+      setNewImages((prev) => prev.filter((_, i) => i !== index));
     } else {
-      setFilteredSubcategories([]);
-    }
-  }, [category, subcategories]);
-
-  const handleCategoryChange = (e) => {
-    const selectedCategory = e.target.value;
-    setCategory(selectedCategory);
-    setSubcategory(""); // Reset subcategory when category changes
-  };
-
-  const handleSubcategoryChange = (e) => {
-    const selectedSubcategory = e.target.value;
-    setSubcategory(selectedSubcategory);
-    setFormData((prev) => ({
-      ...prev,
-      subcategory: selectedSubcategory,
-    }));
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleToggle = (e) => {
-    const { name, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: checked,
-    }));
-  };
-
-  const handleImageRemove = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setNewImages((prev) => [...prev, ...files]);
-  };
-
-  const handleAddWeight = () => {
-    if (formData.weight && formData.price && formData.quantity && formData.weight_measurement) {
-      const newWeight = {
-        weight: formData.weight,
-        weight_measurement: formData.weight_measurement,
-        price: formData.price,
-        quantity: formData.quantity,
-        stockStatus: formData.stockStatus,
-      };
-      setAvailableWeights([...availableWeights, newWeight]);
-      setFormData((prev) => ({
-        ...prev,
-        weight: "",
-        price: "",
-        quantity: "",
-        stockStatus: true,
-      }));
+      setImages((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
-  const handleRemoveWeight = (index) => {
-    const updatedWeights = availableWeights.filter((_, i) => i !== index);
-    setAvailableWeights(updatedWeights);
+  const handleWeightChange = (index, key, value) => {
+    setAvailableWeights((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item))
+    );
   };
 
-  const handleSave = async () => {
+  const handleSubmit = async () => {
+    const formattedWeights = availableWeights.map((w) => ({
+      weight: `${w.weight} ${measurement}`,
+      price: w.weightPrice,
+      quantity: w.quantity,
+      is_in_stock: w.stockStatus,
+    }));
+
+    const formData = new FormData();
+    formData.append("vendor", vendor);
+    formData.append("category", category);
+    formData.append("subcategory", subcategory);
+    formData.append("name", productName);
+    formData.append("description", productDescription);
+    formData.append("price", price);
+    formData.append("discount", discount);
+    formData.append("is_available", isAvailable);
+    formData.append("is_offer_product", isOfferProduct);
+    formData.append("is_popular_product", isPopularProduct);
+    formData.append("weight_measurement", measurement);
+    formData.append("weights", JSON.stringify(formattedWeights));
+    newImages.forEach((img) => formData.append("images", img.file));
+
     try {
-      const updatedFormData = new FormData();
-      updatedFormData.append("vendor", formData.vendor);
-      updatedFormData.append("category", formData.category);
-      updatedFormData.append("sub_category", formData.subcategory);
-      updatedFormData.append("name", formData.name);
-      updatedFormData.append("description", formData.description);
-      updatedFormData.append("price", formData.price);
-      updatedFormData.append("offer_price", formData.offer_price || '');
-      updatedFormData.append("discount", formData.discount || '');
-      updatedFormData.append("weight_measurement", formData.weight_measurement);
-      updatedFormData.append("is_available", formData.is_available ? 'true' : 'false');
-      updatedFormData.append("is_offer_product", formData.is_offer_product ? 'true' : 'false');
-      updatedFormData.append("is_popular_product", formData.is_popular_product ? 'true' : 'false');
-      updatedFormData.append("weights", JSON.stringify(availableWeights));
-
-      // Append only new images (file objects)
-      newImages.forEach((image) => {
-        updatedFormData.append("images", image);
-      });
-
-      const response = await updateGroceryProduct(updatedFormData, productData.id);
-      onSave(response);
-      onClose();
+      const res = await updateGroceryProduct(formData, product.id);
+      if (res.status === 200) {
+        toast.success("Product Updated!");
+        onReload();
+        onClose();
+      }
     } catch (error) {
-      console.error("Failed to update product:", error);
+      console.error("Error updating product:", error);
     }
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          maxWidth: 800,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-          borderRadius: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-        }}>
-        <Box display="flex" justifyContent="space-between" mb={2}>
-          <Typography variant="h6">Edit Product</Typography>
-          <IconButton onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-
-        {/* Form Fields */}
-        <Grid container spacing={3}>
-          {/* General Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              General Information
-            </Typography>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Edit Grocery Product</DialogTitle>
+      <DialogContent dividers>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={4}>
+            <TextField fullWidth label="Product Name" value={productName} onChange={(e) => setProductName(e.target.value)} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={6} sm={4}>
+            <TextField fullWidth label="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <TextField fullWidth label="Discount" type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Description" multiline rows={3} value={productDescription} onChange={(e) => setProductDescription(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
-              <InputLabel>Vendor</InputLabel>
-              <Select
-                name="vendor"
-                value={formData.vendor || ""}
-                onChange={handleChange}
-              >
-                {vendors.map((ven) => (
-                  <MenuItem key={ven.id} value={ven.id}>
-                    {ven.business_name}
-                  </MenuItem>
-                ))}
+              <InputLabel>Measurement</InputLabel>
+              <Select value={measurement} onChange={(e) => setMeasurement(e.target.value)} label="Measurement">
+                <MenuItem value="Kg">Kg</MenuItem>
+                <MenuItem value="g">g</MenuItem>
+                <MenuItem value="L">L</MenuItem>
+                <MenuItem value="ml">ml</MenuItem>
+                <MenuItem value="pcs">pcs</MenuItem>
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={category || ""}
-                onChange={handleCategoryChange}
-              >
-                {categories.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Subcategory</InputLabel>
-              <Select
-                value={subcategory || ""}
-                onChange={handleSubcategoryChange}
-                disabled={!category}
-              >
-                {filteredSubcategories.map((sc) => (
-                  <MenuItem key={sc.id} value={sc.id}>
-                    {sc.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Product Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={4}
-            />
-          </Grid>
 
-          {/* Pricing */}
           <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Pricing
-            </Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              label="Price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              fullWidth
-              type="number"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              }}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              label="Offer Price"
-              name="offer_price"
-              value={formData.offer_price}
-              onChange={handleChange}
-              fullWidth
-              type="number"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              }}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              label="Discount (%)"
-              name="discount"
-              value={formData.discount}
-              onChange={handleChange}
-              fullWidth
-              type="number"
-            />
-          </Grid>
-
-          {/* Inventory */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Inventory
-            </Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.is_available}
-                  onChange={handleToggle}
-                  name="is_available"
-                  color="primary"
-                />
-              }
-              label="Available"
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.is_offer_product}
-                  onChange={handleToggle}
-                  name="is_offer_product"
-                />
-              }
-              label="Offer Product"
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.is_popular_product}
-                  onChange={handleToggle}
-                  name="is_popular_product"
-                />
-              }
-              label="Popular Product"
-            />
-          </Grid>
-
-          {/* Weight Measurement */}
-          <Grid item xs={12}>
-            <TextField
-              label="Weight Measurement"
-              name="weight_measurement"
-              value={formData.weight_measurement}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-
-          {/* Weights */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" gutterBottom>
-              Available Weights
-            </Typography>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={3}>
-                <TextField
-                  label="Weight"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextField
-                  label="Price"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextField
-                  label="Quantity"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    row
-                    value={formData.stockStatus ? "true" : "false"}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        stockStatus: e.target.value === "true",
-                      }))
-                    }
-                  >
-                    <FormControlLabel
-                      value="true"
-                      control={<Radio />}
-                      label="In Stock"
-                    />
-                    <FormControlLabel
-                      value="false"
-                      control={<Radio />}
-                      label="Out of Stock"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </Grid>
-              <Grid item xs={2}>
-                <Button variant="contained" color="primary" onClick={handleAddWeight}>
-                  Add
-                </Button>
-              </Grid>
-            </Grid>
-            <Box mt={2}>
-              {availableWeights.map((item, index) => (
-                <Grid container key={index} spacing={2} alignItems="center">
-                  <Grid item xs={4}>
-                    <Typography>
-                      Weight: {item.weight} {formData.weight_measurement}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography>Price: {item.price}</Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography>Quantity: {item.quantity}</Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography>
-                      Stock Status: {item.stockStatus ? "In Stock" : "Out of Stock"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleRemoveWeight(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              ))}
-            </Box>
-          </Grid>
-
-          {/* Media */}
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Media
-            </Typography>
-            <Button variant="outlined" component="label">
-              Upload Images
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-              />
+            <Button variant="containedSecondary" startIcon={<CirclePlus size={20} />} onClick={() => setAvailableWeights((prev) => [...prev, { weight: "", weightPrice: "", quantity: "", stockStatus: true }])}>
+              Add Weight Variant
             </Button>
-            <Box display="flex" gap={1} flexWrap="wrap" mt={2}>
-              {formData.images.map((image, index) => (
+            {availableWeights.map((w, index) => (
+              <Grid container spacing={1} key={index} sx={{ mt: 1 }}>
+                <Grid item xs={3}><TextField fullWidth label="Weight" value={w.weight} onChange={(e) => handleWeightChange(index, "weight", e.target.value)} /></Grid>
+                <Grid item xs={3}><TextField fullWidth label="Price" value={w.weightPrice} onChange={(e) => handleWeightChange(index, "weightPrice", e.target.value)} /></Grid>
+                <Grid item xs={3}><TextField fullWidth label="Qty" value={w.quantity} onChange={(e) => handleWeightChange(index, "quantity", e.target.value)} /></Grid>
+                <Grid item xs={2}>
+                  <FormControlLabel control={<Switch checked={w.stockStatus} onChange={(e) => handleWeightChange(index, "stockStatus", e.target.checked)} />} label="In Stock" />
+                </Grid>
+                <Grid item xs={1}>
+                  <IconButton onClick={() => setAvailableWeights(prev => prev.filter((_, i) => i !== index))} color="error"><Trash2 size={18} /></IconButton>
+                </Grid>
+              </Grid>
+            ))}
+          </Grid>
+
+          <Grid item xs={12}>
+            <Button component="label" variant="containedSecondary" startIcon={<Upload size={20} />}>
+              Upload New Images
+              <input type="file" hidden multiple accept="image/*" onChange={handleImageChange} />
+            </Button>
+            <Box mt={3} display="flex" flexWrap="wrap" gap={1}>
+              {[...images, ...newImages].map((img, index) => (
                 <Box key={index} position="relative">
-                  <Avatar
-                    src={image.image}
-                    alt={`Product Image ${index + 1}`}
-                    sx={{ width: 75, height: 75, objectFit: "cover" }}
-                  />
+                  <img src={img.preview} alt={`img-${index}`} width={80} height={80} style={{ borderRadius: 6 }} />
                   <IconButton
-                    size="small"
-                    sx={{ position: 'absolute', top: 0, right: 0 }}
-                    onClick={() => handleImageRemove(index)}
+                    size="medium"
+                    color="error"
+                    onClick={() => removeImage(index, Boolean(img.file))}
+                    sx={{ position: "absolute", top: -6, right: -6, bgcolor: "#fff" }}
                   >
-                    <DeleteIcon fontSize="small" />
+                    <Trash2 size={15} />
                   </IconButton>
                 </Box>
               ))}
-              {newImages.map((file, index) => (
-                <Avatar
-                  key={index}
-                  src={URL.createObjectURL(file)}
-                  alt={`New Image ${index + 1}`}
-                  sx={{ width: 75, height: 75 }}
-                />
-              ))}
             </Box>
           </Grid>
-        </Grid>
 
-        {/* Save and Cancel Buttons */}
-        <Box mt={3} display="flex" justifyContent="space-between">
-          <Button variant="outlined" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleSave}>
-            Save
-          </Button>
-        </Box>
-      </Box>
-    </Modal>
+          <Grid item xs={12} sm={4}>
+            <FormControlLabel control={<Switch checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />} label="Available" />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <FormControlLabel control={<Switch checked={isOfferProduct} onChange={(e) => setIsOfferProduct(e.target.checked)} />} label="Offer Product" />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <FormControlLabel control={<Switch checked={isPopularProduct} onChange={(e) => setIsPopularProduct(e.target.checked)} />} label="Popular Product" />
+          </Grid>
+        </Grid>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} variant="contained" color="error" startIcon={<CircleX size={18} />}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" startIcon={<Save size={18} />}>
+          Save Changes
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
-export default EditGroceryProductModal;
+export default EditProductModal;

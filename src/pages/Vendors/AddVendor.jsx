@@ -11,6 +11,9 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { addVendor, viewStores } from "../../services/allApi";
+import GoogleMapPicker from "../../components/LocationPicker";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AddVendor = () => {
   const [vendorData, setVendorData] = useState({
@@ -20,7 +23,6 @@ const AddVendor = () => {
     business_location: "",
     business_landmark: "",
     contact_number: "",
-    address: "",
     city: "",
     state: "",
     pincode: "",
@@ -34,8 +36,10 @@ const AddVendor = () => {
     store_logo: null,
     display_image: null,
     license: null,
+    latitude: "",
+    longitude: "",
+    address: "",
   });
-  
 
   const [storeTypes, setStoreTypes] = useState([]);
   const [imagePreviews, setImagePreviews] = useState({});
@@ -49,18 +53,13 @@ const AddVendor = () => {
         console.error("Failed to fetch store types", error);
       }
     };
-
     fetchStoreTypes();
   }, []);
-
+const nav=useNavigate()
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
-    // Update the state directly with the input value (in HH:mm format)
     setVendorData({ ...vendorData, [name]: value });
   };
-  
-  
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
@@ -85,40 +84,46 @@ const AddVendor = () => {
     const period = isPM ? "PM" : "AM";
     return `${formattedHour}:${minute} ${period}`;
   };
-  
+
   const handleSubmit = async () => {
     const formData = new FormData();
-  
+
     Object.entries(vendorData).forEach(([key, value]) => {
-      // Convert time fields to the required format
+
       if ((key === "opening_time" || key === "closing_time") && value) {
         value = convertTo12HourFormat(value);
       }
-      if (value !== null && value !== undefined) {
+
+      if (value !== null && value !== undefined && value !== "") {
         formData.append(key, value);
       }
     });
-  
+
     try {
-      const response = await addVendor(formData);
-      console.log("Vendor added successfully:", response);
-  
-      // Clear the form fields
-      setVendorData({});
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(`${key}:`, value);
+      // }
+
+       const response = await addVendor(formData);
+       if(response.status===201){
+        toast.success("Vendor added successfully!")
+        nav(-1)
+       }else{
+        toast.error("Vendor adding failed!")
+       }
+       console.log("Vendor added successfully:", response);
     } catch (error) {
       console.error("Failed to add vendor", error);
     }
   };
-  
-  
 
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" gutterBottom>
         Add Vendor
       </Typography>
+
       <Grid container spacing={3}>
-        {/* Text Fields */}
         {[
           { label: "Owner Name", name: "owner_name" },
           { label: "Email", name: "email" },
@@ -126,10 +131,6 @@ const AddVendor = () => {
           { label: "Business Location", name: "business_location" },
           { label: "Business Landmark", name: "business_landmark" },
           { label: "Contact Number", name: "contact_number" },
-          { label: "Address", name: "address" },
-          { label: "City", name: "city" },
-          { label: "State", name: "state" },
-          { label: "Pincode", name: "pincode" },
           { label: "FSSAI Number", name: "fssai_no" },
           { label: "Alternate Email", name: "alternate_email" },
         ].map((field, index) => (
@@ -145,7 +146,6 @@ const AddVendor = () => {
           </Grid>
         ))}
 
-        {/* Store Description */}
         <Grid item xs={12}>
           <TextField
             label="Store Description"
@@ -155,10 +155,10 @@ const AddVendor = () => {
             fullWidth
             multiline
             rows={3}
-            variant="outlined"/>
+            variant="outlined"
+          />
         </Grid>
 
-        {/* Opening and Closing Times */}
         {[
           { label: "Opening Time", name: "opening_time" },
           { label: "Closing Time", name: "closing_time" },
@@ -177,7 +177,6 @@ const AddVendor = () => {
           </Grid>
         ))}
 
-        {/* Store Type Dropdown */}
         <Grid item xs={12} sm={6}>
           <InputLabel>Store Type</InputLabel>
           <TextField
@@ -186,7 +185,8 @@ const AddVendor = () => {
             value={vendorData.store_type}
             onChange={handleInputChange}
             fullWidth
-            variant="outlined">
+            variant="outlined"
+          >
             {storeTypes.map((type) => (
               <MenuItem key={type.id} value={type.id}>
                 {type.name}
@@ -195,8 +195,7 @@ const AddVendor = () => {
           </TextField>
         </Grid>
 
-        {/* File Uploads with Previews */}
-        {[
+        {[ 
           { label: "FSSAI Certificate", name: "fssai_certificate" },
           { label: "Store Logo", name: "store_logo" },
           { label: "Display Image", name: "display_image" },
@@ -231,10 +230,58 @@ const AddVendor = () => {
             </Box>
           </Grid>
         ))}
+
+        <Grid item xs={12}>
+          <Typography variant="subtitle1" gutterBottom>
+            Select Store Location
+          </Typography>
+
+          <GoogleMapPicker
+            vendorData={vendorData}
+            setVendorData={setVendorData}
+          />
+
+          {Number.isFinite(Number(vendorData.latitude)) &&
+            Number.isFinite(Number(vendorData.longitude)) && (
+              <Typography mt={2} fontSize="14px" color="text.secondary">
+                📍 <strong>Selected Location:</strong>
+                <br />
+                {vendorData.address && (
+                  <>
+                    <strong>Address:</strong> {vendorData.address}
+                    <br />
+                  </>
+                )}
+                <strong>Coordinates:</strong>{" "}
+                {Number(vendorData.latitude).toFixed(6)},{" "}
+                {Number(vendorData.longitude).toFixed(6)}
+              </Typography>
+            )}
+        </Grid>
+
+        <Grid container spacing={3} mt={2}>
+          {[
+            { label: "Address", name: "address" },
+            { label: "City", name: "city" },
+            { label: "State", name: "state" },
+            { label: "Pincode", name: "pincode" },
+          ].map((field, index) => (
+            <Grid item xs={12} sm={6} key={index}>
+              <TextField
+                label={field.label}
+                name={field.name}
+                value={vendorData[field.name]}
+                onChange={handleInputChange}
+                fullWidth
+                variant="outlined"
+              />
+            </Grid>
+          ))}
+        </Grid>
       </Grid>
 
       <Box mt={4} display="flex" justifyContent="flex-end" gap={2}>
-        <Button variant="outlined" onClick={() => setVendorData({})}>
+        <Button variant="outlined" onClick={() => window.location.reload()}>
           Reset
         </Button>
         <Button variant="contained" color="primary" onClick={handleSubmit}>

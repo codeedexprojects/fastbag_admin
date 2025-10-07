@@ -1,151 +1,147 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
-  Box, Button, TextField, Typography, Grid, Switch, FormControlLabel, Select, MenuItem, InputLabel, FormControl, InputAdornment, IconButton, RadioGroup,
-  Radio
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Grid,
+  Switch,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import DeleteIcon from '@mui/icons-material/Delete';
-import { addGroceryProduct, viewCategory, viewsubCategory, viewVendors } from "../../services/allApi";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  addGroceryProduct,
+  viewCategory,
+  viewsubCategory,
+  viewVendors,
+} from "../../services/allApi";
+import { useNavigate } from "react-router-dom";
+import { CirclePlus, CircleX, ImageUp } from "lucide-react";
 
 const AddGroceryProduct = () => {
   const [images, setImages] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [filteredSubcategories, setFilteredSubcategories] = useState([]);
+
   const [vendor, setVendor] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
-  const [filteredSubcategories, setFilteredSubcategories] = useState([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [offerPrice, setOfferPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [discount, setDiscount] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
-  const [isOfferProduct, setIsOfferProduct] = useState(true);
+  const [isOfferProduct, setIsOfferProduct] = useState(false);
   const [isPopularProduct, setIsPopularProduct] = useState(false);
-  const [measurment, setMeasurment] = useState("");
-  const [price, setPrice] = useState("");
+  const [measurement, setMeasurement] = useState("");
+
+  // Weight & stock management fields
   const [weight, setWeight] = useState("");
-  const [weightMeasurment, setWeightMeasurment] = useState("");
   const [weightPrice, setWeightPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [stockStatus, setStockStatus] = useState(true);
   const [availableWeights, setAvailableWeights] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const imagePreviewsRef = useRef([]);
+
   useEffect(() => {
-    const fetchVendors = async () => {
+    // Fetch vendors, categories and subcategories on mount
+    const fetchData = async () => {
       try {
-        const vendorsData = await viewVendors();
-        const filteredVendors = vendorsData.filter(ven => ven.store_type === 2);
-        setVendors(filteredVendors);
-      } catch (err) {
-        console.error("Error fetching vendors:", err);
+        const [vendorsData, categoriesData, subcategoriesData] = await Promise.all([
+          viewVendors(),
+          viewCategory(),
+          viewsubCategory(),
+        ]);
+        setVendors(vendorsData.filter((v) => v.store_type === 2));
+        setCategories(categoriesData.filter((c) => c.store_type === 2));
+        setSubcategories(subcategoriesData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setErrorMsg("Failed to load vendors/categories data.");
       }
     };
-    const fetchSubCategories = async () => {
-      const subcategoriesData = await viewsubCategory();
-      setSubcategories(subcategoriesData);
-    };
-    const fetchCategories = async () => {
-      const categoriesData = await viewCategory();
-      const filteredCategories = categoriesData.filter(cat => cat.store_type === 2);
-      setCategories(filteredCategories);
-    };
+    fetchData();
 
-    fetchVendors();
-    fetchCategories();
-    fetchSubCategories();
+    // Cleanup image URLs on unmount
+    return () => {
+      imagePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
   }, []);
+  console.log(vendors)
 
+  // Update filtered subcategories when category changes
   const handleCategoryChange = (e) => {
-    const selectedCategory = e.target.value;
-    setCategory(selectedCategory);
-    if (Array.isArray(subcategories)) {
-      const filtered = subcategories.filter(sc => sc.category === selectedCategory);
-      setFilteredSubcategories(filtered);
-    } else {
-      setFilteredSubcategories([]);
-    }
+    const selected = e.target.value;
+    setCategory(selected);
+    setFilteredSubcategories(subcategories.filter((sc) => sc.category === selected));
     setSubcategory("");
   };
 
+  // Add weight & stock entry
   const handleAddWeight = () => {
-    if (weight && weightMeasurment && weightPrice && quantity) {
-      const newWeight = {
-        weight,
-        weightMeasurment,
-        weightPrice,
-        quantity,
-        stockStatus,
-      };
-      setAvailableWeights([...availableWeights, newWeight]);
-      setWeight("");
-      setWeightMeasurment("");
-      setWeightPrice("");
-      setQuantity("");
-      setStockStatus(true);
+    if (!weight || !weightPrice || !quantity) {
+      setErrorMsg("Please fill all weight, price, and quantity fields.");
+      return;
     }
+    setAvailableWeights((prev) => [
+      ...prev,
+      { weight, weightPrice, quantity, stockStatus },
+    ]);
+    setWeight("");
+    setWeightPrice("");
+    setQuantity("");
+    setStockStatus(true);
+    setErrorMsg("");
   };
 
+  // Remove weight entry by index
   const handleRemoveWeight = (index) => {
-    setAvailableWeights(availableWeights.filter((_, i) => i !== index));
+    setAvailableWeights((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Handle image upload and generate preview URLs
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setImages((prev) => {
-      const newImages = files.filter(
-        (file) => !prev.some((img) => img instanceof File && img.name === file.name)
-      );
-      return [...prev, ...newImages];
+
+    // Avoid duplicate filenames
+    const filteredNewFiles = files.filter(
+      (file) => !images.some((img) => img.file.name === file.name)
+    );
+
+    const newPreviews = filteredNewFiles.map((file) => {
+      const url = URL.createObjectURL(file);
+      imagePreviewsRef.current.push(url);
+      return { file, preview: url };
     });
+
+    setImages((prev) => [...prev, ...newPreviews]);
   };
 
+  // Remove image and revoke URL
   const handleRemoveImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("vendor", vendor);
-      formData.append("category", category);
-      formData.append("sub_category", subcategory);
-      formData.append("name", productName);
-      formData.append("description", productDescription);
-      formData.append("price", price);
-      formData.append("offer_price", offerPrice);
-      formData.append("discount", discount);
-      formData.append("Available", isAvailable);
-      formData.append("is_offer_product", isOfferProduct);
-      formData.append("is_popular_product", isPopularProduct);
-      formData.append("weight_measurement", measurment);
-      formData.append("weights", JSON.stringify(availableWeights));
-
-      images.forEach((image, index) => {
-        if (image instanceof File) {
-          formData.append("images", image);
-        }
-      });
-
-      // For debugging:
-      for (let [key, value] of formData.entries()) {
-        if (key === "images") {
-          console.log(`${key}:`, value.name);
-        } else {
-          console.log(`${key}:`, value);
-        }
-      }
-
-      const result = await addGroceryProduct(formData);
-      console.log("Product added successfully:", result);
-
-      resetFormFields();
-    } catch (error) {
-      console.error("Failed to add product", error);
+    const removed = images[index];
+    if (removed.preview) {
+      URL.revokeObjectURL(removed.preview);
+      imagePreviewsRef.current = imagePreviewsRef.current.filter((url) => url !== removed.preview);
     }
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Reset form fields to initial
   const resetFormFields = () => {
     setVendor("");
     setCategory("");
@@ -153,16 +149,101 @@ const AddGroceryProduct = () => {
     setProductName("");
     setProductDescription("");
     setPrice("");
-    setOfferPrice("");
     setDiscount("");
-    setIsAvailable(false);
+    setIsAvailable(true);
     setIsOfferProduct(false);
     setIsPopularProduct(false);
-    setMeasurment("");
+    setMeasurement("");
     setAvailableWeights([]);
+    imagePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    imagePreviewsRef.current = [];
     setImages([]);
+    setErrorMsg("");
+    setSuccessMsg("");
+  };
+const nav=useNavigate()
+  const handleWeightChange = (e) => {
+    const val = e.target.value;
+    // Allow only numbers and decimal point
+    if (/^\d*\.?\d*$/.test(val)) {
+      setWeight(val);
+    }
   };
 
+  // Submit form data
+ const handleSubmit = async () => {
+  if (!vendor || !category || !productName || !price) {
+    setErrorMsg("Please fill all required fields: Vendor, Category, Product Name, and Price.");
+    setSuccessMsg("");
+    return;
+  }
+
+  setLoading(true);
+  setErrorMsg("");
+  setSuccessMsg("");
+
+  try {
+    const formData = new FormData();
+    formData.append("vendor", vendor);
+    formData.append("category", category);
+    formData.append("subcategory", subcategory);
+    formData.append("name", productName);
+    formData.append("description", productDescription);
+    formData.append("price", price);
+    formData.append("discount", discount);
+    formData.append("Available", isAvailable);
+    formData.append("is_offer_product", isOfferProduct);
+    formData.append("is_popular_product", isPopularProduct);
+    formData.append("weight_measurement", measurement);
+
+    // ✅ Convert array to desired object format
+    const weights = availableWeights.map((item) => ({
+  price: parseFloat(item.weightPrice),
+  weight: `${item.weight}${measurement}`,
+  quantity: parseInt(item.quantity),
+  is_in_stock: item.stockStatus,
+}));
+
+    formData.append("weights", JSON.stringify(weights)); // Append as JSON string
+
+    // Attach image files
+   images.forEach((imgObj) => {
+  if (imgObj.file instanceof File) {
+    formData.append("images", imgObj.file); // ✅ good for file upload
+  }
+});
+
+ // Optional: Console check
+   const formDataObject = {};
+formData.forEach((value, key) => {
+  // If key already exists (e.g. for arrays), convert to array
+  if (formDataObject[key]) {
+    if (!Array.isArray(formDataObject[key])) {
+      formDataObject[key] = [formDataObject[key]];
+    }
+    formDataObject[key].push(value);
+  } else {
+    formDataObject[key] = value;
+  }
+});
+
+ // Log it like a normal object
+ console.log(formDataObject);
+
+     const res= await addGroceryProduct(formData);
+      console.log(res)
+    setSuccessMsg("Product added successfully!");
+    // resetFormFields();
+  } catch (error) {
+    console.error("Submit error:", error);
+    setErrorMsg("Failed to submit product. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // Styled container for image previews
   const PreviewContainer = styled(Box)(({ theme }) => ({
     display: "flex",
     gap: theme.spacing(2),
@@ -173,38 +254,47 @@ const AddGroceryProduct = () => {
   return (
     <Box sx={{ p: 4, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
       <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
+        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}
       >
         <Typography variant="h5" fontWeight="bold">
           Add Grocery Product
         </Typography>
         <Box>
-          <Button variant="outlined" sx={{ mr: 2 }}>
+          <Button variant="containedError"  startIcon={<CircleX/>} sx={{ mr: 2 }} onClick={resetFormFields}  disabled={loading}>
             Cancel
           </Button>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Add Product
+          <Button variant="containedSecondary" startIcon={<CirclePlus/>} onClick={handleSubmit} disabled={loading}>
+            {loading ? "Adding..." : "Add Product"}
           </Button>
         </Box>
       </Box>
 
-      <Box sx={{ backgroundColor: "#ECF4EE", borderRadius: 2, p: 3 }}>
+      {errorMsg && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {errorMsg}
+        </Typography>
+      )}
+      {successMsg && (
+        <Typography color="success.main" sx={{ mb: 2 }}>
+          {successMsg}
+        </Typography>
+      )}
+
+      <Box sx={{ backgroundColor: "#fff", borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', p: 3 }}>
         <Grid container spacing={3}>
+          {/* General Info */}
           <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
+            <Typography variant="h6" fontWeight="bold">
               General Information
             </Typography>
           </Grid>
-
           <Grid item xs={6}>
             <FormControl fullWidth>
-              <InputLabel>Vendor</InputLabel>
-              <Select value={vendor} onChange={(e) => setVendor(e.target.value)}>
+              <InputLabel>Vendor *</InputLabel>
+              <Select value={vendor} onChange={(e) => setVendor(e.target.value)} disabled={loading}>
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
                 {vendors.map((v) => (
                   <MenuItem key={v.id} value={v.id}>
                     {v.business_name}
@@ -213,11 +303,13 @@ const AddGroceryProduct = () => {
               </Select>
             </FormControl>
           </Grid>
-
           <Grid item xs={6}>
             <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select value={category} onChange={handleCategoryChange}>
+              <InputLabel>Category *</InputLabel>
+              <Select value={category} onChange={handleCategoryChange} disabled={loading}>
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
                 {categories.map((c) => (
                   <MenuItem key={c.id} value={c.id}>
                     {c.name}
@@ -226,15 +318,17 @@ const AddGroceryProduct = () => {
               </Select>
             </FormControl>
           </Grid>
-
           <Grid item xs={6}>
             <FormControl fullWidth>
               <InputLabel>Subcategory</InputLabel>
               <Select
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
-                disabled={!category}
+                disabled={!category || loading}
               >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
                 {filteredSubcategories.map((sc) => (
                   <MenuItem key={sc.id} value={sc.id}>
                     {sc.name}
@@ -243,17 +337,16 @@ const AddGroceryProduct = () => {
               </Select>
             </FormControl>
           </Grid>
-
           <Grid item xs={6}>
             <TextField
               fullWidth
-              label="Product Name"
+              label="Product Name *"
               variant="outlined"
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
+              disabled={loading}
             />
           </Grid>
-
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -263,20 +356,16 @@ const AddGroceryProduct = () => {
               variant="outlined"
               value={productDescription}
               onChange={(e) => setProductDescription(e.target.value)}
+              disabled={loading}
             />
           </Grid>
-
-                    <Grid xs={3}></Grid>
-                    
-
-
-             <Grid item xs={6}>
-              
+          <Grid item xs={12}>
             <FormControlLabel
               control={
                 <Switch
                   checked={isAvailable}
                   onChange={(e) => setIsAvailable(e.target.checked)}
+                  disabled={loading}
                 />
               }
               label="Available"
@@ -286,6 +375,7 @@ const AddGroceryProduct = () => {
                 <Switch
                   checked={isOfferProduct}
                   onChange={(e) => setIsOfferProduct(e.target.checked)}
+                  disabled={loading}
                 />
               }
               label="Offer Product"
@@ -295,58 +385,45 @@ const AddGroceryProduct = () => {
                 <Switch
                   checked={isPopularProduct}
                   onChange={(e) => setIsPopularProduct(e.target.checked)}
+                  disabled={loading}
                 />
               }
               label="Popular Product"
             />
           </Grid>
-                    <Grid xs={3}></Grid>
 
-
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Pricing
-            </Typography>
-          </Grid>
-
+          {/* Pricing */}
           <Grid item xs={4}>
             <TextField
               fullWidth
-              label="Price"
+              label="Price *"
               type="number"
               variant="outlined"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+              disabled={loading}
             />
           </Grid>
-
           <Grid item xs={4}>
-            <TextField
-              fullWidth
-              label="Measurment"
-              variant="outlined"
-              value={measurment}
-              onChange={(e) => setMeasurment(e.target.value)}
-            />
+            <FormControl fullWidth>
+              <InputLabel>Measurement</InputLabel>
+              <Select
+                value={measurement}
+                onChange={(e) => setMeasurement(e.target.value)}
+                disabled={loading}
+                label="Measurement"
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                <MenuItem value="kg">kg</MenuItem>
+                <MenuItem value="mg">mg</MenuItem>
+                <MenuItem value="l">l</MenuItem>
+                <MenuItem value="ml">ml</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-
-          <Grid item xs={4}>
-            <TextField
-              fullWidth
-              label="Offer Price"
-              type="number"
-              variant="outlined"
-              value={offerPrice}
-              onChange={(e) => setOfferPrice(e.target.value)}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              }}
-            />
-          </Grid>
-
           <Grid item xs={4}>
             <TextField
               fullWidth
@@ -355,155 +432,144 @@ const AddGroceryProduct = () => {
               variant="outlined"
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">%</InputAdornment>,
-              }}
+              InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+              disabled={loading}
             />
           </Grid>
 
+          {/* Weight & Stock */}
           <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
+            <Typography variant="h6" fontWeight="bold">
               Weights & Stock
             </Typography>
           </Grid>
-
-          {/* Add weight inputs */}
-          <Grid item xs={3}>
-            <TextField
-              fullWidth
-              label="Weight"
-              variant="outlined"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-            />
-          </Grid>
-
-          <Grid item xs={3}>
-            <TextField
-              fullWidth
-              label="Weight Measurment"
-              variant="outlined"
-              value={weightMeasurment}
-              onChange={(e) => setWeightMeasurment(e.target.value)}
-            />
-          </Grid>
-
+         <Grid item xs={3}>
+        <TextField
+          fullWidth
+          label="Weight"
+          value={weight}
+          onChange={handleWeightChange}
+          disabled={loading}
+          placeholder="Enter weight"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">{measurement}</InputAdornment>
+            ),
+          }}
+        />
+      </Grid>
           <Grid item xs={3}>
             <TextField
               fullWidth
               label="Weight Price"
               type="number"
-              variant="outlined"
               value={weightPrice}
               onChange={(e) => setWeightPrice(e.target.value)}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+              disabled={loading}
             />
           </Grid>
-
           <Grid item xs={2}>
             <TextField
               fullWidth
               label="Quantity"
               type="number"
-              variant="outlined"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              disabled={loading}
             />
           </Grid>
-
-          <Grid item xs={1} sx={{ display: "flex", alignItems: "center" }}>
+          <Grid item xs={1}>
             <FormControlLabel
               control={
                 <Switch
                   checked={stockStatus}
                   onChange={(e) => setStockStatus(e.target.checked)}
-                  color="primary"
+                  disabled={loading}
                 />
               }
               label="In Stock"
             />
           </Grid>
-
           <Grid item xs={12}>
-            <Button variant="contained" color="primary" onClick={handleAddWeight}>
+            <Button variant="contained" startIcon={<CirclePlus/>} onClick={handleAddWeight} disabled={loading}>
               Add Weight
             </Button>
           </Grid>
 
-          {/* List of added weights */}
-          {availableWeights.length > 0 && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Added Weights:
-              </Typography>
-              {availableWeights.map((weightItem, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    backgroundColor: "#fff",
-                    p: 1,
-                    borderRadius: 1,
-                    mb: 1,
-                  }}
-                >
-                  <Typography>
-                    {weightItem.weight} {weightItem.weightMeasurment} | ₹{weightItem.weightPrice} | Qty: {weightItem.quantity} |{" "}
-                    {weightItem.stockStatus ? "In Stock" : "Out of Stock"}
-                  </Typography>
-                  <IconButton
-                    aria-label="delete"
-                    color="error"
-                    onClick={() => handleRemoveWeight(index)}
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              ))}
+          {availableWeights.map((item, i) => (
+            <Grid item xs={12} key={i}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  alignItems: "center",
+                  background: "#fff",
+                  p: 1,
+                  borderRadius: 1,
+                }}
+              >
+                <Typography>
+                  {item.weight} | ₹{item.weightPrice} | Qty: {item.quantity} |{" "}
+                  {item.stockStatus ? "In Stock" : "Out of Stock"}
+                </Typography>
+                <IconButton color="error" onClick={() => handleRemoveWeight(i)} disabled={loading}>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
             </Grid>
-          )}
+          ))}
 
-          <Grid item xs={12}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Product Images
-            </Typography>
-            <input
-              type="file"
-              multiple
-              onChange={handleImageUpload}
-              accept="image/*"
-            />
-          </Grid>
+          {/* Images */}
+         
+
+<Grid item xs={12}>
+  <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+    Product Images
+  </Typography>
+  <Button
+    variant="containedSecondary"
+    component="label"
+    startIcon={<ImageUp size={20} />}
+    disabled={loading}
+  >
+    Upload Images
+    <input
+      type="file"
+      multiple
+      accept="image/*"
+      hidden
+      onChange={handleImageUpload}
+    />
+  </Button>
+</Grid>
 
           {images.length > 0 && (
             <Grid item xs={12}>
               <PreviewContainer>
-                {images.map((image, index) => (
+                {images.map((imgObj, i) => (
                   <Box
-                    key={index}
+                    key={i}
                     sx={{
                       position: "relative",
                       width: 100,
                       height: 100,
                       borderRadius: 1,
                       overflow: "hidden",
+                      boxShadow: 1,
                     }}
                   >
                     <img
-                      src={image instanceof File ? URL.createObjectURL(image) : image}
-                      alt={`preview-${index}`}
+                      src={imgObj.preview}
+                      alt={`preview-${i}`}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                     <IconButton
                       size="small"
                       color="error"
-                      sx={{ position: "absolute", top: 0, right: 0 }}
-                      onClick={() => handleRemoveImage(index)}
+                      sx={{ position: "absolute", top: 2, right: 2, bgcolor: "#fff" }}
+                      onClick={() => handleRemoveImage(i)}
+                      disabled={loading}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -512,8 +578,6 @@ const AddGroceryProduct = () => {
               </PreviewContainer>
             </Grid>
           )}
-
-       
         </Grid>
       </Box>
     </Box>

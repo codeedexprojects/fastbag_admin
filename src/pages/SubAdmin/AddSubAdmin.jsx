@@ -27,7 +27,8 @@ const permissionOptions = [
   "Sellers",
   "Vendors Product",
   "Big Buy Orders",
-  "Analytics",
+  "Delivery",
+  "Carousel",
 ];
 
 const AddSubAdmin = () => {

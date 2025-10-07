@@ -1,220 +1,252 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    IconButton, TablePagination, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle
+  Box, Button, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, IconButton, TablePagination, CircularProgress,
+  Dialog, DialogActions, DialogContent, DialogTitle, Backdrop
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Add, Delete, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodProducts, deleteFoodProduct } from '../../services/allApi';
-import EditFoodProductModal from './EditFood';
+import { toast } from 'react-toastify';
+import { CirclePlus, CircleX, Eye, Trash2 } from 'lucide-react';
 
 const FoodProductList = () => {
-    const [products, setProducts] = useState([]);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [loading, setLoading] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [productToDelete, setProductToDelete] = useState(null);
-    const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                const data = await getFoodProducts();
-                setProducts(data);
-            } catch (error) {
-                console.error('Error fetching products:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProducts();
-    }, []);
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+  // Fetch Products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await getFoodProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+    fetchProducts();
+  }, []);
 
-    const handleAddProduct = () => {
-        navigate('/add-foodproduct');
-    };
+  // Pagination
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
-    const handleEditClick = (product) => {
-        setSelectedProduct(product);
-        setEditModalOpen(true);
-    };
+  // Handlers
+  const handleAddProduct = () => navigate('/add-foodproduct');
+  const handleDeleteClick = (product) => {
+    setProductToDelete(product);
+    setDeleteModalOpen(true);
+  };
 
-    const handleSaveProduct = (updatedProduct) => {
-        const updatedProducts = products.map((product) =>
-            product.id === selectedProduct.id ? { ...product, ...updatedProduct } : product
-        );
-        setProducts(updatedProducts);
-    };
+  const handleDeleteProduct = async () => {
+    try {
+      const res = await deleteFoodProduct(productToDelete.id);
+      setDeleteModalOpen(false);
 
-    const handleDeleteClick = (product) => {
-        setProductToDelete(product);
-        setDeleteModalOpen(true);
-    };
+      if (res.status === 204) {
+        setProducts(products.filter((p) => p.id !== productToDelete.id));
+        toast.success('Product deleted!');
+      } else {
+        toast.error('Product deletion failed!');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
+  };
 
-    const handleDeleteProduct = async () => {
-        try {
-            await deleteFoodProduct(null, productToDelete.id);
-            setProducts(products.filter(product => product.id !== productToDelete.id));
-            setDeleteModalOpen(false);
-        } catch (error) {
-            console.error('Error deleting product:', error);
-        }
-    };
+  return (
+    <Box sx={{ padding: 3 }}>
+      {/* Header */}
+      <Typography variant="h4" gutterBottom>Food Products</Typography>
 
-    return (
-        <Box sx={{ padding: 3 }}>
-            {/* Header Section */}
-            <Box mb={3}>
-                <Typography variant="h4" gutterBottom>
-                    Food Products
-                </Typography>
-            </Box>
+      {/* Breadcrumb & Add Button */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="body2" color="textSecondary">
+          Dashboard &gt; Product List
+        </Typography>
+        <Button
+          variant="containedSecondary"
+          onClick={handleAddProduct}
+          startIcon={<CirclePlus/>}
+        >
+          Add Product
+        </Button>
+      </Box>
 
-            {/* Breadcrumb and Add Product Button */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="body2" color="textSecondary">
-                    Dashboard &gt; Product List
-                </Typography>
-                <Button
-                    variant="contained"
-                    onClick={handleAddProduct}
-                    sx={{ textTransform: 'none', backgroundColor: "#1e1e2d" }}
-                >
-                    + Add Product
-                </Button>
-            </Box>
+      {/* Table */}
+       <TableContainer
+                component={Paper}
+                elevation={3}
+                sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+              >
+                <Table sx={{ minWidth: 650 }} aria-label="category table">
+                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Subcategory</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Images</TableCell>
+              <TableCell sx={{ fontWeight: 'bold',textAlign:'center' }}>Variants</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Offer Price</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Discount</TableCell>
+              {/* <TableCell sx={{ fontWeight: 'bold' }}>Availability</TableCell> */}
+              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
 
-            {/* Loading Indicator */}
-            {loading ? (
-                <Box display="flex" justifyContent="center" my={3}>
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <TableContainer component={Paper}>
-                    <Table>
-                        {/* Table Header */}
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><b>Product</b></TableCell>
-                                <TableCell><b>Category</b></TableCell>
-                                <TableCell><b>Subcategory</b></TableCell>
-                                <TableCell><b>Images</b></TableCell>
-                                <TableCell><b>Price</b></TableCell>
-                                <TableCell><b>Offer Price</b></TableCell>
-                                <TableCell><b>Discount</b></TableCell>
-                                <TableCell><b>Availability</b></TableCell>
-                                <TableCell><b>Actions</b></TableCell>
-                            </TableRow>
-                        </TableHead>
+          <TableBody>
+            {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product,index) => (
+              <TableRow hover key={product.id}>
+                {/* Product Info */}
+                <TableCell>{index+1}</TableCell>
+                <TableCell>
+                  <Typography variant="body1">{product.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">{product.description}</Typography>
+                </TableCell>
+                <TableCell>{product.category_name}</TableCell>
+                <TableCell>{product.subcategory_name}</TableCell>
 
-                        {/* Table Body */}
-                        <TableBody>
-                            {Array.isArray(products) && products
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((product) => (
-                                    <TableRow key={product.id}>
-                                        <TableCell>
-                                            <Typography variant="body1">{product.name}</Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                {product.description}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>{product.category_name}</TableCell>
-                                        <TableCell>{product.subcategory_name}</TableCell>
-                                        <TableCell>
-                                            {product.image_urls?.length > 0 ? (
-                                                product.image_urls.map((img) => (
-                                                    <img
-                                                        key={img.id}
-                                                        src={img.image}
-                                                        alt={product.name}
-                                                        style={{ width: 50, height: 50, marginRight: 5 }}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <Typography variant="body2" color="textSecondary">No images</Typography>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>₹{product.price}</TableCell>
-                                        <TableCell>₹{product.offer_price}</TableCell>
-                                        <TableCell>{product.discount}%</TableCell>
-                                        <TableCell>
-                                            {product.is_available ? (
-                                                <Typography color="green">Available</Typography>
-                                            ) : (
-                                                <Typography color="red">Out of Stock</Typography>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <IconButton onClick={() => handleEditClick(product)}>
-                                                <Edit />
-                                            </IconButton>
-                                            <IconButton onClick={() => handleDeleteClick(product)}>
-                                                <Delete />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                        </TableBody>
-                    </Table>
+                {/* Images */}
+                <TableCell>
+                  {product.images?.length > 0 ? (
+                    product.images.map((img) => (
+                      <img
+                        key={img.id}
+                        src={img.image}
+                        alt={product.name}
+                        style={{ width: 50, height: 50, marginRight: 5 }}
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">No images</Typography>
+                  )}
+                </TableCell>
 
-                    {/* Pagination */}
-                    <TablePagination
-                        component="div"
-                        count={products.length}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        rowsPerPage={rowsPerPage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                </TableContainer>
-            )}
+                {/* Variants */}
+                <TableCell>
+                  {Array.isArray(product.variants) && product.variants.length > 0 ? (
+                    <Table
+  size="small"
+  sx={{
+    '& td, & th': {
+      borderBottom: 'none',
+      padding: '4px 8px',
+    },
+  }}
+>
+  <TableHead>
+    <TableRow>
+      <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+      <TableCell sx={{ fontWeight: 'bold' }}>Stock</TableCell>
+      <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {product.variants.map((variant, idx) => (
+      <TableRow key={idx}>
+        <TableCell sx={{ textTransform: 'capitalize' }}>
+          {variant.name}
+        </TableCell>
+        <TableCell>
+          <Box
+            sx={{
+              display: 'inline-block',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: '999px',
+              fontSize: '0.7rem',
+              fontWeight: 500,
+              minWidth: 90,
+              textAlign: 'center',
+              bgcolor: variant.is_in_stock ? 'success.light' : 'error.light',
+              color: variant.is_in_stock ? 'success.dark' : 'error.dark',
+            }}
+          >
+            {variant.is_in_stock ? 'In Stock' : 'Out of Stock'}
+          </Box>
+        </TableCell>
+        <TableCell>₹{variant.price}</TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
 
-            {/* Edit Product Modal */}
-            <EditFoodProductModal
-                open={isEditModalOpen}
-                onClose={() => setEditModalOpen(false)}
-                productData={selectedProduct}
-                onSave={handleSaveProduct}
-            />
-
-            {/* Delete Confirmation Modal */}
-            <Dialog
-                open={isDeleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                aria-labelledby="delete-product-dialog-title"
-            >
-                <DialogTitle id="delete-product-dialog-title">{"Confirm Deletion"}</DialogTitle>
-                <DialogContent>
-                    <Typography variant="body1">
-                        Are you sure you want to delete this product?
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">
+                      No variants available
                     </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDeleteModalOpen(false)} color="primary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleDeleteProduct} color="secondary">
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
-    );
+                  )}
+                </TableCell>
+
+                <TableCell>₹{product.price}</TableCell>
+                <TableCell>₹{product.offer_price}</TableCell>
+                <TableCell>{product.discount}%</TableCell>
+                {/* <TableCell>
+                  <Typography color={product.is_available ? 'green' : 'red'}>
+                    {product.is_available ? 'Available' : 'Out of Stock'}
+                  </Typography>
+                </TableCell> */}
+
+                {/* Actions */}
+                <TableCell>
+                  <IconButton color='primary' onClick={() => navigate(`/view-foodproduct/${product.id}`)}>
+                    <Eye />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => handleDeleteClick(product)}>
+                    <Trash2 />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        {/* Pagination */}
+        <TablePagination
+          component="div"
+          count={products.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </TableContainer>
+
+      {/* Delete Dialog */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this product?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteModalOpen(false)} startIcon={<CircleX/>} variant="contained">Cancel</Button>
+          <Button onClick={handleDeleteProduct}             startIcon={<Trash2/>} variant="containedError">Delete</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Loading Backdrop */}
+      <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </Box>
+  );
 };
 
 export default FoodProductList;

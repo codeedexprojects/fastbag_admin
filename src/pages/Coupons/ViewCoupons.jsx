@@ -21,10 +21,11 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import { Edit, Delete, Add } from "@mui/icons-material";
+import { Edit, Delete, Add, BorderColor, Done, Close } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { viewCoupons, editCoupons, deleteCoupon } from "../../services/allApi";
 import { toast } from "react-toastify";
+import { CirclePlus, CircleX, Pencil, Plus, Save, Trash2 } from "lucide-react";
 
 const CouponList = () => {
   const [coupons, setCoupons] = useState([]);
@@ -161,39 +162,44 @@ const CouponList = () => {
         </Typography>
         <Button
           onClick={handleAddCoupon}
-          variant="contained"
-          startIcon={<Add />}
-          sx={{ backgroundColor: "#1e1e2d" }}
-        >
+          variant="containedSecondary"
+         
+          startIcon={<CirclePlus/>}        >
           Add Coupon
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Code</TableCell>
-              <TableCell>Vendor</TableCell>
-              <TableCell>Discount Type</TableCell>
-              <TableCell>Discount Value</TableCell>
-              <TableCell>Min Order</TableCell>
-              <TableCell>Max Discount</TableCell>
-              <TableCell>Valid From</TableCell>
-              <TableCell>Valid To</TableCell>
-              <TableCell style={{ textAlign: "center" }}>New Customer Only</TableCell>
-              <TableCell style={{ textAlign: "center" }}>Usage Limit</TableCell>
-              <TableCell>Actions</TableCell>
+      <TableContainer
+               component={Paper}
+               elevation={3}
+               sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
+             >
+               <Table sx={{ minWidth: 650 }} aria-label="category table">
+                 <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow >
+              <TableCell sx={{  fontWeight: 'bold' }}>No</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Code</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Vendor</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Discount Type</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Discount Value</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Min Order</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Max Discount</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Valid From</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Valid To</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }} style={{ textAlign: "center" }}>New Customer Only</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }} style={{ textAlign: "center" }}>Usage Limit</TableCell>
+              <TableCell sx={{  fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody    >
             {coupons.length > 0 ? (
               coupons
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((coupon) => (
-                  <TableRow key={coupon.id}>
+                .map((coupon,index) => (
+                  <TableRow hover   key={coupon.id}>
+                    <TableCell>{index+1}</TableCell>
                     <TableCell>{coupon.code}</TableCell>
-                    <TableCell>{coupon.vendor_name || "N/A"}</TableCell>
+                    <TableCell sx={{textTransform:'capitalize'}}>{coupon.vendor_name || "N/A"}</TableCell>
                     <TableCell>
                       {coupon.discount_type === "fixed" ? "Fixed Amount" : coupon.discount_type}
                     </TableCell>
@@ -207,17 +213,17 @@ const CouponList = () => {
                     <TableCell>{coupon.valid_from || "N/A"}</TableCell>
                     <TableCell>{coupon.valid_to || "N/A"}</TableCell>
                     <TableCell style={{ textAlign: "center" }}>
-                      {coupon.is_new_customer ? "✔️" : "❌"}
+                      {coupon.is_new_customer ? <Done fontSize="large" color="primary"/> : <Close fontSize="large" color="error"/>}
                     </TableCell>
                     <TableCell style={{ textAlign: "center" }}>
                       {coupon.usage_limit ?? "N/A"}
                     </TableCell>
                     <TableCell>
                       <IconButton color="primary" onClick={() => handleEditCoupon(coupon)}>
-                        <Edit />
+                        <Pencil />
                       </IconButton>
                       <IconButton color="error" onClick={() => openDeleteDialog(coupon)}>
-                        <Delete />
+                        <Trash2 />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -244,117 +250,124 @@ const CouponList = () => {
       />
 
       {/* Edit Coupon Modal */}
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Coupon</DialogTitle>
-        <DialogContent>
-          {editCoupon && (
-            <>
-              <TextField
-                margin="dense"
-                label="Code"
-                name="code"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.code}
-                onChange={handleInputChange}
-              />
-              <TextField
-                margin="dense"
-                select
-                label="Discount Type"
-                name="discount_type"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.discount_type}
-                onChange={handleInputChange}
-              >
-                <MenuItem value="percentage">Percentage</MenuItem>
-                <MenuItem value="fixed">Fixed Amount</MenuItem>
-              </TextField>
-              <TextField
-                margin="dense"
-                label="Discount Value"
-                name="discount_value"
-                type="number"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.discount_value}
-                onChange={handleInputChange}
-              />
-              <TextField
-                margin="dense"
-                label="Minimum Order Amount"
-                name="min_order_amount"
-                type="number"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.min_order_amount || ""}
-                onChange={handleInputChange}
-              />
-              <TextField
-                margin="dense"
-                label="Maximum Discount"
-                name="max_discount"
-                type="number"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.max_discount || ""}
-                onChange={handleInputChange}
-              />
-              <TextField
-                margin="dense"
-                label="Valid From"
-                name="valid_from"
-                type="date"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.valid_from || ""}
-                onChange={handleInputChange}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                margin="dense"
-                label="Valid To"
-                name="valid_to"
-                type="date"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.valid_to || ""}
-                onChange={handleInputChange}
-                InputLabelProps={{ shrink: true }}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!editCoupon.is_new_customer}
-                    onChange={handleInputChange}
-                    name="is_new_customer"
-                  />
-                }
-                label="New Customer Only"
-              />
-              <TextField
-                margin="dense"
-                label="Usage Limit"
-                name="usage_limit"
-                type="number"
-                fullWidth
-                variant="outlined"
-                value={editCoupon.usage_limit ?? ""}
-                onChange={handleInputChange}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleSave} variant="contained" color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+  <Box
+    sx={{
+      bgcolor: 'background.paper',
+      borderRadius: 3,
+      boxShadow: 24,
+      p: 4,
+      outline: 'none',
+    }}
+  >
+    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Typography variant="h6" fontWeight={600}>
+        Edit Coupon
+      </Typography>
+      <IconButton onClick={handleClose} color="error">
+        <CircleX size={20} />
+      </IconButton>
+    </Box>
+
+    {editCoupon && (
+      <Box component="form" noValidate autoComplete="off">
+        {[
+          { label: 'Coupon Code', name: 'code' },
+          { label: 'Discount Value', name: 'discount_value', type: 'number' },
+          { label: 'Minimum Order Amount', name: 'min_order_amount', type: 'number' },
+          { label: 'Maximum Discount', name: 'max_discount', type: 'number' },
+          { label: 'Valid From', name: 'valid_from', type: 'date' },
+          { label: 'Valid To', name: 'valid_to', type: 'date' },
+          { label: 'Usage Limit', name: 'usage_limit', type: 'number' },
+        ].map(({ label, name, type = 'text' }) => (
+          <TextField
+            key={name}
+            fullWidth
+            size="small"
+            margin="dense"
+            label={label}
+            name={name}
+            type={type}
+            value={editCoupon[name] || ''}
+            onChange={handleInputChange}
+            InputLabelProps={type === 'date' ? { shrink: true } : undefined}
+            sx={{
+              backgroundColor: '#f9fafb',
+              borderRadius: 1,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#e5e7eb',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#9ca3af',
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#6366f1',
+              },
+            }}
+          />
+        ))}
+
+        <TextField
+          select
+          fullWidth
+          size="small"
+          margin="dense"
+          label="Discount Type"
+          name="discount_type"
+          value={editCoupon.discount_type}
+          onChange={handleInputChange}
+          sx={{
+            backgroundColor: '#f9fafb',
+            borderRadius: 1,
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#e5e7eb',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#9ca3af',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#6366f1',
+            },
+          }}
+        >
+          <MenuItem value="percentage">Percentage</MenuItem>
+          <MenuItem value="fixed">Fixed Amount</MenuItem>
+        </TextField>
+
+        <FormControlLabel
+          sx={{ mt: 1 }}
+          control={
+            <Checkbox
+              name="is_new_customer"
+              checked={!!editCoupon.is_new_customer}
+              onChange={handleInputChange}
+            />
+          }
+          label="New Customer Only"
+        />
+      </Box>
+    )}
+
+    <Box display="flex" justifyContent="flex-end" mt={3}>
+      <Button
+        onClick={handleClose}
+        startIcon={<CircleX size={20} />}
+        variant="containedError"
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={handleSave}
+        startIcon={<Save size={20} />}
+        variant="contained"
+        sx={{ ml: 2 }}
+      >
+        Save
+      </Button>
+    </Box>
+  </Box>
+</Dialog>
+
 
       {/* Delete Confirmation Dialog */}
       <Dialog

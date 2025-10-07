@@ -1,94 +1,172 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Badge, Avatar, Menu, MenuItem, Box } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import React, { useEffect, useState } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Avatar,
+  Box,
+  Badge,
+  Tooltip
+} from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import MailIcon from '@mui/icons-material/Mail';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
+import { Paper, styled } from '@mui/material';
+import { BellDot } from 'lucide-react';
+import { getNotificationCounts } from '../services/allApi';
+
+const GlassPaper = styled(Paper)(({ theme }) => ({
+  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  backdropFilter: 'blur(10px)',
+  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  padding: theme.spacing(2),
+}));
 
 const Header = () => {
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-    const navigate=useNavigate();
+    const [unreadCount, setUnreadCount] = useState(0);
+  
+  const navigate = useNavigate();
 
-    const handleMenu = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
+  const role = localStorage.getItem('role');
+  const displayName = role === 'admin' ? 'Admin' : 'Staff';
+  const subRole = role === 'admin' ? 'Administrator' : 'Sub-Administrator';
 
-    const handleClose = () => {
-        navigate('/admin-login')
-    };
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/admin-login');
+  };
+    useEffect(() => {
+      const fetchUnreadCount = async () => {
+        try {
+          const data = await getNotificationCounts();
+          setUnreadCount(data.unread_count || 0);
+        } catch (error) {
+          console.error("Failed to fetch unread notification count:", error);
+        }
+      };
+      fetchUnreadCount();
+    }, []);
 
-    return (
-        <AppBar
-            position="static"
-            elevation={0}
-            sx={{
-                backgroundColor: '#1e1e2d',
-                color: '#a4a6b3',
-                borderBottom: '1px solid #393946',
-            }}
-        >
-            <Toolbar>
-                {/* Search Icon */}
-                <IconButton color="inherit">
-                    <SearchIcon />
-                </IconButton>
+  return (
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{
+        backgroundColor: '#1f2937', 
+        color: '#ffffff',
+        borderBottom: '1px solid #374151',
+        px: 3,
+        height: '64px',
+        justifyContent: 'center',
 
-                {/* Spacer to push icons to the right */}
-                <Box sx={{ flexGrow: 1 }} />
 
-                {/* Notification Icons */}
-                <IconButton color="inherit">
-                    <CalendarMonthIcon />
-                </IconButton>
-                <IconButton color="inherit">
-                    <Badge badgeContent={3} color="error">
-                        <NotificationsIcon />
-                    </Badge>
-                </IconButton>
-                {/* <IconButton color="inherit">
-                    <Badge badgeContent={64} color="error">
-                        <MailIcon />
-                    </Badge>
-                </IconButton> */}
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'flex-end', minHeight: '64px !important' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 
-                {/* User Profile */}
-                <Typography variant="body1" sx={{ mx: 2, color: '#ffffff' }}>
-                    Samad
-                </Typography>
-                <Avatar
-                    alt="Admin"
-                    src="/profile-picture.png" // Replace with actual profile image path
-                    onClick={handleMenu}
-                    sx={{ cursor: 'pointer', backgroundColor: '#4f46e5' }} // Custom avatar color
-                />
+          {/* Optional Notification Icon */}
+           <Tooltip title="Notifications">
+  <IconButton
+    onClick={() => navigate("/view-notifications")}
+  sx={{
+      color: '#f87171',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        bgcolor: 'rgba(218, 205, 205, 0.22)',
+      },
+      '&:hover svg': {
+        color: '#f87171',
+        filter: 'drop-shadow(0 0 6px rgb(255, 255, 255))',
+      },
+      '& svg': {
+        transition: 'all 0.2s ease',
+      },
+    }}
+  >
+    <Badge badgeContent={unreadCount} color="error">
+      <BellDot color='white' />
+    </Badge>
+  </IconButton>
+</Tooltip>
 
-                {/* Profile Menu */}
-                <Menu
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    sx={{
-                        '& .MuiPaper-root': {
-                            backgroundColor: '#1e1e2d',
-                            color: '#a4a6b3',
-                            border: '1px solid #393946',
-                        },
-                    }}
-                >
-                    <MenuItem onClick={handleClose} sx={{ '&:hover': { backgroundColor: '#393946' } }}>
-                        Profile
-                    </MenuItem>
-                    <MenuItem onClick={handleClose} sx={{ '&:hover': { backgroundColor: '#393946' } }}>
-                        Logout
-                    </MenuItem>
-                </Menu>
-            </Toolbar>
-        </AppBar>
-    );
+
+          {/* User Info */}
+         <Box 
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1.5,
+    px: 2,
+    py: 1,
+    borderRadius: 2,
+    
+    // backgroundColor: 'rgba(59, 130, 246, 0.1)', // subtle blue background
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)', // glow effect
+      backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    },
+  }}
+>
+  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end',cursor:'pointer' }}>
+    <Typography sx={{ fontWeight: 600, fontSize: '14px', color: '#ffffff'  }}>
+      {displayName}
+    </Typography>
+    <Typography sx={{ fontSize: '12px', color: '#9ca3af' }}>
+      {subRole}
+    </Typography>
+  </Box>
+
+  <Avatar
+    sx={{
+      bgcolor: '#3b82f6',
+      width: 36,
+      height: 36,
+      fontSize: '14px',
+      fontWeight: 'bold',
+      boxShadow: '0 0 0 rgba(0,0,0,0)', // reset
+      transition: 'all 0.3s ease',
+      cursor:'pointer',
+      '&:hover': {
+        boxShadow: '0 0 6px #3b82f6',
+      },
+    }}
+  >
+    {displayName.charAt(0).toUpperCase()}
+  </Avatar>
+</Box>
+
+
+          {/* Logout Button */}
+         <Tooltip title="Logout">
+  <IconButton
+    onClick={handleLogout}
+    sx={{
+      color: '#f87171',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        bgcolor: 'rgba(239, 68, 68, 0.1)',
+      },
+      '&:hover svg': {
+        color: '#f87171',
+        filter: 'drop-shadow(0 0 6px #f87171)',
+      },
+      '& svg': {
+        transition: 'all 0.2s ease',
+      },
+    }}
+  >
+    <LogoutIcon />
+  </IconButton>
+</Tooltip>
+
+
+        </Box>
+      </Toolbar>
+    </AppBar>
+  );
 };
 
 export default Header;

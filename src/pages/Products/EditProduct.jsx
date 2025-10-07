@@ -1,412 +1,493 @@
-import React, { useState, useEffect } from 'react';
-import {Modal,Box,Typography,TextField,Button,IconButton,FormControl,InputLabel,Select,MenuItem,Avatar,ListItemText,Checkbox,
-    FormControlLabel,Switch,Grid,} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { updateProduct, viewCategory, viewColours, viewsubCategory, viewVendors } from '../../services/allApi';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Grid,
+  Switch,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  RadioGroup,
+  Radio,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import {
+  viewCategory,
+  viewsubCategory,
+  viewVendors,
+  // add your update API import here
+  updateFashionProduct,
+  updateProduct,
+} from "../../services/allApi";
+import { toast } from "react-toastify";
 
-const EditProductModal = ({ open, onClose, productData, onSave }) => {
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        price: '',
-        discount: '',
-        category: '',
-        subcategory: '',
-        color: '',
-        material: '',
-        stock: '',
-        vendor: '',
-        images: [], 
-        is_active: true,
-    });
+const Input = styled("input")({
+  display: "none",
+});
 
-    const [categories, setCategories] = useState([]);
-    const [subcategories, setSubCategories] = useState([]);
-    const [vendors, setVendors] = useState([]);
-    const [newImages, setNewImages] = useState([]);
-    const [colors, setColors] = useState([]);
-    const [availableSizes, setAvailableSizes] = useState([]);
-    const [size, setSize] = useState("");
-    const [quantity, setQuantity] = useState("");
+const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
+function EditFashionProductModal({ product, open, onClose, onUpdated }) {
+  // Initialize form state from passed product prop
+  const [vendors, setVendors] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
 
-    const SIZE_CHOICES = [
-        { value: "XS", label: "Extra Small" },
-        { value: "S", label: "Small" },
-        { value: "M", label: "Medium" },
-        { value: "L", label: "Large" },
-        { value: "XL", label: "Extra Large" },
-        { value: "XXL", label: "2x Large" },
-    ];
+  const [formData, setFormData] = useState({
+    vendor: "",
+    category_id: "",
+    subcategory_id: "",
+    name: "",
+    description: "",
+    gender: "",
+    wholesale_price: "",
+    price: "",
+    discount: "",
+    material: "",
+    is_active: true,
+    colors: [], // colors with sizes
+  });
 
-
- useEffect(() => {
-    async function fetchData() {
+  useEffect(() => {
+    // Fetch vendors, categories, subcategories once modal opens
+    if (open) {
+      const fetchData = async () => {
         try {
-            const categories = await viewCategory();
-            const vendors = await viewVendors();
-            const subcategoryData = await viewsubCategory();
-            const colors = await viewColours();
-
-            setCategories(categories);
-            setVendors(vendors);
-            setColors(colors);
-
-            // Ensure subcategories is an array
-            if (Array.isArray(subcategoryData)) {
-                setSubCategories(subcategoryData);
-            } else {
-                console.error('Subcategories API did not return an array:', subcategoryData);
-                setSubCategories([]);
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            setSubCategories([]); // Handle errors gracefully
+          const vendorRes = await viewVendors();
+          const categoryRes = await viewCategory();
+          const subcategoryRes = await viewsubCategory();
+          setVendors(vendorRes.filter((v) => v.store_type === 3));
+          setCategories(categoryRes.filter((c) => c.store_type === 3));
+          setSubcategories(subcategoryRes);
+        } catch (err) {
+          console.error("Error fetching data", err);
         }
+      };
+      fetchData();
     }
-    fetchData();
-}, []);
+  }, [open]);
+  
 
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        vendor: product.vendor || "",
+        category_id: product.categoryid || "",
+        subcategory_id: product.subcategoryid || "",
+        name: product.name || "",
+        description: product.description || "",
+        gender: product.gender || "",
+        wholesale_price: product.wholesale_price || "",
+        price: product.price || "",
+        discount: product.discount || "",
+        material: product.material || "",
+        is_active: product.is_active !== undefined ? product.is_active : true,
+        colors:
+          product.colors?.map((color) => ({
+            color_name: color.color_name || "",
+            color_code: color.color_code || "",
+            sizes: sizes.map((size) => {
+              // Find matching size details or default empty
+              const sizeData =
+                color.sizes?.find((s) => s.size === size) || {};
+              return {
+                size,
+                price: sizeData.price || "",
+                offer_price: sizeData.offer_price || "",
+                stock: sizeData.stock || "",
+              };
+            }),
+          })) || [],
+      });
+    }
+  }, [product]);
 
-    useEffect(() => {
-        if (productData) {
-            setFormData({
-                name: productData.name || '',
-                description: productData.description || '',
-                price: productData.price || '',
-                discount: productData.discount || '',
-                category: productData.category?.id || productData.category || '',
-                subcategory: productData.subcategory?.id || productData.subcategory || '',
-                color: productData.colors?.map((color) => color.id) || [], // Use IDs for multiple colors
-                stock: productData.stock || '',
-                material: productData.material || '',
-                vendor: productData.vendor?.id || productData.vendor || '',
-                images: productData.images || [],
-                is_active: productData.is_active ?? true,
-            });
-            setAvailableSizes(productData.available_sizes || []);
-        }
-    }, [productData]);
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
+  };
 
-    const handleAddSize = () => {
-        if (size && quantity && SIZE_CHOICES.some((choice) => choice.value === size)) {
-            setAvailableSizes((prev) => [...prev, { size, quantity: parseInt(quantity, 10) }]);
-            setSize("");
-            setQuantity("");
-        } else {
-            alert("Please select a valid size and provide a quantity.");
-        }
+  const handleColorChange = (index, field, value) => {
+    const updatedColors = [...formData.colors];
+    updatedColors[index][field] = value;
+    setFormData({ ...formData, colors: updatedColors });
+  };
+
+  const handleSizeChange = (colorIndex, sizeIndex, field, value) => {
+    const updatedColors = [...formData.colors];
+    updatedColors[colorIndex].sizes[sizeIndex][field] = value;
+    setFormData({ ...formData, colors: updatedColors });
+  };
+
+  const addColor = () => {
+    const newColor = {
+      color_name: "",
+      color_code: "",
+      sizes: sizes.map((size) => ({
+        size,
+        price: "",
+        offer_price: "",
+        stock: "",
+      })),
+    };
+    setFormData((prev) => ({ ...prev, colors: [...prev.colors, newColor] }));
+  };
+
+  const removeColor = (index) => {
+    const updatedColors = [...formData.colors];
+    updatedColors.splice(index, 1);
+    setFormData({ ...formData, colors: updatedColors });
+  };
+
+  const selectedCategory = categories.find(
+    (cat) => cat.id === parseInt(formData.category_id)
+  );
+  const filteredSubcategories = selectedCategory
+    ? subcategories.filter((sc) => sc.category_name === selectedCategory.name)
+    : [];
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Clean and structure colors
+    const cleanedColors = formData.colors.map((color) => ({
+      color_name: color.color_name,
+      color_code: color.color_code,
+      sizes: color.sizes
+        .filter(
+          (size) =>
+            size.price !== "" &&
+            size.offer_price !== "" &&
+            size.stock !== ""
+        )
+        .map((size) => ({
+          size: size.size,
+          price: size.price,
+          offer_price: size.offer_price,
+          stock: size.stock,
+        })),
+    }));
+
+    // Construct JSON payload
+    const payload = {
+      vendor: formData.vendor,
+      category_id: formData.category_id,
+      subcategory_id: formData.subcategory_id,
+      name: formData.name,
+      description: formData.description,
+      gender: formData.gender,
+      wholesale_price: formData.wholesale_price,
+      price: formData.price,
+      discount: formData.discount,
+      material: formData.material,
+      is_active: formData.is_active,
+      colors: cleanedColors,
     };
 
-    const handleRemoveSize = (index) => {
-        setAvailableSizes((prev) => prev.filter((_, i) => i !== index));
-    };
+    // Submit via API with JSON
+    const res = await updateProduct(product.id, payload);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    // Handle is_active toggle
-    const handleToggle = (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            is_active: e.target.checked,
-        }));
-    };
-
-    const handleImageRemove = (index) => {
-        setFormData((prev) => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== index),
-        }));
-    };
-
-    const handleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
-        setNewImages((prev) => [...prev, ...files]);
-    };
-
-    const handleSave = async () => {
-        try {
-            const updatedProduct = {
-                ...formData,
-                available_sizes: availableSizes, // Include available sizes
-                newImages, // Handle new images
-            };
-            const response = await updateProduct(updatedProduct, productData.id);
-            onSave(response); // Notify parent component with updated product
-            onClose();
-        } catch (error) {
-            console.error("Failed to update product:", error);
-        }
-    };
-
-
-    return (
-        <Modal open={open} onClose={onClose}>
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '90%',
-                    maxWidth: 600,
-                    bgcolor: 'background.paper',
-                    boxShadow: 24,
-                    p: 4,
-                    borderRadius: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    maxHeight: '90vh',
-                    overflowY: 'auto',
-                }}>
-                <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography variant="h6">Edit Product</Typography>
-                    <IconButton onClick={onClose}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
-                <Box display="flex" flexDirection="column" gap={2}>
-                    <FormControl fullWidth>
-                        <InputLabel>Vendor</InputLabel>
-                        <Select
-                            name="vendor"
-                            value={formData.vendor}
-                            onChange={handleChange}
-                        >
-                            {vendors.map((ven) => (
-                                <MenuItem key={ven.id} value={ven.id}>
-                                    {ven.business_name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        label="Product Name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        fullWidth
-                        multiline
-                        rows={4}
-                    />
-                    <TextField
-                        label="Price"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Discount"
-                        name="discount"
-                        value={formData.discount}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <FormControl fullWidth>
-                        <InputLabel>Category</InputLabel>
-                        <Select
-                            name="category"
-                            value={formData.category} // This should be the category ID
-                            onChange={handleChange}
-                        >
-                            {categories.map((cat) => (
-                                <MenuItem key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl fullWidth>
-                        <InputLabel>Sub Category</InputLabel>
-                        <Select
-                            name="subcategory"
-                            value={formData.subcategory} // This should be the category ID
-                            onChange={handleChange}
-                        >
-                            {subcategories.map((cat) => (
-                                <MenuItem key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl fullWidth>
-                        <InputLabel>Color</InputLabel>
-                        <Select
-                            multiple
-                            name="color"
-                            value={formData.color || []} // Ensure it is always an array
-                            onChange={(e) =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    color: e.target.value, // `e.target.value` will be an array
-                                }))
-                            }
-                            renderValue={(selected) =>
-                                colors
-                                    .filter((color) => selected.includes(color.id))
-                                    .map((color) => color.name)
-                                    .join(', ')
-                            }
-                        >
-                            {colors.map((color) => (
-                                <MenuItem key={color.id} value={color.id}>
-                                    <Checkbox checked={(formData.color || []).includes(color.id)} />
-                                    <ListItemText primary={color.name} />
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        label="Stock"
-                        name="stock"
-                        value={formData.stock}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Material"
-                        name="material"
-                        value={formData.material}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={formData.is_active}
-                                onChange={handleToggle}
-                                color="primary"
-                            />
-                        }
-                        label="Active"/>
-                    <Box>
-                        <Typography variant="subtitle1" gutterBottom>Available Sizes</Typography>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={5}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Size</InputLabel>
-                                    <Select
-                                        value={size}
-                                        onChange={(e) => setSize(e.target.value)}
-                                        label="Size"
-                                        sx={{ backgroundColor: "white" }}
-                                    >
-                                        {SIZE_CHOICES.map((choice) => (
-                                            <MenuItem key={choice.value} value={choice.value}>
-                                                {choice.label}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={5}>
-                                <TextField
-                                    fullWidth
-                                    label="Quantity"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(e.target.value)}
-                                    variant="outlined"
-                                    sx={{ backgroundColor: "white" }}
-                                />
-                            </Grid>
-                            <Grid item xs={2}>
-                                <Button variant="contained" color="primary" onClick={handleAddSize}>
-                                    Add
-                                </Button>
-                            </Grid>
-                        </Grid>
-                        <Box mt={2}>
-                            {availableSizes.map((item, index) => (
-                                <Grid container key={index} spacing={2} alignItems="center">
-                                    <Grid item xs={5}>
-                                        <Typography>Size: {item.size}</Typography>
-                                    </Grid>
-                                    <Grid item xs={5}>
-                                        <Typography>Quantity: {item.quantity}</Typography>
-                                    </Grid>
-                                    <Grid item xs={2}>
-                                        <IconButton color="error" onClick={() => handleRemoveSize(index)}>
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </Grid>
-                                </Grid>
-                            ))}
-                        </Box>
-                    </Box>
-                    {/* Existing Images Section */}
-                    <Box>
-                        <Typography variant="subtitle1">Existing Images</Typography>
-                        <Box display="flex" gap={1} flexWrap="wrap">
-                            {formData.images.map((image, index) => (
-                                <Box key={index} position="relative">
-                                    <Avatar
-                                        src={image.image_url}
-                                        alt={`Product Image ${index + 1}`}
-                                        sx={{ width: 75, height: 75 }}
-                                    />
-                                    <IconButton
-                                        size="small"
-                                        sx={{ position: 'absolute', top: 0, right: 0 }}
-                                        onClick={() => handleImageRemove(index)}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            ))}
-                        </Box>
-                    </Box>
-                    {/* Add New Images */}
-                    <Box>
-                        <Typography variant="subtitle1">Add New Images</Typography>
-                        <Button variant="contained" component="label">
-                            Upload
-                            <input
-                                type="file"
-                                hidden
-                                multiple
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                            />
-                        </Button>
-                        <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
-                            {newImages.map((file, index) => (
-                                <Avatar
-                                    key={index}
-                                    src={URL.createObjectURL(file)}
-                                    alt={`New Image ${index + 1}`}
-                                    sx={{ width: 75, height: 75 }}
-                                />
-                            ))}
-                        </Box>
-                    </Box>
-                </Box>
-                <Box mt={3} display="flex" justifyContent="space-between">
-                    <Button variant="outlined" onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button variant="contained" color="primary" onClick={handleSave}>
-                        Save
-                    </Button>
-                </Box>
-            </Box>
-        </Modal>
-    );
+    console.log("Update response:", res);
+    toast.success("Product updated successfully!");
+    if (onUpdated) onUpdated();
+    onClose();
+onUpdated()
+  } catch (err) {
+    console.error("Update error:", err);
+    toast.error("Failed to update product.");
+  }
 };
 
-export default EditProductModal;
+//   console.log(product)
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Edit Fashion Product</DialogTitle>
+      <DialogContent dividers>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={2}>
+            {/* Vendor */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Vendor</InputLabel>
+                <Select
+                  name="vendor"
+                  value={formData.vendor}
+                  onChange={handleChange}
+                >
+                  {vendors.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.business_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Category */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  name="category_id"
+                  value={formData.category_id}
+                  onChange={handleChange}
+                >
+                  {categories.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Subcategory */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Subcategory</InputLabel>
+                <Select
+                  name="subcategory_id"
+                  value={formData.subcategory_id}
+                  onChange={handleChange}
+                  disabled={!formData.category_id}
+                >
+                  {filteredSubcategories.map((sub) => (
+                    <MenuItem key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Name */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Product Name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
+
+            {/* Description */}
+            <Grid item xs={12}>
+              <TextField
+                label="Description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                multiline
+                rows={3}
+                fullWidth
+              />
+            </Grid>
+
+            {/* Prices */}
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Wholesale Price"
+                name="wholesale_price"
+                value={formData.wholesale_price}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Price"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Grid>
+
+            {/* Discount and Material */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Discount (%)"
+                name="discount"
+                value={formData.discount}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Material"
+                name="material"
+                value={formData.material}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Grid>
+
+            {/* Gender */}
+            <Grid item xs={12}>
+              <Typography>Gender</Typography>
+              <RadioGroup
+                row
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+              >
+                <FormControlLabel value="M" control={<Radio />} label="Men" />
+                <FormControlLabel value="W" control={<Radio />} label="Women" />
+                <FormControlLabel value="U" control={<Radio />} label="Unisex" />
+                <FormControlLabel value="K" control={<Radio />} label="Kids" />
+              </RadioGroup>
+            </Grid>
+
+            {/* Active Toggle */}
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.is_active}
+                    onChange={(e) =>
+                      setFormData({ ...formData, is_active: e.target.checked })
+                    }
+                  />
+                }
+                label="Is Active"
+              />
+            </Grid>
+
+            {/* Colors Section */}
+            <Grid item xs={12}>
+              <Typography variant="h6">Colors</Typography>
+              {formData.colors.map((color, index) => (
+                <Box
+                  key={index}
+                  mb={3}
+                  p={2}
+                  border="1px solid #ccc"
+                  borderRadius={2}
+                >
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={5}>
+                      <TextField
+                        label="Color Name"
+                        value={color.color_name}
+                        onChange={(e) =>
+                          handleColorChange(index, "color_name", e.target.value)
+                        }
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={10} sm={5}>
+                      <TextField
+                        label="Color Code"
+                        value={color.color_code}
+                        onChange={(e) =>
+                          handleColorChange(index, "color_code", e.target.value)
+                        }
+                        fullWidth
+                        required
+                        placeholder="#FFFFFF"
+                      />
+                    </Grid>
+                    <Grid item xs={2} sm={2}>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => removeColor(index)}
+                      >
+                        Remove
+                      </Button>
+                    </Grid>
+                  </Grid>
+
+                  {/* Sizes inputs */}
+                  <Typography variant="subtitle1" mt={2} mb={1}>
+                    Sizes & Prices
+                  </Typography>
+                  {color.sizes.map((size, sIdx) => (
+                    <Grid
+                      container
+                      spacing={1}
+                      key={sIdx}
+                      alignItems="center"
+                      mb={1}
+                    >
+                      <Grid item xs={12} sm={2}>
+                        <Typography variant="body2">{size.size}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={3}>
+                        <TextField
+                          label="Price"
+                          value={size.price}
+                          onChange={(e) =>
+                            handleSizeChange(index, sIdx, "price", e.target.value)
+                          }
+                          fullWidth
+                          type="number"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={3}>
+                        <TextField
+                          label="Offer Price"
+                          value={size.offer_price}
+                          onChange={(e) =>
+                            handleSizeChange(
+                              index,
+                              sIdx,
+                              "offer_price",
+                              e.target.value
+                            )
+                          }
+                          fullWidth
+                          type="number"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={3}>
+                        <TextField
+                          label="Stock"
+                          value={size.stock}
+                          onChange={(e) =>
+                            handleSizeChange(index, sIdx, "stock", e.target.value)
+                          }
+                          fullWidth
+                          type="number"
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Box>
+              ))}
+              <Button variant="outlined" onClick={addColor}>
+                Add Color
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button variant="contained" onClick={handleSubmit}>
+          Save Changes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+export default EditFashionProductModal;
