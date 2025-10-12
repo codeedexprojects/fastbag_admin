@@ -1828,3 +1828,59 @@ export const getStoryDetail = async (id) => {
     throw error;
   }
 };
+
+export const listSubcategoryRequests = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    
+    const response = await fetch(`${BASE_URL}/vendors/subcategory-requests/`, {
+      method: 'GET',
+      headers: headers
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch subcategory requests');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch subcategory requests:", error);
+    throw error;
+  }
+};
+
+export const approveSubcategoryRequest = async (id, action) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+    
+    const response = await fetch(`${BASE_URL}/vendors/admin/approve-subcategory/${id}/`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ action })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to process subcategory request');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to process subcategory request:", error);
+    throw error;
+  }
+};

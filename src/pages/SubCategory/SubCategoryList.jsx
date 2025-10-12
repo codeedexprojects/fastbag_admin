@@ -3,18 +3,21 @@ import {
   Box, Typography, Button, TextField, IconButton, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, TablePagination, Modal, Select, MenuItem,
   InputLabel, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  CircularProgress, Backdrop, InputAdornment
+  CircularProgress, Backdrop, InputAdornment, Badge, Popover, List, ListItem, ListItemText,
+  Divider, Chip
 } from "@mui/material";
-import { IosShare, Search } from "@mui/icons-material";
+import { IosShare, Search, Notifications } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   viewsubCategory,
   updateSubCategory,
   viewCategory,
-  deleteSubCategory
+  deleteSubCategory,
+  listSubcategoryRequests,
+  approveSubcategoryRequest
 } from "../../services/allApi";
 import { toast } from "react-toastify";
-import { CirclePlus, CircleX, ImageUp, Pencil, Save, Trash2 } from "lucide-react";
+import { CirclePlus, CircleX, ImageUp, Pencil, Save, Trash2, Check, X } from "lucide-react";
 
 // CSV Export Helper
 const exportToCSV = (data, filename = "subcategories.csv") => {
@@ -58,6 +61,11 @@ const SubCategoryPage = () => {
     subcategory_image: "",
   });
 
+  // Notification states
+  const [requests, setRequests] = useState([]);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [processingRequest, setProcessingRequest] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,9 +73,12 @@ const SubCategoryPage = () => {
       try {
         const subData = await viewsubCategory();
         const catData = await viewCategory();
+        const requestData = await listSubcategoryRequests();
         setSubCategories(subData);
         setCategories(catData);
         setFilteredSubCategories(subData);
+        // Handle paginated response - extract results array
+        setRequests(requestData?.results || []);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -166,13 +177,62 @@ const SubCategoryPage = () => {
     setDeleteDialogOpen(false);
   };
 
+  // Notification handlers
+  const handleNotificationClick = (event) => {
+    setNotificationAnchor(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchor(null);
+  };
+
+  const handleApproveRequest = async (requestId, isApproved) => {
+    setProcessingRequest(requestId);
+    try {
+      const status = isApproved ? "approve" : "reject";
+      await approveSubcategoryRequest(requestId, status);
+      toast.success(isApproved ? "Subcategory request approved" : "Subcategory request rejected");
+      
+      // Remove the processed request from the list
+      setRequests(requests.filter(req => req.id !== requestId));
+      
+      // Refresh subcategories if approved
+      if (isApproved) {
+        const subData = await viewsubCategory();
+        setSubCategories(subData);
+        setFilteredSubCategories(subData);
+      }
+    } catch (error) {
+      console.error("Failed to process request:", error);
+      toast.error("Failed to process request");
+    } finally {
+      setProcessingRequest(null);
+    }
+  };
+
+  const notificationOpen = Boolean(notificationAnchor);
+
   return (
     <Box sx={{ padding: 3 }}>
       <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <Typography variant="h4" sx={{ marginBottom: "20px" }}>Sub Categories</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4">Sub Categories</Typography>
+        
+        <IconButton 
+          onClick={handleNotificationClick}
+          sx={{ 
+            bgcolor: requests.length > 0 ? '#f3f4f6' : 'transparent',
+            '&:hover': { bgcolor: '#e5e7eb' }
+          }}
+        >
+          <Badge badgeContent={requests.length} color="error">
+            <Notifications />
+          </Badge>
+        </IconButton>
+      </Box>
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <TextField
@@ -301,6 +361,125 @@ const SubCategoryPage = () => {
         rowsPerPageOptions={[5, 10, 15]}
       />
 
+      {/* Notification Popover */}
+      <Popover
+        open={notificationOpen}
+        anchorEl={notificationAnchor}
+        onClose={handleNotificationClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <Box sx={{ width: 400, maxHeight: 500, overflow: 'auto' }}>
+          <Box sx={{ p: 2, bgcolor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+            <Typography variant="h6" fontWeight={600}>
+              Subcategory Requests
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {requests.length} pending request{requests.length !== 1 ? 's' : ''}
+            </Typography>
+          </Box>
+          
+          {requests.length === 0 ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography color="text.secondary">No pending requests</Typography>
+            </Box>
+          ) : (
+            <List sx={{ p: 0 }}>
+              {requests.map((request, index) => (
+                <React.Fragment key={request.id}>
+                  <ListItem
+                    sx={{
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      py: 2,
+                      px: 2,
+                      '&:hover': { bgcolor: '#f9fafb' }
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" width="100%" mb={1}>
+                      {request.sub_category_image && (
+                        <Box
+                          component="img"
+                          src={request.sub_category_image}
+                          alt={request.name}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 1,
+                            objectFit: 'cover',
+                            mr: 2
+                          }}
+                        />
+                      )}
+                      <Box flex={1}>
+                        <Typography variant="body1" fontWeight={600}>
+                          {request.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Category: {request.category_name || 'N/A'}
+                        </Typography>
+                      </Box>
+                      <Chip 
+                        label={request.status}
+                        size="small"
+                        sx={{ 
+                          bgcolor: '#fef3c7', 
+                          color: '#92400e',
+                          fontSize: '0.7rem',
+                          height: 20
+                        }}
+                      />
+                    </Box>
+                    
+                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                      <Typography variant="caption" color="text.secondary">
+                        Vendor ID: {request.vendor}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        • {request.created_at}
+                      </Typography>
+                    </Box>
+                    
+                    <Box display="flex" gap={1} width="100%">
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        startIcon={<Check size={16} />}
+                        onClick={() => handleApproveRequest(request.id, true)}
+                        disabled={processingRequest === request.id}
+                        fullWidth
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="error"
+                        startIcon={<X size={16} />}
+                        onClick={() => handleApproveRequest(request.id, false)}
+                        disabled={processingRequest === request.id}
+                        fullWidth
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  </ListItem>
+                  {index < requests.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+          )}
+        </Box>
+      </Popover>
+
+      {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -314,6 +493,7 @@ const SubCategoryPage = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Edit Modal */}
       <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <Box
           sx={{
