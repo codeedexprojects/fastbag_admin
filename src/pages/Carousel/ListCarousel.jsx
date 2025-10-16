@@ -158,7 +158,7 @@ function CarouselList() {
                     {ad.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Vendor: {ad.vendor?.name || "N/A"}
+                    Vendor: {ad.vendor_name || "N/A"}
                   </Typography>
                   {/* Edit & Delete Buttons */}
                   <Box display="flex" justifyContent="flex-end" mt={2}>
