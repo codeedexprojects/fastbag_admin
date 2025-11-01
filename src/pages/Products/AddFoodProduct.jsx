@@ -51,11 +51,19 @@ const AddFoodProduct = () => {
           viewCategory(),
           viewsubCategory(),
         ]);
-        setVendors(vendorsData.filter((v) => v.store_type === 1));
-        setCategories(categoriesData.filter((c) => c.store_type === 1));
-        setSubcategories(subcategoriesData);
+        
+        // Set all vendors (removed store_type filter)
+        setVendors(vendorsData || []);
+        
+        // Handle categories - check if it has results array (paginated) or direct array
+        const categoryList = categoriesData?.results || categoriesData || [];
+        setCategories(categoryList);
+        
+        // Set subcategories
+        setSubcategories(subcategoriesData || []);
       } catch (error) {
         console.error("Error loading data:", error);
+        alert("Failed to load data. Please refresh the page.");
       }
     };
     fetchData();
@@ -80,7 +88,7 @@ const AddFoodProduct = () => {
 
   const handleVariantChange = (index, field, value) => {
     const updated = [...variants];
-    updated[index][field] = field === "is_in_stock" ? value : value;
+    updated[index][field] = value;
     setVariants(updated);
   };
 
@@ -89,9 +97,10 @@ const AddFoodProduct = () => {
   };
 
   const handleRemoveVariant = (index) => {
-    const updated = [...variants];
-    updated.splice(index, 1);
-    setVariants(updated);
+    if (variants.length > 1) {
+      const updated = variants.filter((_, i) => i !== index);
+      setVariants(updated);
+    }
   };
 
   const handleSubmit = async () => {
@@ -101,7 +110,7 @@ const AddFoodProduct = () => {
     }
 
     const formData = new FormData();
-    formData.append("vendor", vendor);
+    formData.append("vendor", vendor);  // Changed back to 'vendor'
     formData.append("category", category);
     formData.append("subcategory", subcategory);
     formData.append("name", productName);
@@ -115,10 +124,20 @@ const AddFoodProduct = () => {
     images.forEach((image) => formData.append("image_files", image));
     formData.append("variants", JSON.stringify(variants));
 
+    // Debug: Log what we're sending
+    console.log("Form Data being sent:");
+    console.log("vendor:", vendor);
+    console.log("category:", category);
+    console.log("subcategory:", subcategory);
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
+
     try {
-      await addProduct(formData);
+      const response = await addProduct(formData);
+      console.log("Response:", response);
       alert("Product added successfully");
-      // Reset
+      // Reset form
       setVendor("");
       setCategory("");
       setSubcategory("");
@@ -135,7 +154,8 @@ const AddFoodProduct = () => {
       setVariants([{ name: "", price: "", is_in_stock: true }]);
     } catch (error) {
       console.error("Failed to add product:", error);
-      alert("Error adding product");
+      console.error("Error details:", error.response?.data);
+      alert("Error adding product: " + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -145,52 +165,78 @@ const AddFoodProduct = () => {
         Add Food Product
       </Typography>
 
-      <Box sx={{ backgroundColor: "#fff", borderRadius: 2, p: 3,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
+      <Box 
+        sx={{ 
+          backgroundColor: "#fff", 
+          borderRadius: 2, 
+          p: 3,
+          boxShadow: "0 1px 10px rgba(0, 0, 0, 0.1)" 
+        }}
+      >
         <Grid container spacing={3}>
           {/* Vendor / Category / Subcategory */}
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Vendor</InputLabel>
-              <Select value={vendor} onChange={(e) => setVendor(e.target.value)}>
-                {vendors.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>
-                    {v.business_name}
+              <Select value={vendor} onChange={(e) => setVendor(e.target.value)} label="Vendor">
+                {vendors.length === 0 ? (
+                  <MenuItem disabled value="">
+                    No vendors available
                   </MenuItem>
-                ))}
+                ) : (
+                  vendors.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.business_name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
-              <Select value={category} onChange={handleCategoryChange}>
-                {categories.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.name}
+              <Select value={category} onChange={handleCategoryChange} label="Category">
+                {categories.length === 0 ? (
+                  <MenuItem disabled value="">
+                    No categories available
                   </MenuItem>
-                ))}
+                ) : (
+                  categories.map((c) => (
+                    <MenuItem key={c.id} value={c.id}>
+                      {c.name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Subcategory</InputLabel>
               <Select
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
-                disabled={!category}
+                disabled={filteredSubcategories.length === 0}
+                label="Subcategory"
               >
-                {filteredSubcategories.map((sc) => (
-                  <MenuItem key={sc.id} value={sc.id}>
-                    {sc.name}
+                {filteredSubcategories.length === 0 ? (
+                  <MenuItem disabled value="">
+                    No subcategories available
                   </MenuItem>
-                ))}
+                ) : (
+                  filteredSubcategories.map((sc) => (
+                    <MenuItem key={sc.id} value={sc.id}>
+                      {sc.name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
 
           {/* Product Info */}
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Product Name"
@@ -210,7 +256,7 @@ const AddFoodProduct = () => {
           </Grid>
 
           {/* Pricing */}
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Price"
@@ -219,7 +265,7 @@ const AddFoodProduct = () => {
               onChange={(e) => setPrice(e.target.value)}
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Offer Price"
@@ -228,7 +274,7 @@ const AddFoodProduct = () => {
               onChange={(e) => setOfferPrice(e.target.value)}
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Discount (%)"
@@ -239,19 +285,19 @@ const AddFoodProduct = () => {
           </Grid>
 
           {/* Toggles */}
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <FormControlLabel
               control={<Switch checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />}
               label="Available"
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <FormControlLabel
               control={<Switch checked={isOfferProduct} onChange={(e) => setIsOfferProduct(e.target.checked)} />}
               label="Offer Product"
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <FormControlLabel
               control={<Switch checked={isPopularProduct} onChange={(e) => setIsPopularProduct(e.target.checked)} />}
               label="Popular Product"
@@ -275,18 +321,22 @@ const AddFoodProduct = () => {
                 <Box key={idx} position="relative">
                   <img
                     src={URL.createObjectURL(img)}
-                    alt="preview"
+                    alt={`preview ${idx + 1}`}
                     style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 6 }}
                   />
                   <IconButton
                     color="error"
                     onClick={() => handleRemoveImage(idx)}
+                    size="small"
                     sx={{
                       position: "absolute",
                       top: -10,
                       right: -10,
                       bgcolor: "white",
                       boxShadow: 1,
+                      "&:hover": {
+                        bgcolor: "white",
+                      }
                     }}
                   >
                     <Trash2 size={16} />
@@ -302,8 +352,8 @@ const AddFoodProduct = () => {
               Variants
             </Typography>
             {variants.map((variant, idx) => (
-              <Grid container spacing={2} key={idx} alignItems="center" mb={1}>
-                <Grid item xs={4}>
+              <Grid container spacing={2} key={idx} alignItems="center" mb={2}>
+                <Grid item xs={12} sm={4}>
                   <TextField
                     fullWidth
                     label="Variant Name"
@@ -311,7 +361,7 @@ const AddFoodProduct = () => {
                     onChange={(e) => handleVariantChange(idx, "name", e.target.value)}
                   />
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={12} sm={3}>
                   <TextField
                     fullWidth
                     label="Price"
@@ -320,7 +370,7 @@ const AddFoodProduct = () => {
                     onChange={(e) => handleVariantChange(idx, "price", e.target.value)}
                   />
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item xs={10} sm={3}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -333,8 +383,12 @@ const AddFoodProduct = () => {
                     label="In Stock"
                   />
                 </Grid>
-                <Grid item xs={2}>
-                  <IconButton color="error" onClick={() => handleRemoveVariant(idx)}>
+                <Grid item xs={2} sm={2}>
+                  <IconButton 
+                    color="error" 
+                    onClick={() => handleRemoveVariant(idx)}
+                    disabled={variants.length === 1}
+                  >
                     <Trash2 size={18} />
                   </IconButton>
                 </Grid>
@@ -344,7 +398,8 @@ const AddFoodProduct = () => {
               startIcon={<CirclePlus size={18} />}
               onClick={handleAddVariant}
               sx={{ mt: 1 }}
-              variant="containedSecondary"
+              variant="outlined"
+              color="secondary"
             >
               Add Variant
             </Button>
@@ -354,8 +409,10 @@ const AddFoodProduct = () => {
           <Grid item xs={12} textAlign="right">
             <Button
               variant="contained"
+              color="primary"
               startIcon={<Save size={18} />}
               onClick={handleSubmit}
+              size="large"
             >
               Submit Product
             </Button>

@@ -19,6 +19,7 @@ const CustomersList = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalCount, setTotalCount] = useState(0);
   const [sortType, setSortType] = useState('newest');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -27,34 +28,37 @@ const CustomersList = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page, rowsPerPage, sortType]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await viewUsers();
-   
-      setUsers(data);
+      // Backend pagination: send page number (1-indexed) and page size
+      const response = await viewUsers({
+        page: page + 1,
+        page_size: rowsPerPage,
+        ordering: sortType === 'newest' ? '-date_joined' : 
+                  sortType === 'oldest' ? 'date_joined' : 
+                  sortType === 'name_asc' ? 'name' : '-name'
+      });
+      
+      // Assuming your API returns: { count, next, previous, results }
+      setUsers(response.results || response);
+      setTotalCount(response.count || (response.results || response).length);
     } catch {
       setError('Failed to load customers');
     } finally {
       setLoading(false);
     }
   };
-  
-
-  const parseDateDMY = (dateStr) => {
-    if (!dateStr) return new Date(0);
-    const [day, month, year] = dateStr.split('/');
-    return new Date(`${year}-${month}-${day}`);
-  };
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -101,44 +105,43 @@ const CustomersList = () => {
     );
   };
 
+  // Client-side search filter (on current page data)
   const filteredUsers = users.filter((user) =>
     (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
     (user.email?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
     (user.mobile_number?.toString().includes(searchTerm) || '')
   );
 
-  const sortedUsers = filteredUsers.sort((a, b) => {
-    if (sortType === 'name_asc') return (a.name || '').localeCompare(b.name || '');
-    if (sortType === 'name_desc') return (b.name || '').localeCompare(a.name || '');
-    if (sortType === 'newest') return parseDateDMY(b.date_joined) - parseDateDMY(a.date_joined);
-    if (sortType === 'oldest') return parseDateDMY(a.date_joined) - parseDateDMY(b.date_joined);
-    return 0;
-  });
-
-  const paginatedUsers = sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  const exportToCSV = () => {
-    const headers = ['Name', 'Email', 'Phone', 'Status', 'Joined Date'];
-    const rows = sortedUsers.map(u => [
-      u.name,
-      u.email,
-      u.mobile_number,
-      u.is_active ? 'Active' : 'Blocked',
-      u.date_joined,
-    ]);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += headers.join(',') + '\r\n';
-    rows.forEach(rowArray => {
-      const row = rowArray.map(field => `"${field}"`).join(',');
-      csvContent += row + '\r\n';
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'customers.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const exportToCSV = async () => {
+    try {
+      // Fetch all users for export (without pagination)
+      const allUsersResponse = await viewUsers({ page_size: 10000 });
+      const allUsers = allUsersResponse.results || allUsersResponse;
+      
+      const headers = ['Name', 'Email', 'Phone', 'Status', 'Joined Date'];
+      const rows = allUsers.map(u => [
+        u.name,
+        u.email,
+        u.mobile_number,
+        u.is_active ? 'Active' : 'Blocked',
+        u.date_joined,
+      ]);
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      csvContent += headers.join(',') + '\r\n';
+      rows.forEach(rowArray => {
+        const row = rowArray.map(field => `"${field}"`).join(',');
+        csvContent += row + '\r\n';
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'customers.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      toast.error('Failed to export data');
+    }
   };
 
   if (loading) return <Box display="flex" justifyContent="center" alignItems="center" height="100vh"><CircularProgress /></Box>;
@@ -218,13 +221,13 @@ const CustomersList = () => {
         </FormControl>
       </Box>
 
-       <TableContainer
-                component={Paper}
-                elevation={3}
-                sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
-              >
-                <Table sx={{ minWidth: 650 }} aria-label="category table">
-                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+      <TableContainer
+        component={Paper}
+        elevation={3}
+        sx={{ borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', overflow: "hidden", mt: 3 }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="customer table">
+          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
               <TableCell><strong>No</strong></TableCell>
               <TableCell><strong>Customer Name</strong></TableCell>
@@ -236,9 +239,10 @@ const CustomersList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedUsers.map((user, index) => (
+            {filteredUsers.map((user, index) => (
               <TableRow key={user.id} hover sx={{ backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa' }}>
-                <TableCell>{index + 1}</TableCell>
+                {/* Use serial_number from backend, or fallback to calculated value */}
+                <TableCell>{user.serial_number || (totalCount - (page * rowsPerPage) - index)}</TableCell>
                 <TableCell>{highlightMatch(user.name || '', searchTerm)}</TableCell>
                 <TableCell>{highlightMatch(user.email || '', searchTerm)}</TableCell>
                 <TableCell>{highlightMatch(user.mobile_number || '', searchTerm)}</TableCell>
@@ -250,7 +254,7 @@ const CustomersList = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {paginatedUsers.length === 0 && (
+            {filteredUsers.length === 0 && (
               <TableRow><TableCell colSpan={7} align="center">No customers found.</TableCell></TableRow>
             )}
           </TableBody>
@@ -259,12 +263,12 @@ const CustomersList = () => {
 
       <TablePagination
         component="div"
-        count={sortedUsers.length}
+        count={totalCount}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 15]}
+        rowsPerPageOptions={[5, 10, 15, 25, 50]}
       />
 
       <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
@@ -274,7 +278,7 @@ const CustomersList = () => {
         </DialogContent>
         <DialogActions>
           <Button startIcon={<CircleX size={20}/>} variant='contained' onClick={handleDeleteCancel} color="primary">Cancel</Button>
-          <Button startIcon={<Trash2 size={20}/>} variant="containedError"onClick={handleDeleteConfirm} color="error">Delete</Button>
+          <Button startIcon={<Trash2 size={20}/>} variant="contained" onClick={handleDeleteConfirm} color="error">Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

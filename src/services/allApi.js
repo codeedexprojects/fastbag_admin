@@ -361,22 +361,36 @@ export const updateSubCategory = async (reqBody,id) => {
 };
 //view orders
 
-export const viewOrders = async () => {
+export const viewOrders = async (params = {}) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
+    
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("GET", `${BASE_URL}/cart/order-list-admin/`, headers);
+    
+    // Build query string from params
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString 
+      ? `${BASE_URL}/cart/order-list-admin/?${queryString}` 
+      : `${BASE_URL}/cart/order-list-admin/`;
+    
+    console.log('📡 API Request URL:', url); // Debug log
+    
+    const response = await commonApi("GET", url, headers);
+    
+    console.log('📦 API Response:', response.data); // Debug log
+    
     return response.data;
   } catch (error) {
     console.error("Failed to view Orders:", error);
     throw error;
   }
 };
+
 
 //view specific orderdetails
 export const viewSpecificOrder=async(id)=>{
@@ -627,22 +641,36 @@ export const updateProduct = async (id,formData) => {
 };
 
 // view fashion products
-export const viewProducts = async () => {
+export const viewProducts = async (params = {}) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
+    
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("GET", `${BASE_URL}/fashion/clothing/list/admin/`, headers);
+    
+    // Build query string from params
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString 
+      ? `${BASE_URL}/fashion/clothing/list/admin/?${queryString}` 
+      : `${BASE_URL}/fashion/clothing/list/admin/`;
+    
+    console.log('📡 Fashion Products API URL:', url); // Debug log
+    
+    const response = await commonApi("GET", url, headers);
+    
+    console.log('📦 Fashion Products Response:', response.data); // Debug log
+    
     return response.data;
   } catch (error) {
-    console.error("Failed to view category:", error);
+    console.error("Failed to view products:", error);
     throw error;
   }
 };
+
 // View fashion product details by id
 export const viewProduct = async (id) => {
   try {
@@ -714,22 +742,36 @@ export const updateProductImage = async (id,reqBody) => {
   }
 };
 // view users
-export const viewUsers = async () => {
+export const viewUsers = async (params = {}) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
+    
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await commonApi("GET", `${BASE_URL}/users/users/`, headers);
+    
+    // Build query string from params
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString 
+      ? `${BASE_URL}/users/users/?${queryString}` 
+      : `${BASE_URL}/users/users/`;
+    
+    console.log('📡 Users API Request URL:', url); // Debug log
+    
+    const response = await commonApi("GET", url, headers);
+    
+    console.log('📦 Users API Response:', response.data); // Debug log
+    
     return response.data;
   } catch (error) {
     console.error("Failed to view users:", error);
     throw error;
   }
 };
+
 
 // view user by id
 export const viewUsersById = async (id) => {
@@ -1115,24 +1157,36 @@ export const addGroceryProduct = async (formData) => {
   }
 };
 
-// get grocery products
-export const getGroceryProducts = async () => {
+export const getGroceryProducts = async (params = {}) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
-    const response = await commonApi('GET', `${BASE_URL}/grocery/products/list/`, {
+    
+    // Build query string from params
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString 
+      ? `${BASE_URL}/grocery/products/list/?${queryString}` 
+      : `${BASE_URL}/grocery/products/list/`;
+    
+    console.log('📡 Grocery Products API URL:', url); // Debug log
+    
+    const response = await commonApi('GET', url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    
+    console.log('📦 Grocery Products Response:', response.data); // Debug log
+    
     return response.data;
   } catch (error) {
-    console.error('Failed to add product', error);
+    console.error('Failed to fetch grocery products', error);
     throw error;
   }
 };
+
 //get grocery product by id
 export const getGroceryProductById = async (id) => {
   try {
@@ -1152,21 +1206,33 @@ export const getGroceryProductById = async (id) => {
   }
 };
 
-// get food products
-export const getFoodProducts = async () => {
+
+export const getFoodProducts = async (params = {}) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("Authentication token is missing");
     }
-    const response = await commonApi('GET', `${BASE_URL}/food/dishes/list/admin/`, {
+    
+    // Build query string from params
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString 
+      ? `${BASE_URL}/food/dishes/list/admin/?${queryString}` 
+      : `${BASE_URL}/food/dishes/list/admin/`;
+    
+    console.log('📡 Food Products API URL:', url); // Debug log
+    
+    const response = await commonApi('GET', url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    
+    console.log('📦 Food Products Response:', response.data); // Debug log
+    
     return response.data;
   } catch (error) {
-    console.error('Failed to add product', error);
+    console.error('Failed to fetch food products', error);
     throw error;
   }
 };
