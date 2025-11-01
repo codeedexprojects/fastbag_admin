@@ -1,19 +1,12 @@
 import React, { useState } from "react";
 import {
-  Grid,
-  Paper,
   Box,
   Typography,
   Button,
   Modal,
   CircularProgress,
 } from "@mui/material";
-import {
-  AccountBalanceWallet,
-  ShoppingCart,
-  Star,
-} from "@mui/icons-material";
-import { CheckCircle, X, FileBadge, CircleX } from "lucide-react";
+import { FileBadge, CheckCircle, CircleX } from "lucide-react";
 import {
   approvePendingDetails,
   getVendorsPendingDetails,
@@ -68,13 +61,24 @@ const StatsAndTransactions = ({ onApprove }) => {
     }
   };
 
+  const hasPendingDetails = pendingDetails && (
+    pendingDetails.pending_contact_number ||
+    pendingDetails.pending_license ||
+    pendingDetails.pending_fssai_certificate
+  );
+
   return (
-    <Box sx={{ p: 2, position: "relative" }}>
+    <Box sx={{ position: "relative" }}>
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="contained"
           onClick={handleOpen}
           startIcon={<FileBadge size={18} />}
+          sx={{ 
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 600
+          }}
         >
           Pending Details
         </Button>
@@ -90,10 +94,12 @@ const StatsAndTransactions = ({ onApprove }) => {
           sx={{
             backgroundColor: "#fff",
             p: 4,
-            borderRadius: 2,
-            maxWidth: 420,
-            width: "100%",
-            boxShadow: 5,
+            borderRadius: 3,
+            maxWidth: 500,
+            width: "90%",
+            maxHeight: "90vh",
+            overflow: "auto",
+            boxShadow: 24,
           }}
         >
           {loading ? (
@@ -102,28 +108,44 @@ const StatsAndTransactions = ({ onApprove }) => {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                height: 100,
+                height: 200,
               }}
             >
               <CircularProgress />
             </Box>
           ) : error ? (
-            <Typography color="error">{error}</Typography>
-          ) : pendingDetails ? (
+            <Box>
+              <Typography color="error" sx={{ mb: 2 }}>
+                {error}
+              </Typography>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleClose}
+              >
+                Close
+              </Button>
+            </Box>
+          ) : hasPendingDetails ? (
             <>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant="h5" sx={{ mb: 3, fontWeight: 700 }}>
                 Pending Details
               </Typography>
 
               {pendingDetails.pending_contact_number && (
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Contact:</strong> {pendingDetails.pending_contact_number}
-                </Typography>
+                <Box sx={{ mb: 2, p: 2, backgroundColor: '#f9fafb', borderRadius: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                    Contact Number
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    {pendingDetails.pending_contact_number}
+                  </Typography>
+                </Box>
               )}
 
               {pendingDetails.pending_license && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
                     License
                   </Typography>
                   <Button
@@ -132,7 +154,10 @@ const StatsAndTransactions = ({ onApprove }) => {
                     onClick={() =>
                       window.open(pendingDetails.pending_license, "_blank")
                     }
-                    sx={{ mt: 1 }}
+                    sx={{ 
+                      borderRadius: 2,
+                      textTransform: 'none'
+                    }}
                   >
                     View License
                   </Button>
@@ -140,8 +165,8 @@ const StatsAndTransactions = ({ onApprove }) => {
               )}
 
               {pendingDetails.pending_fssai_certificate && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
                     FSSAI Certificate
                   </Typography>
                   <Button
@@ -150,7 +175,10 @@ const StatsAndTransactions = ({ onApprove }) => {
                     onClick={() =>
                       window.open(pendingDetails.pending_fssai_certificate, "_blank")
                     }
-                    sx={{ mt: 1 }}
+                    sx={{ 
+                      borderRadius: 2,
+                      textTransform: 'none'
+                    }}
                   >
                     View Certificate
                   </Button>
@@ -158,13 +186,37 @@ const StatsAndTransactions = ({ onApprove }) => {
               )}
 
               <Box
-                sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}
+                sx={{ 
+                  display: "flex", 
+                  justifyContent: "flex-end", 
+                  gap: 2, 
+                  mt: 4 
+                }}
               >
+                <Button
+                  variant="outlined"
+                  onClick={handleClose}
+                  startIcon={<CircleX size={18} />}
+                  disabled={approveLoading}
+                  sx={{ 
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    minWidth: 100
+                  }}
+                >
+                  Close
+                </Button>
+                
                 <Button
                   variant="contained"
                   onClick={handleApprove}
                   disabled={approveLoading}
-                  startIcon={<CheckCircle size={18} />}
+                  startIcon={!approveLoading && <CheckCircle size={18} />}
+                  sx={{ 
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    minWidth: 100
+                  }}
                 >
                   {approveLoading ? (
                     <CircularProgress size={20} color="inherit" />
@@ -172,24 +224,28 @@ const StatsAndTransactions = ({ onApprove }) => {
                     "Approve"
                   )}
                 </Button>
-
-                <Button
-                  variant="containedError"
-                  color="error"
-                  onClick={handleClose}
-                  startIcon={<CircleX size={18} />}
-                >
-                  Close
-                </Button>
               </Box>
             </>
           ) : (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2, textAlign: "center", fontStyle: "italic" }}
-            >
-              No pending details.
-            </Typography>
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 3 }}
+              >
+                No pending details available.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={handleClose}
+                sx={{ 
+                  borderRadius: 2,
+                  textTransform: 'none'
+                }}
+              >
+                Close
+              </Button>
+            </Box>
           )}
         </Box>
       </Modal>

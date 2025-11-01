@@ -29,18 +29,19 @@ const AddSubCategory = () => {
 
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const categoryData = await viewCategory();
-        setCategories(categoryData);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        toast.error("Failed to load categories.");
-      }
-    };
-    fetchCategories();
-  }, []);
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const categoryData = await viewCategory();
+      // Fix: Extract the results array from the paginated response
+      setCategories(categoryData.results || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to load categories.");
+    }
+  };
+  fetchCategories();
+}, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

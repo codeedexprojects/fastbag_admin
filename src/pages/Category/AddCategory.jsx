@@ -24,6 +24,8 @@ const AddCategory = () => {
   });
 
   const [storeTypes, setStoreTypes] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -46,12 +48,50 @@ const AddCategory = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload a valid image file.");
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB.");
+        return;
+      }
+
       setFormData((prev) => ({ ...prev, category_image: file }));
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
+  const handleCancel = () => {
+    setFormData({ name: "", category_image: null, store_type: "" });
+    setImagePreview(null);
+    // Reset file input
+    const fileInput = document.getElementById("image-upload");
+    if (fileInput) fileInput.value = "";
+  };
+
   const handleSubmit = async () => {
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Please enter a category name.");
+      return;
+    }
+
+    if (!formData.category_image) {
+      toast.error("Please upload a category image.");
+      return;
+    }
+
+    if (!formData.store_type) {
+      toast.error("Please select a store type.");
+      return;
+    }
+
     try {
+      setLoading(true);
       const reqBody = new FormData();
       reqBody.append("name", formData.name);
       reqBody.append("category_image", formData.category_image);
@@ -60,12 +100,23 @@ const AddCategory = () => {
       await addCategory(reqBody);
 
       toast.success("Category added successfully!");
-      setFormData({ name: "", category_image: null, store_type: "" });
+      handleCancel();
     } catch (error) {
       console.error("Error adding category:", error);
-      toast.error("Failed to add category.");
+      toast.error(error.response?.data?.message || "Failed to add category.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -109,9 +160,9 @@ const AddCategory = () => {
               }}
               onClick={() => document.getElementById("image-upload").click()}
             >
-              {formData.category_image ? (
+              {imagePreview ? (
                 <img
-                  src={URL.createObjectURL(formData.category_image)}
+                  src={imagePreview}
                   alt="Thumbnail"
                   style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
                 />
@@ -157,9 +208,10 @@ const AddCategory = () => {
               fullWidth
               variant="outlined"
               sx={{ mb: 3 }}
+              required
             />
 
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel>Store Type</InputLabel>
               <Select
                 name="store_type"
@@ -180,11 +232,23 @@ const AddCategory = () => {
 
       {/* Buttons */}
       <Box display="flex" justifyContent="flex-end" mt={4} gap={2}>
-        <Button variant="containedError"  size="large">
+        <Button 
+          variant="outlined" 
+          color="error" 
+          size="large"
+          onClick={handleCancel}
+          disabled={loading}
+        >
           Cancel
         </Button>
-        <Button variant="contained" startIcon={<Add/>} size="large" onClick={handleSubmit}>
-           Add Category
+        <Button 
+          variant="contained" 
+          startIcon={<Add />} 
+          size="large" 
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Adding..." : "Add Category"}
         </Button>
       </Box>
     </Box>

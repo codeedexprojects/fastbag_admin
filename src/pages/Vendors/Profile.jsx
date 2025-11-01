@@ -28,8 +28,10 @@ import {
   Info,
   Pencil,
   Save,
-  X
+  X,
+  CreditCard,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 import { viewSingleVendor, updateVendor, viewStores } from "../../services/allApi";
 
@@ -41,15 +43,18 @@ const FileInput = ({ label, name, onChange, currentFile }) => (
       fullWidth
       sx={{
         borderColor: "primary.main",
+        borderRadius: 2,
+        textTransform: 'none',
+        py: 1.5,
         "&:hover": { borderColor: "primary.dark" },
       }}
     >
       {label}
-      <input type="file" name={name} onChange={onChange} hidden />
+      <input type="file" name={name} onChange={onChange} hidden accept="image/*,.pdf" />
     </Button>
     {currentFile && (
       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-        Current: {typeof currentFile === 'string' ? 'File uploaded' : currentFile.name}
+        {typeof currentFile === 'string' ? '✓ File uploaded' : `✓ ${currentFile.name}`}
       </Typography>
     )}
   </Box>
@@ -73,6 +78,8 @@ const ProfileSection = ({ vendorId }) => {
         setFormData(data);
       } catch (err) {
         setError("Failed to load vendor details");
+        console.error("Error fetching vendor details:", err);
+        toast.error("Failed to load vendor details");
       } finally {
         setLoading(false);
       }
@@ -87,8 +94,10 @@ const ProfileSection = ({ vendorId }) => {
       }
     };
 
-    fetchVendorDetails();
-    fetchStoreTypes();
+    if (vendorId) {
+      fetchVendorDetails();
+      fetchStoreTypes();
+    }
   }, [vendorId]);
 
   const handleEditClick = () => {
@@ -107,7 +116,15 @@ const ProfileSection = ({ vendorId }) => {
 
   const handleFileChange = (e) => {
     const { name } = e.target;
-    setFormData({ ...formData, [name]: e.target.files[0] });
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size should be less than 5MB");
+        return;
+      }
+      setFormData({ ...formData, [name]: file });
+    }
   };
 
   const handleFormSubmit = async () => {
@@ -127,35 +144,75 @@ const ProfileSection = ({ vendorId }) => {
           // Skip if it's a string (existing URL) - don't append it
         } else {
           // Append all non-file fields
-          if (formData[key] !== null && formData[key] !== undefined) {
+          if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
             updatedData.append(key, formData[key]);
           }
         }
       });
 
-      const res = await updateVendor(updatedData, vendorId);
+      await updateVendor(updatedData, vendorId);
+      toast.success("Vendor updated successfully!");
       setIsEditing(false);
 
+      // Refresh vendor data
       const updatedVendor = await viewSingleVendor(vendorId);
       setStoreDetails(updatedVendor);
       setFormData(updatedVendor);
     } catch (error) {
       console.error("Error updating vendor:", error);
-      alert("Failed to update vendor details. Please try again.");
+      toast.error("Failed to update vendor details. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return <CircularProgress />;
-  if (error) return <Typography color="error">{error}</Typography>;
+  // Helper function to get store type name
+  const getStoreTypeName = () => {
+    if (!storeDetails?.store_type || storeTypes.length === 0) {
+      return "N/A";
+    }
+    const storeType = storeTypes.find(type => type.id === storeDetails.store_type);
+    return storeType ? storeType.name : "N/A";
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 3 }}>
+        <Typography color="error">{error}</Typography>
+      </Paper>
+    );
+  }
+
+  if (!storeDetails) {
+    return (
+      <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 3 }}>
+        <Typography>No vendor details found</Typography>
+      </Paper>
+    );
+  }
 
   return (
     <>
       <Paper sx={{ p: 3, position: "relative", boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', borderRadius: 3 }}>
         <IconButton
           onClick={handleEditClick}
-          sx={{ position: "absolute", top: 16, right: 16 }}
+          sx={{ 
+            position: "absolute", 
+            top: 16, 
+            right: 16,
+            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+            }
+          }}
           aria-label="edit vendor details"
         >
           <Pencil size={20} />
@@ -164,31 +221,31 @@ const ProfileSection = ({ vendorId }) => {
         <Avatar
           src={storeDetails.store_logo}
           alt={storeDetails.business_name}
-          sx={{ width: 100, height: 100, mx: "auto" }}
+          sx={{ width: 100, height: 100, mx: "auto", mb: 2 }}
         />
 
-        <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+        <Typography variant="h6" align="center" sx={{ fontWeight: 600 }}>
           {storeDetails.business_name}
         </Typography>
         <Typography variant="body2" align="center" color="text.secondary">
           Store ID: {storeDetails.store_id}
         </Typography>
         <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-          Store Type: {storeDetails.store_type_name}
+          Store Type: {getStoreTypeName()}
         </Typography>
 
         <Box sx={{ mt: 3 }}>
           {[
             { icon: <Store size={20} />, label: "Owner", value: storeDetails.owner_name },
             { icon: <Mail size={20} />, label: "Email", value: storeDetails.email },
-            { icon: <Mail size={20} />, label: "Alternative Email", value: storeDetails.alternate_email },
+            { icon: <Mail size={20} />, label: "Alternative Email", value: storeDetails.alternate_email || "N/A" },
             { icon: <Phone size={20} />, label: "Contact", value: storeDetails.contact_number },
             {
               icon: <MapPin size={20} />,
               label: "Address",
               value: `${storeDetails.address}, ${storeDetails.city}, ${storeDetails.state} - ${storeDetails.pincode}`,
             },
-            { icon: <Landmark size={20} />, label: "Landmark", value: storeDetails.business_landmark },
+            { icon: <Landmark size={20} />, label: "Landmark", value: storeDetails.business_landmark || "N/A" },
             { icon: <MapPin size={20} />, label: "Latitude", value: storeDetails.latitude || "N/A" },
             { icon: <MapPin size={20} />, label: "Longitude", value: storeDetails.longitude || "N/A" },
             {
@@ -198,76 +255,105 @@ const ProfileSection = ({ vendorId }) => {
             },
           ].map((item, i) => (
             <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <Box>{item.icon}</Box>
+              <Box sx={{ color: 'primary.main' }}>{item.icon}</Box>
               <Typography variant="body2">
-                <b>{item.label}</b>: {item.value}
+                <strong>{item.label}:</strong> {item.value}
               </Typography>
             </Box>
           ))}
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-            <FileBadge size={20} />
+            <Box sx={{ color: 'primary.main' }}><FileBadge size={20} /></Box>
             <Typography variant="body2">
-              <b>FSSAI No</b>: {storeDetails.fssai_no}
-              <Link
-                href={storeDetails.fssai_certificate}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{ ml: 1 }}
-              >
-                (View Certificate)
-              </Link>
+              <strong>FSSAI No:</strong> {storeDetails.fssai_no}
+              {storeDetails.fssai_certificate && (
+                <Link
+                  href={storeDetails.fssai_certificate}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ ml: 1 }}
+                >
+                  (View Certificate)
+                </Link>
+              )}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-            <FileCheck size={20} />
+            <Box sx={{ color: 'primary.main' }}><FileCheck size={20} /></Box>
             <Typography variant="body2">
-              <b>License</b>:
-              <Link
-                href={storeDetails.license}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{ ml: 1 }}
-              >
-                (View License)
-              </Link>
+              <strong>License:</strong>
+              {storeDetails.license ? (
+                <Link
+                  href={storeDetails.license}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ ml: 1 }}
+                >
+                  (View License)
+                </Link>
+              ) : (
+                " N/A"
+              )}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-            <FileImage size={20} />
+            <Box sx={{ color: 'primary.main' }}><FileImage size={20} /></Box>
             <Typography variant="body2">
-              <b>Display Image</b>:
-              <Link
-                href={storeDetails.display_image}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{ ml: 1 }}
-              >
-                (View Image)
-              </Link>
+              <strong>Display Image:</strong>
+              {storeDetails.display_image ? (
+                <Link
+                  href={storeDetails.display_image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ ml: 1 }}
+                >
+                  (View Image)
+                </Link>
+              ) : (
+                " N/A"
+              )}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-            <Info size={20} />
+            <Box sx={{ color: 'primary.main' }}><CreditCard size={20} /></Box>
             <Typography variant="body2">
-              <b>Description</b>: {storeDetails.store_description}
+              <strong>ID Proof:</strong>
+              {storeDetails.id_proof ? (
+                <Link
+                  href={storeDetails.id_proof}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ ml: 1 }}
+                >
+                  (View ID Proof)
+                </Link>
+              ) : (
+                " N/A"
+              )}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-            <Store size={20} />
+            <Box sx={{ color: 'primary.main' }}><Info size={20} /></Box>
             <Typography variant="body2">
-              <b>Commission</b>: {storeDetails.commission ? `${storeDetails.commission}%` : "N/A"}
+              <strong>Description:</strong> {storeDetails.store_description || "N/A"}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Box sx={{ color: 'primary.main' }}><Store size={20} /></Box>
+            <Typography variant="body2">
+              <strong>Commission:</strong> {storeDetails.commission ? `${storeDetails.commission}%` : "N/A"}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <FileImage size={20} />
+            <Box sx={{ color: 'primary.main' }}><FileImage size={20} /></Box>
             <Typography variant="body2">
-              <b>Passbook Image</b>:
+              <strong>Passbook Image:</strong>
               {storeDetails.passbook_image ? (
                 <Link
                   href={storeDetails.passbook_image}
@@ -287,11 +373,11 @@ const ProfileSection = ({ vendorId }) => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditing} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Edit Vendor Details
           <IconButton
             onClick={handleCloseDialog}
-            sx={{ position: "absolute", right: 8, top: 8 }}
+            disabled={submitting}
           >
             <X size={20} />
           </IconButton>
@@ -432,6 +518,9 @@ const ProfileSection = ({ vendorId }) => {
             onChange={handleFormChange}
             sx={{ mb: 2 }}
           >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
             {storeTypes.map((type) => (
               <MenuItem key={type.id} value={type.id}>
                 {type.name}
@@ -484,23 +573,34 @@ const ProfileSection = ({ vendorId }) => {
             currentFile={formData.display_image}
           />
           <FileInput
+            label="Upload ID Proof"
+            name="id_proof"
+            onChange={handleFileChange}
+            currentFile={formData.id_proof}
+          />
+          <FileInput
             label="Upload Passbook Image"
             name="passbook_image"
             onChange={handleFileChange}
             currentFile={formData.passbook_image}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} disabled={submitting}>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={handleCloseDialog} 
+            disabled={submitting}
+            sx={{ textTransform: 'none' }}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleFormSubmit}
             variant="contained"
-            startIcon={<Save size={18} />}
+            startIcon={!submitting && <Save size={18} />}
             disabled={submitting}
+            sx={{ textTransform: 'none', minWidth: 120 }}
           >
-            {submitting ? "Saving..." : "Save Changes"}
+            {submitting ? <CircularProgress size={20} /> : "Save Changes"}
           </Button>
         </DialogActions>
       </Dialog>
