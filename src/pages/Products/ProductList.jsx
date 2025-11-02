@@ -1,29 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Button,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Checkbox,
-  IconButton,
-  TablePagination,
-  Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  IconButton, TablePagination, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Backdrop
 } from '@mui/material';
-import { Backdrop, CircularProgress } from '@mui/material';
-
-import { Add, Delete, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { viewProducts, productsCount, deleteProduct } from '../../services/allApi';
+import { viewProducts, deleteProduct } from '../../services/allApi';
 import { toast } from 'react-toastify';
 import { CirclePlus, CircleX, Eye, Trash2 } from 'lucide-react';
 
@@ -38,17 +19,28 @@ const ProductList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    fetchProducts();
+  }, [page, rowsPerPage]);
 
-  const fetchAllData = async () => {
+  const fetchProducts = async () => {
     setLoading(true);
     try {
-      const [productData, countData] = await Promise.all([viewProducts(), productsCount()]);
-      setProducts(productData);
-      setTotalProducts(countData.total_products);
+      const response = await viewProducts({
+        page: page + 1, // Backend expects 1-indexed pages
+        page_size: rowsPerPage,
+      });
+      
+      // Handle paginated response
+      if (response.results) {
+        setProducts(response.results);
+        setTotalProducts(response.count);
+      } else {
+        // Fallback for non-paginated response
+        setProducts(response);
+        setTotalProducts(response.length);
+      }
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Failed to fetch products:', error);
       toast.error('Failed to fetch products');
     } finally {
       setLoading(false);
@@ -84,7 +76,7 @@ const ProductList = () => {
       if (res.status === 204) {
         toast.success('Product deleted successfully');
         setDeleteDialogOpen(false);
-        fetchAllData(); // Refresh product list
+        fetchProducts(); // Refresh product list
       } else {
         toast.error('Failed to delete product');
       }
@@ -107,114 +99,122 @@ const ProductList = () => {
         Dashboard &gt; Product List — Total Products: <b>{totalProducts}</b>
       </Typography>
 
-     
-       <TableContainer
-                component={Paper}
-                elevation={3}
-                sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
-              >
-                <Table sx={{ minWidth: 650 }} aria-label="category table">
-                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
-              <TableRow>
-                <TableCell sx={{  fontWeight: 'bold' }}>No</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Product</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Category</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Subcategory</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Price</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Sizes & Stock (by Color)</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Colors</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Images</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Total Stock</TableCell>
-                <TableCell sx={{  fontWeight: 'bold' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product,index) => (
-                <TableRow key={product.id} hover>
-                  <TableCell>{index+1}</TableCell>
-                  <TableCell>
-                    <Typography fontWeight="bold">{product.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{product.description}</Typography>
-                  </TableCell>
-                  <TableCell>{product.category || 'N/A'}</TableCell>
-                  <TableCell>{product.subcategory || 'N/A'}</TableCell>
-                  <TableCell>{product.price ? `Rs. ${product.price}` : 'N/A'}</TableCell>
-                  <TableCell sx={{ maxWidth: 200, whiteSpace: 'normal' }}>
-                    {product.colors?.length > 0 ? (
-                      product.colors?.map((color, idx) => (
-                        <Box key={idx} sx={{ mb: 1 }}>
-                          <Typography variant="body2" fontWeight="600">
-                            {color.color_name || color.color_code}:
+      <TableContainer
+        component={Paper}
+        elevation={3}
+        sx={{ borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', overflow: "hidden", mt: 3 }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="product table">
+          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>No</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Subcategory</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Sizes & Stock (by Color)</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Colors</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Images</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Total Stock</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {products.map((product, index) => (
+              <TableRow key={product.id} hover>
+                <TableCell>
+                  {/* Use serial_number from backend, or fallback to calculated value */}
+                  {product.serial_number || (totalProducts - (page * rowsPerPage) - index)}
+                </TableCell>
+                <TableCell>
+                  <Typography fontWeight="bold">{product.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">{product.description}</Typography>
+                </TableCell>
+                <TableCell>{product.category || 'N/A'}</TableCell>
+                <TableCell>{product.subcategory || 'N/A'}</TableCell>
+                <TableCell>{product.price ? `Rs. ${product.price}` : 'N/A'}</TableCell>
+                <TableCell sx={{ maxWidth: 200, whiteSpace: 'normal' }}>
+                  {product.colors?.length > 0 ? (
+                    product.colors?.map((color, idx) => (
+                      <Box key={idx} sx={{ mb: 1 }}>
+                        <Typography variant="body2" fontWeight="600">
+                          {color.color_name || color.color_code}:
+                        </Typography>
+                        {(color.sizes || []).map((sizeObj, i) => (
+                          <Typography key={i} variant="body2" sx={{ ml: 1 }}>
+                            {sizeObj.size} ({sizeObj.stock})
                           </Typography>
-                          {(color.sizes || []).map((sizeObj, i) => (
-                            <Typography key={i} variant="body2" sx={{ ml: 1 }}>
-                              {sizeObj.size} ({sizeObj.stock})
-                            </Typography>
-                          ))}
-                        </Box>
-                      ))
-                    ) : (
-                      'N/A'
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {product?.colors?.map((color, idx) => (
-                      <Box
-                        key={idx}
-                        title={color.color_name || color.color_code}
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          bgcolor: color.color_code || '#ccc',
-                          border: '1px solid #000',
-                          borderRadius: '4px',
-                          display: 'inline-block',
-                          m: 0.5,
-                        }}
-                      />
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    {product?.images?.map((image, idx) => (
-                      <Avatar
-                        key={idx}
-                        alt="Product Image"
-                        src={image.image_url}
-                        variant="rounded"
-                        sx={{ width: 50, height: 50, m: 0.5 }}
-                      />
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    {product?.colors?.map((color, idx) => (
-                      <Typography key={idx} variant="body2">
-                        <b>{color.color_name || color.color_code}:</b> {getTotalStockPerColor(color)}
-                      </Typography>
-                    )) || product.total_stock || 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton color='primary' title="View Details" onClick={() => navigate(`/view-product/${product.id}`)}>
-                      <Eye />
-                    </IconButton>
-                    <IconButton color='error' title="Delete Product" onClick={() => handleDeleteClick(product.id)}>
-                      <Trash2 />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={products.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
-          />
-        </TableContainer>
-      
+                        ))}
+                      </Box>
+                    ))
+                  ) : (
+                    'N/A'
+                  )}
+                </TableCell>
+                <TableCell>
+                  {product?.colors?.map((color, idx) => (
+                    <Box
+                      key={idx}
+                      title={color.color_name || color.color_code}
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        bgcolor: color.color_code || '#ccc',
+                        border: '1px solid #000',
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        m: 0.5,
+                      }}
+                    />
+                  ))}
+                </TableCell>
+                <TableCell>
+                  {product?.images?.map((image, idx) => (
+                    <Avatar
+                      key={idx}
+                      alt="Product Image"
+                      src={image.image_url}
+                      variant="rounded"
+                      sx={{ width: 50, height: 50, m: 0.5 }}
+                    />
+                  ))}
+                </TableCell>
+                <TableCell>
+                  {product?.colors?.map((color, idx) => (
+                    <Typography key={idx} variant="body2">
+                      <b>{color.color_name || color.color_code}:</b> {getTotalStockPerColor(color)}
+                    </Typography>
+                  )) || product.total_stock || 'N/A'}
+                </TableCell>
+                <TableCell>
+                  <IconButton color='primary' title="View Details" onClick={() => navigate(`/view-product/${product.id}`)}>
+                    <Eye />
+                  </IconButton>
+                  <IconButton color='error' title="Delete Product" onClick={() => handleDeleteClick(product.id)}>
+                    <Trash2 />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+            {products.length === 0 && !loading && (
+              <TableRow>
+                <TableCell colSpan={10} align="center">
+                  No products found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <TablePagination
+          component="div"
+          count={totalProducts}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+        />
+      </TableContainer>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
@@ -231,13 +231,10 @@ const ProductList = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Backdrop
-  sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-  open={loading}
->
-  <CircularProgress color="inherit" />
-</Backdrop>
 
+      <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 };

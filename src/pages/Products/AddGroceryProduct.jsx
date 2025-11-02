@@ -56,6 +56,7 @@ const AddGroceryProduct = () => {
   const [successMsg, setSuccessMsg] = useState("");
 
   const imagePreviewsRef = useRef([]);
+  const nav = useNavigate();
 
   useEffect(() => {
     // Fetch vendors, categories and subcategories on mount
@@ -66,9 +67,16 @@ const AddGroceryProduct = () => {
           viewCategory(),
           viewsubCategory(),
         ]);
-        setVendors(vendorsData.filter((v) => v.store_type === 2));
-        setCategories(categoriesData.filter((c) => c.store_type === 2));
-        setSubcategories(subcategoriesData);
+        
+        // Set all vendors (removed store_type filter)
+        setVendors(vendorsData || []);
+        
+        // Handle categories - check if it has results array (paginated) or direct array
+        const categoryList = categoriesData?.results || categoriesData || [];
+        setCategories(categoryList);
+        
+        // Set subcategories
+        setSubcategories(subcategoriesData || []);
       } catch (error) {
         console.error("Error loading data:", error);
         setErrorMsg("Failed to load vendors/categories data.");
@@ -81,7 +89,8 @@ const AddGroceryProduct = () => {
       imagePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
-  console.log(vendors)
+
+  console.log(vendors);
 
   // Update filtered subcategories when category changes
   const handleCategoryChange = (e) => {
@@ -136,7 +145,9 @@ const AddGroceryProduct = () => {
     const removed = images[index];
     if (removed.preview) {
       URL.revokeObjectURL(removed.preview);
-      imagePreviewsRef.current = imagePreviewsRef.current.filter((url) => url !== removed.preview);
+      imagePreviewsRef.current = imagePreviewsRef.current.filter(
+        (url) => url !== removed.preview
+      );
     }
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
@@ -161,7 +172,7 @@ const AddGroceryProduct = () => {
     setErrorMsg("");
     setSuccessMsg("");
   };
-const nav=useNavigate()
+
   const handleWeightChange = (e) => {
     const val = e.target.value;
     // Allow only numbers and decimal point
@@ -171,77 +182,83 @@ const nav=useNavigate()
   };
 
   // Submit form data
- const handleSubmit = async () => {
-  if (!vendor || !category || !productName || !price) {
-    setErrorMsg("Please fill all required fields: Vendor, Category, Product Name, and Price.");
-    setSuccessMsg("");
-    return;
-  }
-
-  setLoading(true);
-  setErrorMsg("");
-  setSuccessMsg("");
-
-  try {
-    const formData = new FormData();
-    formData.append("vendor", vendor);
-    formData.append("category", category);
-    formData.append("subcategory", subcategory);
-    formData.append("name", productName);
-    formData.append("description", productDescription);
-    formData.append("price", price);
-    formData.append("discount", discount);
-    formData.append("Available", isAvailable);
-    formData.append("is_offer_product", isOfferProduct);
-    formData.append("is_popular_product", isPopularProduct);
-    formData.append("weight_measurement", measurement);
-
-    // ✅ Convert array to desired object format
-    const weights = availableWeights.map((item) => ({
-  price: parseFloat(item.weightPrice),
-  weight: `${item.weight}${measurement}`,
-  quantity: parseInt(item.quantity),
-  is_in_stock: item.stockStatus,
-}));
-
-    formData.append("weights", JSON.stringify(weights)); // Append as JSON string
-
-    // Attach image files
-   images.forEach((imgObj) => {
-  if (imgObj.file instanceof File) {
-    formData.append("images", imgObj.file); // ✅ good for file upload
-  }
-});
-
- // Optional: Console check
-   const formDataObject = {};
-formData.forEach((value, key) => {
-  // If key already exists (e.g. for arrays), convert to array
-  if (formDataObject[key]) {
-    if (!Array.isArray(formDataObject[key])) {
-      formDataObject[key] = [formDataObject[key]];
+  const handleSubmit = async () => {
+    if (!vendor || !category || !productName || !price) {
+      setErrorMsg(
+        "Please fill all required fields: Vendor, Category, Product Name, and Price."
+      );
+      setSuccessMsg("");
+      return;
     }
-    formDataObject[key].push(value);
-  } else {
-    formDataObject[key] = value;
-  }
-});
 
- // Log it like a normal object
- console.log(formDataObject);
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
 
-     const res= await addGroceryProduct(formData);
-      console.log(res)
-    setSuccessMsg("Product added successfully!");
-    // resetFormFields();
-  } catch (error) {
-    console.error("Submit error:", error);
-    setErrorMsg("Failed to submit product. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const formData = new FormData();
+      formData.append("vendor", vendor);
+      formData.append("category", category);
+      formData.append("subcategory", subcategory);
+      formData.append("name", productName);
+      formData.append("description", productDescription);
+      formData.append("price", price);
+      formData.append("discount", discount);
+      formData.append("Available", isAvailable);
+      formData.append("is_offer_product", isOfferProduct);
+      formData.append("is_popular_product", isPopularProduct);
+      formData.append("weight_measurement", measurement);
 
+      // Convert array to desired object format
+      const weights = availableWeights.map((item) => ({
+        price: parseFloat(item.weightPrice),
+        weight: `${item.weight}${measurement}`,
+        quantity: parseInt(item.quantity),
+        is_in_stock: item.stockStatus,
+      }));
+
+      formData.append("weights", JSON.stringify(weights));
+
+      // Attach image files
+      images.forEach((imgObj) => {
+        if (imgObj.file instanceof File) {
+          formData.append("images", imgObj.file);
+        }
+      });
+
+      // Debug: Log form data
+      console.log("Form Data being sent:");
+      console.log("vendor:", vendor);
+      console.log("category:", category);
+      console.log("subcategory:", subcategory);
+      
+      const formDataObject = {};
+      formData.forEach((value, key) => {
+        if (formDataObject[key]) {
+          if (!Array.isArray(formDataObject[key])) {
+            formDataObject[key] = [formDataObject[key]];
+          }
+          formDataObject[key].push(value);
+        } else {
+          formDataObject[key] = value;
+        }
+      });
+      console.log("FormData contents:", formDataObject);
+
+      const res = await addGroceryProduct(formData);
+      console.log("Response:", res);
+      setSuccessMsg("Product added successfully!");
+      resetFormFields();
+    } catch (error) {
+      console.error("Submit error:", error);
+      console.error("Error details:", error.response?.data);
+      setErrorMsg(
+        "Failed to submit product: " + (error.response?.data?.detail || error.message)
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Styled container for image previews
   const PreviewContainer = styled(Box)(({ theme }) => ({
@@ -254,16 +271,34 @@ formData.forEach((value, key) => {
   return (
     <Box sx={{ p: 4, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
       <Box
-        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
       >
         <Typography variant="h5" fontWeight="bold">
           Add Grocery Product
         </Typography>
         <Box>
-          <Button variant="containedError"  startIcon={<CircleX/>} sx={{ mr: 2 }} onClick={resetFormFields}  disabled={loading}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<CircleX />}
+            sx={{ mr: 2 }}
+            onClick={resetFormFields}
+            disabled={loading}
+          >
             Cancel
           </Button>
-          <Button variant="containedSecondary" startIcon={<CirclePlus/>} onClick={handleSubmit} disabled={loading}>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<CirclePlus />}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
             {loading ? "Adding..." : "Add Product"}
           </Button>
         </Box>
@@ -280,7 +315,14 @@ formData.forEach((value, key) => {
         </Typography>
       )}
 
-      <Box sx={{ backgroundColor: "#fff", borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', p: 3 }}>
+      <Box
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: 3,
+          boxShadow: "0 1px 10px rgba(0, 0, 0, 0.1)",
+          p: 3,
+        }}
+      >
         <Grid container spacing={3}>
           {/* General Info */}
           <Grid item xs={12}>
@@ -288,56 +330,76 @@ formData.forEach((value, key) => {
               General Information
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Vendor *</InputLabel>
-              <Select value={vendor} onChange={(e) => setVendor(e.target.value)} disabled={loading}>
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {vendors.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>
-                    {v.business_name}
+              <Select
+                value={vendor}
+                onChange={(e) => setVendor(e.target.value)}
+                disabled={loading}
+                label="Vendor *"
+              >
+                {vendors.length === 0 ? (
+                  <MenuItem disabled value="">
+                    No vendors available
                   </MenuItem>
-                ))}
+                ) : (
+                  vendors.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.business_name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Category *</InputLabel>
-              <Select value={category} onChange={handleCategoryChange} disabled={loading}>
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {categories.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.name}
+              <Select
+                value={category}
+                onChange={handleCategoryChange}
+                disabled={loading}
+                label="Category *"
+              >
+                {categories.length === 0 ? (
+                  <MenuItem disabled value="">
+                    No categories available
                   </MenuItem>
-                ))}
+                ) : (
+                  categories.map((c) => (
+                    <MenuItem key={c.id} value={c.id}>
+                      {c.name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Subcategory</InputLabel>
               <Select
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
-                disabled={!category || loading}
+                disabled={filteredSubcategories.length === 0 || loading}
+                label="Subcategory"
               >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {filteredSubcategories.map((sc) => (
-                  <MenuItem key={sc.id} value={sc.id}>
-                    {sc.name}
+                {filteredSubcategories.length === 0 ? (
+                  <MenuItem disabled value="">
+                    No subcategories available
                   </MenuItem>
-                ))}
+                ) : (
+                  filteredSubcategories.map((sc) => (
+                    <MenuItem key={sc.id} value={sc.id}>
+                      {sc.name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Product Name *"
@@ -393,7 +455,7 @@ formData.forEach((value, key) => {
           </Grid>
 
           {/* Pricing */}
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Price *"
@@ -401,11 +463,13 @@ formData.forEach((value, key) => {
               variant="outlined"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+              }}
               disabled={loading}
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
               <InputLabel>Measurement</InputLabel>
               <Select
@@ -424,7 +488,7 @@ formData.forEach((value, key) => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Discount (%)"
@@ -432,7 +496,9 @@ formData.forEach((value, key) => {
               variant="outlined"
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
-              InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
               disabled={loading}
             />
           </Grid>
@@ -443,33 +509,35 @@ formData.forEach((value, key) => {
               Weights & Stock
             </Typography>
           </Grid>
-         <Grid item xs={3}>
-        <TextField
-          fullWidth
-          label="Weight"
-          value={weight}
-          onChange={handleWeightChange}
-          disabled={loading}
-          placeholder="Enter weight"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">{measurement}</InputAdornment>
-            ),
-          }}
-        />
-      </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              label="Weight"
+              value={weight}
+              onChange={handleWeightChange}
+              disabled={loading}
+              placeholder="Enter weight"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">{measurement}</InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
               label="Weight Price"
               type="number"
               value={weightPrice}
               onChange={(e) => setWeightPrice(e.target.value)}
-              InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+              }}
               disabled={loading}
             />
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={12} sm={2}>
             <TextField
               fullWidth
               label="Quantity"
@@ -479,7 +547,7 @@ formData.forEach((value, key) => {
               disabled={loading}
             />
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={12} sm={2}>
             <FormControlLabel
               control={
                 <Switch
@@ -491,8 +559,14 @@ formData.forEach((value, key) => {
               label="In Stock"
             />
           </Grid>
-          <Grid item xs={12}>
-            <Button variant="contained" startIcon={<CirclePlus/>} onClick={handleAddWeight} disabled={loading}>
+          <Grid item xs={12} sm={2}>
+            <Button
+              variant="contained"
+              startIcon={<CirclePlus />}
+              onClick={handleAddWeight}
+              disabled={loading}
+              fullWidth
+            >
               Add Weight
             </Button>
           </Grid>
@@ -504,16 +578,20 @@ formData.forEach((value, key) => {
                   display: "flex",
                   gap: 2,
                   alignItems: "center",
-                  background: "#fff",
-                  p: 1,
+                  background: "#f5f5f5",
+                  p: 2,
                   borderRadius: 1,
                 }}
               >
-                <Typography>
-                  {item.weight} | ₹{item.weightPrice} | Qty: {item.quantity} |{" "}
+                <Typography sx={{ flex: 1 }}>
+                  {item.weight}{measurement} | ₹{item.weightPrice} | Qty: {item.quantity} |{" "}
                   {item.stockStatus ? "In Stock" : "Out of Stock"}
                 </Typography>
-                <IconButton color="error" onClick={() => handleRemoveWeight(i)} disabled={loading}>
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemoveWeight(i)}
+                  disabled={loading}
+                >
                   <DeleteIcon />
                 </IconButton>
               </Box>
@@ -521,28 +599,27 @@ formData.forEach((value, key) => {
           ))}
 
           {/* Images */}
-         
-
-<Grid item xs={12}>
-  <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-    Product Images
-  </Typography>
-  <Button
-    variant="containedSecondary"
-    component="label"
-    startIcon={<ImageUp size={20} />}
-    disabled={loading}
-  >
-    Upload Images
-    <input
-      type="file"
-      multiple
-      accept="image/*"
-      hidden
-      onChange={handleImageUpload}
-    />
-  </Button>
-</Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+              Product Images
+            </Typography>
+            <Button
+              variant="contained"
+              color="secondary"
+              component="label"
+              startIcon={<ImageUp size={20} />}
+              disabled={loading}
+            >
+              Upload Images
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                hidden
+                onChange={handleImageUpload}
+              />
+            </Button>
+          </Grid>
 
           {images.length > 0 && (
             <Grid item xs={12}>

@@ -17,7 +17,17 @@ import {
   TableRow,
   Paper,
   Backdrop,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
 } from '@mui/material';
 import {
   Clock,
@@ -30,10 +40,17 @@ import {
   ShoppingCart,
   RefreshCcw,
   FileText,
-  Download
+  Store,
+  Navigation,
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import { updateOrderStatus, viewSpecificOrder } from '../../services/allApi';
+import {
+  updateOrderStatus,
+  viewSpecificOrder,
+  getDeliveryBoyForOrder,
+  assignDeliveryBoy,
+  getAvailableDeliveryBoys,
+} from '../../services/allApi';
 import html2pdf from 'html2pdf.js';
 import { IosShare } from '@mui/icons-material';
 
@@ -42,7 +59,14 @@ const OrderDetails = () => {
   const { orderId } = useParams();
   const [orderDetails, setOrderDetails] = useState({});
   const [orderStatus, setOrderStatus] = useState('');
+  const [deliveryBoy, setDeliveryBoy] = useState(null);
+  const [vendors, setVendors] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [availableDeliveryBoys, setAvailableDeliveryBoys] = useState([]);
+  const [selectedDeliveryBoy, setSelectedDeliveryBoy] = useState('');
   const invoiceRef = useRef();
+  const mapRef = useRef(null);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -50,6 +74,23 @@ const OrderDetails = () => {
         setLoading(true);
         const data = await viewSpecificOrder(orderId);
         setOrderDetails(data);
+        
+        // Set vendors
+        if (data.vendor_details) {
+          setVendors(data.vendor_details);
+        }
+        
+        // Set user location
+        if (data.user_location) {
+          setUserLocation(data.user_location);
+        }
+        
+        // Set delivery boy
+        if (data.delivery_boy) {
+          setDeliveryBoy(data.delivery_boy);
+        }
+      } catch (error) {
+        console.error('Error fetching order details:', error);
       } finally {
         setLoading(false);
       }
@@ -63,6 +104,78 @@ const OrderDetails = () => {
     }
   }, [orderDetails]);
 
+  // Initialize map when user location is available
+  useEffect(() => {
+    if (userLocation && userLocation.latitude && userLocation.longitude) {
+      initializeMap();
+    }
+  }, [userLocation, vendors, deliveryBoy]);
+
+  const initializeMap = () => {
+    // Check if Google Maps is loaded
+    if (!window.google) {
+      console.error('Google Maps not loaded');
+      return;
+    }
+
+    const mapOptions = {
+      zoom: 13,
+      center: {
+        lat: parseFloat(userLocation.latitude),
+        lng: parseFloat(userLocation.longitude),
+      },
+      mapTypeControl: true,
+    };
+
+    const map = new window.google.maps.Map(mapRef.current, mapOptions);
+
+    // Add user location marker
+    new window.google.maps.Marker({
+      position: {
+        lat: parseFloat(userLocation.latitude),
+        lng: parseFloat(userLocation.longitude),
+      },
+      map: map,
+      title: 'User Location',
+      icon: {
+        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+      },
+    });
+
+    // Add vendor markers
+    vendors.forEach((vendor, index) => {
+      if (vendor.latitude && vendor.longitude) {
+        new window.google.maps.Marker({
+          position: {
+            lat: parseFloat(vendor.latitude),
+            lng: parseFloat(vendor.longitude),
+          },
+          map: map,
+          title: vendor.business_name,
+          label: (index + 1).toString(),
+          icon: {
+            url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+          },
+        });
+      }
+    });
+
+    // Add delivery boy marker if assigned
+    if (deliveryBoy && deliveryBoy.current_latitude && deliveryBoy.current_longitude) {
+      new window.google.maps.Marker({
+        position: {
+          lat: parseFloat(deliveryBoy.current_latitude),
+          lng: parseFloat(deliveryBoy.current_longitude),
+        },
+        map: map,
+        title: `Delivery Boy: ${deliveryBoy.name}`,
+        icon: {
+          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        },
+      });
+    }
+  };
+
   const handleGenerateInvoice = () => {
     const element = invoiceRef.current;
     if (!element) return;
@@ -72,7 +185,7 @@ const OrderDetails = () => {
       filename: `Invoice_Order_${orderDetails.order_id || ''}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
     };
 
     html2pdf().set(options).from(element).save();
@@ -90,12 +203,33 @@ const OrderDetails = () => {
     lines.push(['']);
     lines.push(['Customer Details']);
     lines.push(['Name', orderDetails.user_name || '']);
-    lines.push(['Email', '-']);
-    lines.push(['Phone', orderDetails.contact_number || '-']);
+    lines.push(['Email', orderDetails.user_email || '-']);
+    lines.push(['Phone', orderDetails.user_mobile_number || '-']);
     lines.push(['']);
     lines.push(['Shipping Address']);
     lines.push([orderDetails.shipping_address || '']);
     lines.push(['']);
+
+    // Add vendor details
+    if (vendors.length > 0) {
+      lines.push(['Vendor Details']);
+      vendors.forEach((vendor, index) => {
+        lines.push([`Vendor ${index + 1}`, vendor.business_name]);
+        lines.push(['Contact', vendor.contact_number]);
+        lines.push(['Address', vendor.address]);
+      });
+      lines.push(['']);
+    }
+
+    // Add delivery boy details
+    if (deliveryBoy) {
+      lines.push(['Delivery Boy Details']);
+      lines.push(['Name', deliveryBoy.name]);
+      lines.push(['Phone', deliveryBoy.phone_number]);
+      lines.push(['Vehicle', `${deliveryBoy.vehicle_type} - ${deliveryBoy.vehicle_number}`]);
+      lines.push(['']);
+    }
+
     lines.push(['Product Details']);
     lines.push(['Product Name', 'Product ID', 'Variant', 'Quantity', 'Price/Unit', 'Subtotal']);
     if (orderDetails.product_details?.length > 0) {
@@ -106,11 +240,9 @@ const OrderDetails = () => {
           product.variant || product.selected_variant || '',
           product.quantity,
           product.price_per_unit,
-          product.subtotal
+          product.subtotal,
         ]);
       });
-    } else {
-      lines.push(['No products available']);
     }
     lines.push(['']);
     lines.push(['Order Summary']);
@@ -132,26 +264,25 @@ const OrderDetails = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'processing':
-        return { backgroundColor: '#1976d2', color: 'white' }; // Blue
+        return { backgroundColor: '#1976d2', color: 'white' };
       case 'out for delivery':
-        return { backgroundColor: '#0288d1', color: 'white' }; // Cyan
+        return { backgroundColor: '#0288d1', color: 'white' };
       case 'pending':
-        return { backgroundColor: '#ff9800', color: 'white' }; // Orange
+        return { backgroundColor: '#ff9800', color: 'white' };
       case 'cancelled':
-        return { backgroundColor: '#e53935', color: 'white' }; // Red
+        return { backgroundColor: '#e53935', color: 'white' };
       case 'return':
-        return { backgroundColor: '#6d4c41', color: 'white' }; // Brown
+        return { backgroundColor: '#6d4c41', color: 'white' };
       case 'shipped':
-        return { backgroundColor: '#7b1fa2', color: 'white' }; // Purple
+        return { backgroundColor: '#7b1fa2', color: 'white' };
       case 'rejected':
-        return { backgroundColor: '#9e9e9e', color: 'white' }; // Grey
+        return { backgroundColor: '#9e9e9e', color: 'white' };
       case 'delivered':
-        return { backgroundColor: '#2e7d32', color: 'white' }; // Green
+        return { backgroundColor: '#2e7d32', color: 'white' };
       default:
-        return { backgroundColor: '#757575', color: 'white' }; // Default Grey
+        return { backgroundColor: '#757575', color: 'white' };
     }
   };
-
 
   const handleOrderStatusChange = async (event) => {
     const newValue = event.target.value;
@@ -161,143 +292,388 @@ const OrderDetails = () => {
       const res = await updateOrderStatus(reqBody, orderDetails.order_id);
       if (res.status === 200) {
         setOrderStatus(newValue);
-      } else {
-        console.error('Failed to update order status:', res);
       }
     } catch (error) {
       console.error('Error updating order status:', error);
     }
   };
 
+  const handleOpenAssignDialog = async () => {
+    try {
+      setLoading(true);
+      const response = await getAvailableDeliveryBoys();
+      if (response.success) {
+        setAvailableDeliveryBoys(response.delivery_boys);
+        setAssignDialogOpen(true);
+      }
+    } catch (error) {
+      console.error('Error fetching delivery boys:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAssignDeliveryBoy = async () => {
+    if (!selectedDeliveryBoy) return;
+
+    try {
+      setLoading(true);
+      const response = await assignDeliveryBoy(
+        orderDetails.order_id,
+        selectedDeliveryBoy,
+        `New order #${orderDetails.order_id} assigned to you`
+      );
+
+      if (response.success) {
+        setDeliveryBoy(response.delivery_boy);
+        setAssignDialogOpen(false);
+        setSelectedDeliveryBoy('');
+      }
+    } catch (error) {
+      console.error('Error assigning delivery boy:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box p={3}>
-      <Typography variant="h4" mb={3}>Order Details</Typography>
+      <Typography variant="h4" mb={3}>
+        Order Details
+      </Typography>
       <Box mb={3} display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="body2" color="text.secondary">
           Dashboard &gt; Order List &gt; Order Details
         </Typography>
         <Box display="flex" alignItems="center" gap={2}>
-         <Select
-  value={orderStatus || ''}
-  onChange={handleOrderStatusChange}
-  size="small"
-  variant="outlined"
-  displayEmpty
-  sx={{
-    minWidth: 160,
-    backgroundColor: '#f5f7fa',
-    borderRadius: 2,
-    fontSize: 14,
-      boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',
-    color: '#333',
-    '.MuiOutlinedInput-notchedOutline': {
-border:'none'    },
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#888',
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#1976d2',
-      borderWidth: '2px',
-    },
-    '.MuiSvgIcon-root': {
-      color: '#555',
-    }
-  }}
->
-  <MenuItem value="" disabled>Select Status</MenuItem>
-  <MenuItem value="processing">Processing</MenuItem>
-  <MenuItem value="out for delivery">Out for delivery</MenuItem>
-  <MenuItem value="pending">Pending</MenuItem>
-  <MenuItem value="cancelled">Canceled</MenuItem>
-  <MenuItem value="return">Return</MenuItem>
-  <MenuItem value="shipped">Shipped</MenuItem>
-  <MenuItem value="rejected">Rejected</MenuItem>
-  <MenuItem value="delivered">Delivered</MenuItem>
-</Select>
+          <Select
+            value={orderStatus || ''}
+            onChange={handleOrderStatusChange}
+            size="small"
+            variant="outlined"
+            displayEmpty
+            sx={{
+              minWidth: 160,
+              backgroundColor: '#f5f7fa',
+              borderRadius: 2,
+              fontSize: 14,
+              boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)',
+              color: '#333',
+              '.MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+            }}
+          >
+            <MenuItem value="" disabled>
+              Select Status
+            </MenuItem>
+            <MenuItem value="processing">Processing</MenuItem>
+            <MenuItem value="out for delivery">Out for delivery</MenuItem>
+            <MenuItem value="pending">Pending</MenuItem>
+            <MenuItem value="cancelled">Canceled</MenuItem>
+            <MenuItem value="return">Return</MenuItem>
+            <MenuItem value="shipped">Shipped</MenuItem>
+            <MenuItem value="rejected">Rejected</MenuItem>
+            <MenuItem value="delivered">Delivered</MenuItem>
+          </Select>
 
-          <Button variant="contained" startIcon={<IosShare />} onClick={handleExportCSV}>Export</Button>
-          <Button variant="containedSecondary" startIcon={<FileText size={20} />} onClick={handleGenerateInvoice}>Invoice</Button>
+          <Button variant="contained" startIcon={<IosShare />} onClick={handleExportCSV}>
+            Export
+          </Button>
+          <Button
+            variant="containedSecondary"
+            startIcon={<FileText size={20} />}
+            onClick={handleGenerateInvoice}
+          >
+            Invoice
+          </Button>
         </Box>
       </Box>
 
-      <div ref={invoiceRef} style={{  padding: 20, borderRadius: 8 }}>
+      <div ref={invoiceRef} style={{ padding: 20, borderRadius: 8 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={4}>
-            <Card sx={{  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',}}>
+            <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
               <CardContent sx={{ height: 230 }}>
                 <Typography variant="h6">
                   Order #{orderDetails.order_id}
                   <Button
                     size="medium"
-                    
-                    sx={{ ml: 1, ...getStatusColor(orderStatus),textTransform:'capitalize' }}
+                    sx={{ ml: 1, ...getStatusColor(orderStatus), textTransform: 'capitalize' }}
                   >
                     {orderStatus || 'Loading...'}
                   </Button>
-
                 </Typography>
                 <Box display="flex" alignItems="center" mt={2}>
                   <Clock size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Created</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.created_at}</Typography>
+                  <Typography variant="body2" sx={{ ml: 'auto' }}>
+                    {orderDetails.created_at}
+                  </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" mt={2}>
                   <CreditCard size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Payment</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.payment_method}</Typography>
+                  <Typography variant="body2" sx={{ ml: 'auto' }}>
+                    {orderDetails.payment_method}
+                  </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" mt={2}>
                   <Truck size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Shipping PIN</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.delivery_pin}</Typography>
+                  <Typography variant="body2" sx={{ ml: 'auto' }}>
+                    {orderDetails.delivery_pin}
+                  </Typography>
                 </Box>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Card sx={{  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',}}>
+            <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
               <CardContent sx={{ height: 230 }}>
                 <Typography variant="h6">Customer</Typography>
                 <Box display="flex" alignItems="center" mt={2}>
                   <User size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Name</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.user_name}</Typography>
+                  <Typography variant="body2" sx={{ ml: 'auto' }}>
+                    {orderDetails.user_name}
+                  </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" mt={2}>
                   <Mail size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Email</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.email}</Typography>
+                  <Typography variant="body2" sx={{ ml: 'auto' }}>
+                    {orderDetails.user_name}
+                  </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" mt={2}>
                   <Phone size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Phone</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.contact_number}</Typography>
+                  <Typography variant="body2" sx={{ ml: 'auto' }}>
+                    {orderDetails.user_mobile_number}
+                  </Typography>
                 </Box>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Card sx={{  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',}}>
+            <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
               <CardContent sx={{ height: 230 }}>
                 <Typography variant="h6">Shipping Address</Typography>
                 <Box display="flex" alignItems="center" mt={2}>
                   <MapPin size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Address</Typography>
                 </Box>
-                <Typography variant="body2" mt={1}>{orderDetails.shipping_address}</Typography>
+                <Typography variant="body2" mt={1}>
+                  {orderDetails.shipping_address}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Grid container spacing={3} mt={4}>
-          <Grid item xs={12} md={8}>
-            <Card sx={{  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',}}>
+        {/* Vendor Details Section */}
+        {vendors && vendors.length > 0 && (
+          <Grid container spacing={3} mt={2}>
+            <Grid item xs={12}>
+              <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
+                <CardContent>
+                  <Typography variant="h6" mb={2}>
+                    <Store size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                    Vendor Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {vendors.map((vendor, index) => (
+                      <Grid item xs={12} md={6} key={vendor.id}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Box display="flex" alignItems="center" gap={2} mb={2}>
+                              {vendor.store_logo && (
+                                <Avatar
+                                  src={vendor.store_logo}
+                                  alt={vendor.business_name}
+                                  sx={{ width: 50, height: 50 }}
+                                />
+                              )}
+                              <Box>
+                                <Typography variant="subtitle1" fontWeight="bold">
+                                  {vendor.business_name}
+                                </Typography>
+                                <Chip
+                                  label={vendor.store_id}
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                />
+                              </Box>
+                            </Box>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="body2" color="text.secondary" mb={1}>
+                              <strong>Owner:</strong> {vendor.owner_name}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" mb={1}>
+                              <strong>Contact:</strong> {vendor.contact_number}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" mb={1}>
+                              <strong>Email:</strong> {vendor.email}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" mb={1}>
+                              <strong>Address:</strong> {vendor.address}, {vendor.city},{' '}
+                              {vendor.state} - {vendor.pincode}
+                            </Typography>
+                            {vendor.opening_time_str && vendor.closing_time_str && (
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>Hours:</strong> {vendor.opening_time_str} -{' '}
+                                {vendor.closing_time_str}
+                              </Typography>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        )}
+
+        {/* Delivery Boy Section */}
+        <Grid container spacing={3} mt={2}>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
+              <CardContent>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6">
+                    <Truck size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                    Delivery Boy
+                  </Typography>
+                  {!deliveryBoy && (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleOpenAssignDialog}
+                      startIcon={<User size={16} />}
+                    >
+                      Assign
+                    </Button>
+                  )}
+                </Box>
+
+                {deliveryBoy ? (
+                  <Box>
+                    <Box display="flex" alignItems="center" gap={2} mb={2}>
+                      {deliveryBoy.profile_image && (
+                        <Avatar
+                          src={deliveryBoy.profile_image}
+                          alt={deliveryBoy.name}
+                          sx={{ width: 60, height: 60 }}
+                        />
+                      )}
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {deliveryBoy.name}
+                        </Typography>
+                        <Chip
+                          label={deliveryBoy.is_available ? 'Available' : 'Busy'}
+                          size="small"
+                          color={deliveryBoy.is_available ? 'success' : 'warning'}
+                        />
+                      </Box>
+                    </Box>
+                    <Divider sx={{ my: 1 }} />
+                    <Typography variant="body2" color="text.secondary" mb={1}>
+                      <Phone size={16} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                      {deliveryBoy.phone_number}
+                    </Typography>
+                    {deliveryBoy.email && (
+                      <Typography variant="body2" color="text.secondary" mb={1}>
+                        <Mail size={16} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                        {deliveryBoy.email}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" color="text.secondary" mb={1}>
+                      <strong>Vehicle:</strong> {deliveryBoy.vehicle_type} (
+                      {deliveryBoy.vehicle_number})
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No delivery boy assigned yet
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Map Section */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
+              <CardContent>
+                <Typography variant="h6" mb={2}>
+                  <Navigation size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                  Delivery Map
+                </Typography>
+                {userLocation && userLocation.latitude && userLocation.longitude ? (
+                  <Box
+                    ref={mapRef}
+                    sx={{
+                      width: '100%',
+                      height: 300,
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 300,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      User location not available
+                    </Typography>
+                  </Box>
+                )}
+                <Box mt={2}>
+                  <Typography variant="caption" color="text.secondary">
+                    <Box component="span" sx={{ color: '#4285F4' }}>
+                      ● Blue
+                    </Box>{' '}
+                    - User Location |{' '}
+                    <Box component="span" sx={{ color: '#EA4335' }}>
+                      ● Red
+                    </Box>{' '}
+                    - Vendor |{' '}
+                    <Box component="span" sx={{ color: '#34A853' }}>
+                      ● Green
+                    </Box>{' '}
+                    - Delivery Boy
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Product List */}
+        <Grid container spacing={3} mt={2}>
+          <Grid item xs={12}>
+            <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
               <CardContent>
                 <Typography variant="h6">Order List</Typography>
-                <TableContainer component={Paper} sx={{ mt: 2 , boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)', }}>
+                <TableContainer
+                  component={Paper}
+                  sx={{ mt: 2, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.19)' }}
+                >
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -325,6 +701,11 @@ border:'none'    },
                                 <Typography variant="body2" color="text.secondary">
                                   Variant: {product.variant || product.selected_variant}
                                 </Typography>
+                                {product.vendor_name && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    Vendor: {product.vendor_name}
+                                  </Typography>
+                                )}
                               </Box>
                             </Box>
                           </TableCell>
@@ -340,26 +721,9 @@ border:'none'    },
                 <Box mt={3} textAlign="right">
                   <Typography>Subtotal: ₹ {orderDetails.total_amount}</Typography>
                   <Typography>Shipping: Included</Typography>
-                  <Typography fontWeight="bold">Grand Total: ₹ {orderDetails.final_amount}</Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Card sx={{  boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',}}>
-              <CardContent>
-                <Typography variant="h6">Order Timeline</Typography>
-                <Divider sx={{ my: 1 }} />
-                <Box display="flex" alignItems="center" mt={2}>
-                  <ShoppingCart size={20} style={{ marginRight: 8 }} />
-                  <Typography variant="body2">Order Placed</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderDetails.created_at}</Typography>
-                </Box>
-                <Box display="flex" alignItems="center" mt={2}>
-                  <RefreshCcw size={20} style={{ marginRight: 8 }} />
-                  <Typography variant="body2">Status</Typography>
-                  <Typography variant="body2" sx={{ ml: 'auto' }}>{orderStatus}</Typography>
+                  <Typography fontWeight="bold">
+                    Grand Total: ₹ {orderDetails.final_amount}
+                  </Typography>
                 </Box>
               </CardContent>
             </Card>
@@ -367,7 +731,74 @@ border:'none'    },
         </Grid>
       </div>
 
-      <Backdrop open={loading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      {/* Assign Delivery Boy Dialog */}
+      <Dialog
+        open={assignDialogOpen}
+        onClose={() => setAssignDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Assign Delivery Boy</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Select a delivery boy to assign to this order
+          </Typography>
+          <List>
+            {availableDeliveryBoys.map((boy) => (
+              <ListItem
+                key={boy.id}
+                button
+                selected={selectedDeliveryBoy === boy.id}
+                onClick={() => setSelectedDeliveryBoy(boy.id)}
+                sx={{
+                  border: '1px solid',
+                  borderColor: selectedDeliveryBoy === boy.id ? 'primary.main' : 'divider',
+                  borderRadius: 1,
+                  mb: 1,
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar src={boy.profile_image} alt={boy.name} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={boy.name}
+                  secondary={
+                    <>
+                      <Typography variant="body2" component="span">
+                        {boy.phone_number}
+                      </Typography>
+                      <br />
+                      <Typography variant="caption" component="span">
+                        {boy.vehicle_type} - {boy.vehicle_number}
+                      </Typography>
+                    </>
+                  }
+                />
+                <Chip
+                  label={boy.is_available ? 'Available' : 'Busy'}
+                  size="small"
+                  color={boy.is_available ? 'success' : 'warning'}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleAssignDeliveryBoy}
+            variant="contained"
+            disabled={!selectedDeliveryBoy}
+          >
+            Assign
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Backdrop
+        open={loading}
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
         <CircularProgress color="inherit" />
       </Backdrop>
     </Box>

@@ -64,13 +64,25 @@ const Dashboard = () => {
           viewOrders(),
           getProduct_Vendor_Count()
         ]);
-        setGraphData(graph);
-        setSalesProgress(sales);
-        setStatsOverview(stats);
-        setRecentOrders(orders);
-        setProductsAndVendors(productAndVendors);
+        setGraphData(Array.isArray(graph) ? graph : []);
+        setSalesProgress(sales || {});
+        setStatsOverview(stats || {
+          all_time: { orders: 0, revenue: 0 },
+          last_12_months: { orders: 0, revenue: 0 },
+          last_30_days: { orders: 0, revenue: 0 },
+          last_7_days: { orders: 0, revenue: 0 },
+          last_24_hours: { orders: 0, revenue: 0 },
+          selected_date: { orders: 0, revenue: 0 },
+        });
+        setRecentOrders(Array.isArray(orders) ? orders : []);
+        setProductsAndVendors(productAndVendors || {});
       } catch (error) {
         console.error("Error fetching dashboard data", error);
+        // Set default values on error
+        setGraphData([]);
+        setSalesProgress({});
+        setRecentOrders([]);
+        setProductsAndVendors({});
       }
     };
 
@@ -219,25 +231,25 @@ const Dashboard = () => {
         {[
           {
             title: 'Total Revenue',
-            value: `₹${currentStats?.revenue?.toFixed(2)}`,
+            value: `₹${currentStats?.revenue?.toFixed(2) || '0.00'}`,
             iconColor: '#6366f1',
             icon: <CurrencyRupee sx={{ fontSize: 20, color: '#fff' }} />,
           },
           {
             title: 'Total Sales',
-            value: currentStats?.orders,
+            value: currentStats?.orders || 0,
             iconColor: '#22c55e',
             icon: <ShoppingCart sx={{ fontSize: 20, color: '#fff' }} />,
           },
           {
             title: 'Total Products',
-            value: productsAndVendors.total_products,
+            value: productsAndVendors.total_products || 0,
             iconColor: '#f97316',
             icon: <Inventory sx={{ fontSize: 20, color: '#fff' }} />,
           },
           {
             title: 'Total Vendors',
-            value: productsAndVendors.vendors,
+            value: productsAndVendors.vendors || 0,
             iconColor: '#ef4444',
             icon: <AccountBalanceWallet sx={{ fontSize: 20, color: '#fff' }} />,
           },
@@ -315,9 +327,9 @@ const Dashboard = () => {
                   <Typography variant="body2" sx={{ color: '#6b7280', mt: 1 }}>
                     {salesProgress?.today_revenue > salesProgress?.yesterday_revenue
                       ? `You earned ₹${salesProgress?.today_revenue} today, higher than yesterday`
-                      : salesProgress.today_revenue < salesProgress.yesterday_revenue
+                      : salesProgress?.today_revenue < salesProgress?.yesterday_revenue
                         ? `Revenue dropped to ₹${salesProgress?.today_revenue} today, lower than yesterday`
-                        : `Same as yesterday: ₹${salesProgress?.today_revenue}`}
+                        : `Same as yesterday: ₹${salesProgress?.today_revenue || 0}`}
                   </Typography>
                 </Box>
 
@@ -441,35 +453,43 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
-                    <TableRow key={index} hover>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{order.order_id}</TableCell>
-                      <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
-                      <TableCell>{order.created_at}</TableCell>
-                      <TableCell>{order.user_name}</TableCell>
-                      <TableCell>₹{order.final_amount}</TableCell>
-                      <TableCell>{order.payment_method}</TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            px: 1.2, py: 0.4, borderRadius: '8px', fontWeight: 600,
-                            color: getStatusColor(order.order_status).color,
-                            backgroundColor: getStatusColor(order.order_status).bg,
-                            display: 'inline-block'
-                          }}
-                        >
-                          {order.order_status || 'Pending'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <IconButton color='info' onClick={() => nav(`/order-details/${order.id}`)}>
-                          <Eye />
-                        </IconButton>
+                  {recentOrders.length > 0 ? (
+                    recentOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order, index) => (
+                      <TableRow key={index} hover>
+                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                        <TableCell>{order.order_id}</TableCell>
+                        <TableCell>{order.product_details?.[0]?.product_name || '-'}</TableCell>
+                        <TableCell>{order.created_at}</TableCell>
+                        <TableCell>{order.user_name}</TableCell>
+                        <TableCell>₹{order.final_amount}</TableCell>
+                        <TableCell>{order.payment_method}</TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              px: 1.2, py: 0.4, borderRadius: '8px', fontWeight: 600,
+                              color: getStatusColor(order.order_status).color,
+                              backgroundColor: getStatusColor(order.order_status).bg,
+                              display: 'inline-block'
+                            }}
+                          >
+                            {order.order_status || 'Pending'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <IconButton color='info' onClick={() => nav(`/order-details/${order.id}`)}>
+                            <Eye />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={9} align="center" sx={{ py: 3, color: '#6b7280' }}>
+                        No orders found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

@@ -68,25 +68,32 @@ const SubCategoryPage = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const subData = await viewsubCategory();
-        const catData = await viewCategory();
-        const requestData = await listSubcategoryRequests();
-        setSubCategories(subData);
-        setCategories(catData);
-        setFilteredSubCategories(subData);
-        // Handle paginated response - extract results array
-        setRequests(requestData?.results || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const subData = await viewsubCategory();
+      const catData = await viewCategory();
+      const requestData = await listSubcategoryRequests();
+
+      console.log("Category data:", catData);
+
+      setSubCategories(subData);
+      setCategories(
+        Array.isArray(catData)
+          ? catData
+          : catData?.results || catData?.categories || []
+      );
+      setFilteredSubCategories(subData);
+      setRequests(requestData?.results || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
+
 
   useEffect(() => {
     const filtered = subcategories.filter((sub) =>
