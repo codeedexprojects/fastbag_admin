@@ -35,15 +35,16 @@ const TransactionsAndOrders = () => {
     let filtered = [...orders];
 
     if (selectedDate) {
-      const formattedDate = dayjs(selectedDate).format('DD/MM/YYYY');
-      filtered = filtered.filter(order => order.created_at === formattedDate);
+      const formattedDate = dayjs(selectedDate).format('YYYY-MM-DD');
+      filtered = filtered.filter(order => {
+        const orderDate = dayjs(order.created_at).format('YYYY-MM-DD');
+        return orderDate === formattedDate;
+      });
     }
 
     filtered.sort((a, b) => {
-      const [dayA, monthA, yearA] = a.created_at.split('/');
-      const [dayB, monthB, yearB] = b.created_at.split('/');
-      const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
-      const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
       return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
 
@@ -52,6 +53,24 @@ const TransactionsAndOrders = () => {
   }, [orders, selectedDate, sortOrder]);
 
   const clearDateFilter = () => setSelectedDate(null);
+
+  const formatDate = (dateString) => {
+    return dayjs(dateString).format('DD/MM/YYYY');
+  };
+
+  const getStatusColor = (status) => {
+    const statusColors = {
+      'delivered': { color: '#2e7d32', bg: '#c8e6c9' },
+      'shipped': { color: '#1565c0', bg: '#bbdefb' },
+      'out for delivery': { color: '#ed6c02', bg: '#ffe0b2' },
+      'processing': { color: '#0288d1', bg: '#b3e5fc' },
+      'pending': { color: '#f57c00', bg: '#ffe0b2' },
+      'cancelled': { color: '#c62828', bg: '#ffcdd2' },
+      'rejected': { color: '#c62828', bg: '#ffcdd2' },
+      'return': { color: '#d32f2f', bg: '#ffcdd2' },
+    };
+    return statusColors[status?.toLowerCase()] || { color: '#757575', bg: '#e0e0e0' };
+  };
 
   return (
     <Box sx={{ mt: 4, px: 3 }}>
@@ -121,7 +140,6 @@ const TransactionsAndOrders = () => {
                 border: '1px solid #e5e7eb',
                 borderRadius: '50%',
                 color: '#374151',
-
                 backgroundColor: '#fff',
                 '&:hover': {
                   backgroundColor: '#f3f4f6',
@@ -142,7 +160,6 @@ const TransactionsAndOrders = () => {
               minWidth: 150,
               backgroundColor: '#f9fafb',
               boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',
-
               borderRadius: 2,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
@@ -169,19 +186,16 @@ const TransactionsAndOrders = () => {
             <MenuItem value="desc">Newest First</MenuItem>
             <MenuItem value="asc">Oldest First</MenuItem>
           </TextField>
-
         </Box>
-
-
       </Box>
 
-       <TableContainer
-                component={Paper}
-                elevation={3}
-                sx={{ borderRadius: 3 ,boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)',overflow: "hidden", mt: 3 }}
-              >
-                <Table sx={{ minWidth: 650 }} aria-label="category table">
-                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+      <TableContainer
+        component={Paper}
+        elevation={3}
+        sx={{ borderRadius: 3, boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)', overflow: "hidden", mt: 3 }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="orders table">
+          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
               <TableCell><strong>Order ID</strong></TableCell>
               <TableCell><strong>User</strong></TableCell>
@@ -199,36 +213,34 @@ const TransactionsAndOrders = () => {
             ) : (
               filteredOrders
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.order_id}</TableCell>
-                    <TableCell>{order.user_name}</TableCell>
-                    <TableCell>₹{order.total_amount}</TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          px: 1.4,
-                          py: 0.4,
-                          borderRadius: '10px',
-                          fontWeight: 600,
-                          color:
-                            order.status === 'Delivered' ? '#2e7d32' :
-                              order.status === 'Shipped' ? '#1565c0' :
-                                '#c62828',
-                          backgroundColor:
-                            order.status === 'Delivered' ? '#c8e6c9' :
-                              order.status === 'Shipped' ? '#bbdefb' :
-                                '#ffcdd2',
-                          display: 'inline-block'
-                        }}
-                      >
-                        {order.status || 'Pending'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{order.created_at}</TableCell>
-                  </TableRow>
-                ))
+                .map((order) => {
+                  const statusStyle = getStatusColor(order.order_status);
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell>{order.order_id}</TableCell>
+                      <TableCell>{order.user_name}</TableCell>
+                      <TableCell>₹{parseFloat(order.total_amount).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            px: 1.4,
+                            py: 0.4,
+                            borderRadius: '10px',
+                            fontWeight: 600,
+                            color: statusStyle.color,
+                            backgroundColor: statusStyle.bg,
+                            display: 'inline-block',
+                            textTransform: 'capitalize'
+                          }}
+                        >
+                          {order.order_status || 'Pending'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{formatDate(order.created_at)}</TableCell>
+                    </TableRow>
+                  );
+                })
             )}
           </TableBody>
         </Table>
