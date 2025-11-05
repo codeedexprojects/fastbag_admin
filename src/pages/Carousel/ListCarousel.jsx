@@ -42,9 +42,20 @@ function CarouselList() {
   const fetchAds = async () => {
     try {
       const res = await getAllCarouselAds();
-      if (res) setAds(res.results);
+      // Add proper null/undefined checking and array validation
+      if (res && res.results && Array.isArray(res.results)) {
+        setAds(res.results);
+      } else if (res && Array.isArray(res)) {
+        // Handle case where API returns array directly
+        setAds(res);
+      } else {
+        setAds([]);
+        console.warn("Unexpected API response format:", res);
+      }
     } catch (error) {
       console.error("Error fetching ads", error);
+      setAds([]); // Set to empty array on error
+      toast.error("Failed to fetch carousel ads");
     } finally {
       setLoading(false);
     }
@@ -133,7 +144,8 @@ function CarouselList() {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Carousel Advertisements</Typography>
         <Tooltip title="Add Carousel">
-          <Button variant="containedSecondary"  onClick={handleAdd} startIcon={<AddIcon />}>Add Carousel
+          <Button variant="containedSecondary" onClick={handleAdd} startIcon={<AddIcon />}>
+            Add Carousel
           </Button>
         </Tooltip>
       </Box>
@@ -143,7 +155,7 @@ function CarouselList() {
         <Box display="flex" justifyContent="center" mt={4}>
           <CircularProgress />
         </Box>
-      ) : ads.length === 0 ? (
+      ) : !ads || ads.length === 0 ? (
         <Typography variant="body1" mt={2}>
           No ads found.
         </Typography>

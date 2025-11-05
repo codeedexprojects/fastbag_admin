@@ -35,7 +35,6 @@ const AddFoodProduct = () => {
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [offerPrice, setOfferPrice] = useState("");
   const [discount, setDiscount] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
   const [isOfferProduct, setIsOfferProduct] = useState(false);
@@ -116,7 +115,6 @@ const AddFoodProduct = () => {
     formData.append("name", productName);
     formData.append("description", description);
     formData.append("price", price);
-    formData.append("offer_price", offerPrice);
     formData.append("discount", discount);
     formData.append("is_available", isAvailable);
     formData.append("is_offer_product", isOfferProduct);
@@ -144,7 +142,6 @@ const AddFoodProduct = () => {
       setProductName("");
       setDescription("");
       setPrice("");
-      setOfferPrice("");
       setDiscount("");
       setIsAvailable(true);
       setIsOfferProduct(false);
@@ -263,15 +260,6 @@ const AddFoodProduct = () => {
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="Offer Price"
-              type="number"
-              value={offerPrice}
-              onChange={(e) => setOfferPrice(e.target.value)}
             />
           </Grid>
           <Grid item xs={12} sm={4}>

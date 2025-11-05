@@ -1702,7 +1702,7 @@ export const getAllCarouselAds = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) throw new Error("Authentication token is missing");
 
-    const response = await commonApi("GET", `${BASE_URL}/vendors/app-carousel/`, {
+    const response = await commonApi("GET", `${BASE_URL}/vendors/ads-carousel/by-loc/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1724,7 +1724,7 @@ export const addCarouselAd = async (formData) => {
 
     const response = await commonApi(
       'POST',
-      `${BASE_URL}/vendors/app-carousel/`,
+      `${BASE_URL}/vendors/ads-carousel/by-loc/`,
       formData,
       {
         headers: {
