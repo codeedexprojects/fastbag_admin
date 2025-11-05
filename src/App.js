@@ -53,7 +53,8 @@ import GroceryProductDetailsPage from "./pages/Products/GroceryPrdouctdetails";
 import GoogleMapsWrapper from "./components/GoogleMapsWrapper";
 import VendorCommissionPage from "./pages/VendorCommission/listVendorCommission";
 import AddDeliveryBoy from "./pages/Delivery/addDeliveryBoy";
-import StoryList from "./pages/Story/listStory"
+import StoryList from "./pages/Story/listStory";
+import DeliveryCharges from "./pages/Delivery/DeliveryCharges";
 
 const App = () => {
   const location = useLocation();
@@ -124,6 +125,7 @@ const App = () => {
                   <Route path="/vendor-commission" element={<VendorCommissionPage />} />
                   <Route path="/add-deliveryboy" element={<AddDeliveryBoy />} />
                   <Route path="/list-story" element={<StoryList />} />
+                  <Route path="/delivery-charges" element={<DeliveryCharges />} />
                 </>
               )}
 

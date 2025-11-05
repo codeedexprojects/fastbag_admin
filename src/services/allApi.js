@@ -2046,3 +2046,236 @@ export const getAvailableDeliveryBoys = async () => {
     throw error;
   }
 };
+
+
+
+
+
+
+
+/**
+ * Get all delivery charges
+ * @param {boolean} isActive - Optional filter by active status
+ * @returns {Promise} Response with list of delivery charges
+ */
+export const getAllDeliveryCharges = async (isActive = null) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    let url = `${BASE_URL}/delivery/admin/delivery-charges/`;
+    if (isActive !== null) {
+      url += `?is_active=${isActive}`;
+    }
+
+    const response = await commonApi(
+      'GET',
+      url,
+      "",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // commonApi wraps the response in a data property
+    // So response.data contains your actual API response
+    return response.data || response;
+  } catch (error) {
+    console.error('Failed to fetch delivery charges', error);
+    throw error;
+  }
+};
+
+/**
+ * Get a single delivery charge by ID
+ * @param {number} id - Delivery charge ID
+ * @returns {Promise} Response with delivery charge details
+ */
+export const getDeliveryChargeById = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'GET',
+      `${BASE_URL}/delivery/admin/delivery-charges/${id}/`,
+      "",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data || response;
+  } catch (error) {
+    console.error(`Failed to fetch delivery charge with id ${id}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new delivery charge
+ * @param {Object} data - Delivery charge data
+ * @returns {Promise} Response with created delivery charge
+ */
+export const createDeliveryCharge = async (data) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'POST',
+      `${BASE_URL}/delivery/admin/delivery-charges/`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data || response;
+  } catch (error) {
+    console.error('Failed to create delivery charge', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing delivery charge (complete update)
+ * @param {number} id - Delivery charge ID
+ * @param {Object} data - Complete delivery charge data
+ * @returns {Promise} Response with updated delivery charge
+ */
+export const updateDeliveryCharge = async (id, data) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'PUT',
+      `${BASE_URL}/delivery/admin/delivery-charges/${id}/`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data || response;
+  } catch (error) {
+    console.error(`Failed to update delivery charge with id ${id}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Partially update an existing delivery charge
+ * @param {number} id - Delivery charge ID
+ * @param {Object} data - Partial delivery charge data
+ * @returns {Promise} Response with updated delivery charge
+ */
+export const partialUpdateDeliveryCharge = async (id, data) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'PATCH',
+      `${BASE_URL}/delivery/admin/delivery-charges/${id}/`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data || response;
+  } catch (error) {
+    console.error(`Failed to partially update delivery charge with id ${id}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a delivery charge
+ * @param {number} id - Delivery charge ID
+ * @returns {Promise} Response confirming deletion
+ */
+export const deleteDeliveryCharge = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'DELETE',
+      `${BASE_URL}/delivery/admin/delivery-charges/${id}/`,
+      "",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data || response;
+  } catch (error) {
+    console.error(`Failed to delete delivery charge with id ${id}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Calculate delivery charge based on distance and time
+ * @param {number} distance - Distance in kilometers
+ * @param {boolean} isNight - Whether it's night time
+ * @returns {Promise} Response with calculated charge
+ */
+export const calculateDeliveryCharge = async (distance, isNight = false) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'POST',
+      `${BASE_URL}/delivery/admin/delivery-charges/calculate/`,
+      {
+        distance: distance,
+        is_night: isNight,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data || response;
+  } catch (error) {
+    console.error('Failed to calculate delivery charge', error);
+    throw error;
+  }
+};
