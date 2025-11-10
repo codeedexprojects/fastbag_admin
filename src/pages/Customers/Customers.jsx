@@ -243,8 +243,8 @@ const CustomersList = () => {
               <TableRow key={user.id} hover sx={{ backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa' }}>
                 {/* Use serial_number from backend, or fallback to calculated value */}
                 <TableCell>{user.serial_number || (totalCount - (page * rowsPerPage) - index)}</TableCell>
-                <TableCell>{highlightMatch(user.name || '', searchTerm)}</TableCell>
-                <TableCell>{highlightMatch(user.email || '', searchTerm)}</TableCell>
+                <TableCell>{highlightMatch(user.name || 'Not Yet Added', searchTerm)}</TableCell>
+                <TableCell>{highlightMatch(user.email || 'Not Yet Added', searchTerm)}</TableCell>
                 <TableCell>{highlightMatch(user.mobile_number || '', searchTerm)}</TableCell>
                 <TableCell>{user.is_active ? 'Active' : 'Blocked'}</TableCell>
                 <TableCell>{user.date_joined}</TableCell>
