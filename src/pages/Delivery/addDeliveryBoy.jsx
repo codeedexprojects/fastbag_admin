@@ -2,43 +2,18 @@ import React, { useState } from 'react';
 import {
   Container, Typography, TextField, Grid, Button, Paper,
   FormControl, InputLabel, Select, MenuItem, Box, Avatar,
-  FormControlLabel, Switch, IconButton, Dialog, DialogTitle,
-  DialogContent, Backdrop, CircularProgress
+  FormControlLabel, Switch, IconButton, Backdrop, CircularProgress
 } from '@mui/material';
-import { MapPin, Upload, X, ArrowLeft } from 'lucide-react';
+import { Upload, X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import { addDeliveryBoy } from '../../services/allApi';
 import { toast } from 'react-toastify';
+import GoogleMapPicker from '../../components/LocationPicker';
+import GoogleMapsWrapper from '../../components/GoogleMapsWrapper';
 
-// Fix for default marker icon in react-leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-// Component to handle map clicks
-const LocationMarker = ({ position, setPosition }) => {
-  useMapEvents({
-    click(e) {
-      setPosition({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng
-      });
-    },
-  });
-
-  return position ? <Marker position={[position.lat, position.lng]} /> : null;
-};
-
-const AddDeliveryBoy = () => {
+const AddDeliveryBoyForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     mobile_number: '',
@@ -49,8 +24,9 @@ const AddDeliveryBoy = () => {
     gender: '',
     dob: '',
     is_active: true,
-    latitude: null,
-    longitude: null,
+    latitude: '',
+    longitude: '',
+    place: '',
   });
 
   const [files, setFiles] = useState({
@@ -65,11 +41,14 @@ const AddDeliveryBoy = () => {
     driving_license_image: null,
   });
 
-  const [location, setLocation] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSwitchChange = (e) => {
@@ -79,8 +58,27 @@ const AddDeliveryBoy = () => {
   const handleFileChange = (e, fieldName) => {
     const file = e.target.files[0];
     if (file) {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({ 
+          ...prev, 
+          [fieldName]: 'Only image files (JPEG, PNG, GIF, WEBP) are allowed' 
+        }));
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setErrors(prev => ({ 
+          ...prev, 
+          [fieldName]: 'File size must be less than 5MB' 
+        }));
+        return;
+      }
+
       setFiles(prev => ({ ...prev, [fieldName]: file }));
       setPreviews(prev => ({ ...prev, [fieldName]: URL.createObjectURL(file) }));
+      setErrors(prev => ({ ...prev, [fieldName]: '' }));
     }
   };
 
@@ -89,67 +87,70 @@ const AddDeliveryBoy = () => {
     setPreviews(prev => ({ ...prev, [fieldName]: null }));
   };
 
-  const handleLocationSelect = () => {
-    if (location) {
-      setFormData(prev => ({
-        ...prev,
-        latitude: location.lat,
-        longitude: location.lng
-      }));
-      setMapOpen(false);
-      toast.success('Location selected successfully');
-    } else {
-      toast.error('Please select a location on the map');
-    }
+  const truncateToDecimalPlaces = (value, places) => {
+    if (!value || value === "") return "";
+    const num = parseFloat(value);
+    if (isNaN(num)) return "";
+    const multiplier = Math.pow(10, places);
+    return (Math.floor(num * multiplier) / multiplier).toString();
   };
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          setLocation(pos);
-          setFormData(prev => ({
-            ...prev,
-            latitude: pos.lat,
-            longitude: pos.lng
-          }));
-          toast.success('Current location detected');
-        },
-        () => {
-          toast.error('Unable to retrieve your location');
-        }
-      );
-    } else {
-      toast.error('Geolocation is not supported by your browser');
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.mobile_number.trim()) newErrors.mobile_number = "Mobile number is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+    if (!formData.vehicle_type) newErrors.vehicle_type = "Vehicle type is required";
+    if (!formData.vehicle_number.trim()) newErrors.vehicle_number = "Vehicle number is required";
+    if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.dob) newErrors.dob = "Date of birth is required";
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email format";
     }
+
+    const phoneRegex = /^\d{10}$/;
+    if (formData.mobile_number && !phoneRegex.test(formData.mobile_number.replace(/[\s\-\(\)]/g, ''))) {
+      newErrors.mobile_number = "Invalid mobile number (should be 10 digits)";
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      newErrors.location = "Please select location on map";
+    } else {
+      const lat = parseFloat(formData.latitude);
+      const lng = parseFloat(formData.longitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        newErrors.latitude = "Invalid latitude value";
+      }
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        newErrors.longitude = "Invalid longitude value";
+      }
+    }
+
+    if (!files.photo) newErrors.photo = "Photo is required";
+    if (!files.aadhar_card_image) newErrors.aadhar_card_image = "Aadhar card image is required";
+    if (!files.driving_license_image) newErrors.driving_license_image = "Driving license image is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!formData.name || !formData.mobile_number || !formData.email || 
-        !formData.address || !formData.vehicle_type || !formData.vehicle_number || 
-        !formData.gender || !formData.dob) {
-      toast.error('Please fill all required fields');
-      return;
-    }
-
-    if (!files.photo || !files.aadhar_card_image || !files.driving_license_image) {
-      toast.error('Please upload all required documents');
-      return;
-    }
-
-    if (!formData.latitude || !formData.longitude) {
-      toast.error('Please select location on map');
+    if (!validateForm()) {
+      toast.error('Please fix all errors before submitting');
       return;
     }
 
     const reqBody = new FormData();
+    
+    // Determine place value (use address as fallback if place is empty)
+    const placeValue = formData.place || formData.address || '';
+    
     reqBody.append('name', formData.name);
     reqBody.append('mobile_number', formData.mobile_number);
     reqBody.append('email', formData.email);
@@ -159,22 +160,75 @@ const AddDeliveryBoy = () => {
     reqBody.append('gender', formData.gender);
     reqBody.append('dob', formData.dob);
     reqBody.append('is_active', formData.is_active);
-    reqBody.append('latitude', Number(formData.latitude?.toFixed(10)));
-    reqBody.append('longitude', Number(formData.longitude?.toFixed(10)));
-    reqBody.append('photo', files.photo);
-    reqBody.append('aadhar_card_image', files.aadhar_card_image);
-    reqBody.append('driving_license_image', files.driving_license_image);
+    
+    const truncatedLat = truncateToDecimalPlaces(formData.latitude, 10);
+    const truncatedLng = truncateToDecimalPlaces(formData.longitude, 10);
+    if (truncatedLat) reqBody.append('latitude', truncatedLat);
+    if (truncatedLng) reqBody.append('longitude', truncatedLng);
+    
+    // Place field is required by backend
+    reqBody.append('place', placeValue);
+    
+    if (files.photo) reqBody.append('photo', files.photo);
+    if (files.aadhar_card_image) reqBody.append('aadhar_card_image', files.aadhar_card_image);
+    if (files.driving_license_image) reqBody.append('driving_license_image', files.driving_license_image);
 
     setLoading(true);
     try {
-      await addDeliveryBoy(reqBody);
+      const response = await addDeliveryBoy(reqBody);
       toast.success('Delivery boy added successfully');
       navigate('/view-deliveryboyslist');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add delivery boy');
+      console.error('Failed to add delivery boy', error);
+      
+      if (error.response && error.response.data) {
+        const backendErrors = error.response.data;
+        const formattedErrors = {};
+        
+        Object.keys(backendErrors).forEach((key) => {
+          if (Array.isArray(backendErrors[key])) {
+            formattedErrors[key] = backendErrors[key][0];
+          } else {
+            formattedErrors[key] = backendErrors[key];
+          }
+        });
+        
+        setErrors(formattedErrors);
+        toast.error('Please fix the errors and try again');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to add delivery boy');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      name: '',
+      mobile_number: '',
+      email: '',
+      address: '',
+      vehicle_type: '',
+      vehicle_number: '',
+      gender: '',
+      dob: '',
+      is_active: true,
+      latitude: '',
+      longitude: '',
+      place: '',
+    });
+    setFiles({
+      photo: null,
+      aadhar_card_image: null,
+      driving_license_image: null,
+    });
+    setPreviews({
+      photo: null,
+      aadhar_card_image: null,
+      driving_license_image: null,
+    });
+    setErrors({});
   };
 
   return (
@@ -207,7 +261,7 @@ const AddDeliveryBoy = () => {
                   component="label"
                   startIcon={<Upload size={18} />}
                 >
-                  Upload Photo
+                  Upload Photo *
                   <input
                     type="file"
                     hidden
@@ -220,10 +274,21 @@ const AddDeliveryBoy = () => {
                     <X size={18} />
                   </IconButton>
                 )}
+                {errors.photo && (
+                  <Typography color="error" fontSize="12px" mt={1}>
+                    {errors.photo}
+                  </Typography>
+                )}
               </Box>
             </Grid>
 
             {/* Basic Information */}
+            <Grid item xs={12}>
+              <Typography variant="h6" fontWeight={600} mb={1}>
+                Basic Information
+              </Typography>
+            </Grid>
+
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -232,6 +297,8 @@ const AddDeliveryBoy = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
+                error={!!errors.name}
+                helperText={errors.name}
               />
             </Grid>
 
@@ -243,6 +310,8 @@ const AddDeliveryBoy = () => {
                 name="mobile_number"
                 value={formData.mobile_number}
                 onChange={handleInputChange}
+                error={!!errors.mobile_number}
+                helperText={errors.mobile_number}
               />
             </Grid>
 
@@ -255,6 +324,8 @@ const AddDeliveryBoy = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                error={!!errors.email}
+                helperText={errors.email}
               />
             </Grid>
 
@@ -268,11 +339,13 @@ const AddDeliveryBoy = () => {
                 value={formData.dob}
                 onChange={handleInputChange}
                 InputLabelProps={{ shrink: true }}
+                error={!!errors.dob}
+                helperText={errors.dob}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth required>
+              <FormControl fullWidth required error={!!errors.gender}>
                 <InputLabel>Gender</InputLabel>
                 <Select
                   name="gender"
@@ -284,6 +357,11 @@ const AddDeliveryBoy = () => {
                   <MenuItem value="F">Female</MenuItem>
                   <MenuItem value="O">Other</MenuItem>
                 </Select>
+                {errors.gender && (
+                  <Typography color="error" fontSize="12px" mt={1}>
+                    {errors.gender}
+                  </Typography>
+                )}
               </FormControl>
             </Grid>
 
@@ -310,6 +388,8 @@ const AddDeliveryBoy = () => {
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
+                error={!!errors.address}
+                helperText={errors.address}
               />
             </Grid>
 
@@ -321,7 +401,7 @@ const AddDeliveryBoy = () => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth required>
+              <FormControl fullWidth required error={!!errors.vehicle_type}>
                 <InputLabel>Vehicle Type</InputLabel>
                 <Select
                   name="vehicle_type"
@@ -334,6 +414,11 @@ const AddDeliveryBoy = () => {
                   <MenuItem value="Car">Car</MenuItem>
                   <MenuItem value="Van">Van</MenuItem>
                 </Select>
+                {errors.vehicle_type && (
+                  <Typography color="error" fontSize="12px" mt={1}>
+                    {errors.vehicle_type}
+                  </Typography>
+                )}
               </FormControl>
             </Grid>
 
@@ -345,37 +430,43 @@ const AddDeliveryBoy = () => {
                 name="vehicle_number"
                 value={formData.vehicle_number}
                 onChange={handleInputChange}
+                error={!!errors.vehicle_number}
+                helperText={errors.vehicle_number}
               />
             </Grid>
 
             {/* Location Selection */}
             <Grid item xs={12}>
               <Typography variant="h6" fontWeight={600} mt={2} mb={1}>
-                Location
+                Location *
               </Typography>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
-                <Button
-                  variant="outlined"
-                  startIcon={<MapPin size={18} />}
-                  onClick={() => setMapOpen(true)}
-                >
-                  Select Location on Map
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={getCurrentLocation}
-                >
-                  Use Current Location
-                </Button>
-                {formData.latitude && formData.longitude && (
-                  <Typography variant="body2" color="success.main">
-                    ✓ Location selected: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+              <GoogleMapPicker
+                vendorData={formData}
+                setVendorData={setFormData}
+              />
+              
+              {Number.isFinite(Number(formData.latitude)) &&
+                Number.isFinite(Number(formData.longitude)) && (
+                  <Typography mt={2} fontSize="14px" color="text.secondary">
+                    📍 <strong>Selected Location:</strong>
+                    <br />
+                    {formData.place && (
+                      <>
+                        <strong>Place:</strong> {formData.place}
+                        <br />
+                      </>
+                    )}
+                    <strong>Coordinates:</strong>{" "}
+                    {truncateToDecimalPlaces(formData.latitude, 10)},{" "}
+                    {truncateToDecimalPlaces(formData.longitude, 10)}
                   </Typography>
                 )}
-              </Box>
+              
+              {(errors.location || errors.latitude || errors.longitude) && (
+                <Typography color="error" fontSize="12px" mt={1}>
+                  {errors.location || errors.latitude || errors.longitude}
+                </Typography>
+              )}
             </Grid>
 
             {/* Document Uploads */}
@@ -387,7 +478,9 @@ const AddDeliveryBoy = () => {
 
             <Grid item xs={12} md={6}>
               <Box>
-                <Typography variant="body2" mb={1} fontWeight={500}>Aadhar Card Image *</Typography>
+                <Typography variant="body2" mb={1} fontWeight={500}>
+                  Aadhar Card Image *
+                </Typography>
                 {previews.aadhar_card_image && (
                   <Box sx={{ position: 'relative', display: 'inline-block', mb: 1 }}>
                     <img
@@ -418,12 +511,19 @@ const AddDeliveryBoy = () => {
                     onChange={(e) => handleFileChange(e, 'aadhar_card_image')}
                   />
                 </Button>
+                {errors.aadhar_card_image && (
+                  <Typography color="error" fontSize="12px" mt={1}>
+                    {errors.aadhar_card_image}
+                  </Typography>
+                )}
               </Box>
             </Grid>
 
             <Grid item xs={12} md={6}>
               <Box>
-                <Typography variant="body2" mb={1} fontWeight={500}>Driving License Image *</Typography>
+                <Typography variant="body2" mb={1} fontWeight={500}>
+                  Driving License Image *
+                </Typography>
                 {previews.driving_license_image && (
                   <Box sx={{ position: 'relative', display: 'inline-block', mb: 1 }}>
                     <img
@@ -454,6 +554,11 @@ const AddDeliveryBoy = () => {
                     onChange={(e) => handleFileChange(e, 'driving_license_image')}
                   />
                 </Button>
+                {errors.driving_license_image && (
+                  <Typography color="error" fontSize="12px" mt={1}>
+                    {errors.driving_license_image}
+                  </Typography>
+                )}
               </Box>
             </Grid>
 
@@ -462,7 +567,16 @@ const AddDeliveryBoy = () => {
               <Box display="flex" gap={2} justifyContent="flex-end" mt={3}>
                 <Button
                   variant="outlined"
+                  onClick={handleReset}
+                  disabled={loading}
+                  size="large"
+                >
+                  Reset
+                </Button>
+                <Button
+                  variant="outlined"
                   onClick={() => navigate('/delivery-boys')}
+                  disabled={loading}
                   size="large"
                 >
                   Cancel
@@ -473,59 +587,26 @@ const AddDeliveryBoy = () => {
                   disabled={loading}
                   size="large"
                 >
-                  Add Delivery Boy
+                  {loading ? 'Adding...' : 'Add Delivery Boy'}
                 </Button>
               </Box>
             </Grid>
           </Grid>
         </form>
       </Paper>
-
-      {/* Map Dialog */}
-      <Dialog
-        open={mapOpen}
-        onClose={() => setMapOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Select Location
-          <IconButton
-            onClick={() => setMapOpen(false)}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <X />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" mb={2}>
-            Click on the map to select delivery boy's location
-          </Typography>
-          <Box sx={{ height: 400, width: '100%' }}>
-            <MapContainer
-              center={location ? [location.lat, location.lng] : [11.2588, 75.7804]}
-              zoom={13}
-              style={{ height: '100%', width: '100%' }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              <LocationMarker position={location} setPosition={setLocation} />
-            </MapContainer>
-          </Box>
-          <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-            <Button variant="outlined" onClick={() => setMapOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="contained" onClick={handleLocationSelect}>
-              Confirm Location
-            </Button>
-          </Box>
-        </DialogContent>
-      </Dialog>
     </Container>
   );
 };
 
+// Wrap with GoogleMapsWrapper to ensure Google Maps API is loaded
+const AddDeliveryBoy = () => {
+  return (
+    <GoogleMapsWrapper>
+      <AddDeliveryBoyForm />
+    </GoogleMapsWrapper>
+  );
+};
+
 export default AddDeliveryBoy;
+
+

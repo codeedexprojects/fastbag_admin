@@ -28,21 +28,75 @@ function AddCarousel() {
   const [title, setTitle] = useState("");
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [latitude, setlatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [mapCenter, setMapCenter] = useState({ lat: 10.0261, lng: 76.3125 });
+  const mapApi = process.env.REACT_APP_GOOGLE_MAPS_API_KEY
 
   // Fetch vendor list
   useEffect(() => {
     const fetchVendors = async () => {
       const res = await viewVendors();
-      console.log(res)
+      console.log(res);
 
       if (res) {
-                setVendors(res);
-
+        setVendors(res);
       }
     };
     fetchVendors();
   }, []);
-  console.log(vendors)
+
+  // Initialize map
+  useEffect(() => {
+    if (window.google) {
+      initMap();
+    } else {
+      loadGoogleMapsScript();
+    }
+  }, []);
+
+  const loadGoogleMapsScript = () => {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApi}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => initMap();
+    document.head.appendChild(script);
+  };
+
+  const initMap = () => {
+    const mapElement = document.getElementById("map");
+    if (!mapElement) return;
+
+    const map = new window.google.maps.Map(mapElement, {
+      center: mapCenter,
+      zoom: 12,
+    });
+
+    let marker = new window.google.maps.Marker({
+      position: mapCenter,
+      map: map,
+      draggable: true,
+    });
+
+    // Update coordinates when marker is dragged
+    marker.addListener("dragend", (event) => {
+      const lat = event.latLng.lat();
+      const lng = event.latLng.lng();
+      setlatitude(lat.toString());
+      setLongitude(lng.toString());
+    });
+
+    // Click on map to place marker
+    map.addListener("click", (event) => {
+      const lat = event.latLng.lat();
+      const lng = event.latLng.lng();
+      
+      marker.setPosition(event.latLng);
+      setlatitude(lat.toString());
+      setLongitude(lng.toString());
+    });
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -50,8 +104,24 @@ function AddCarousel() {
     setImagePreview(URL.createObjectURL(file));
   };
 
+  const handleManualLocationUpdate = () => {
+    if (latitude && longitude) {
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setMapCenter({ lat, lng });
+        
+        // Reinitialize map with new center
+        setTimeout(() => {
+          initMap();
+        }, 100);
+      }
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!vendorId || !title || !image) {
+    if (!vendorId || !title || !image || !latitude || !longitude) {
       alert("All fields are required.");
       return;
     }
@@ -60,6 +130,8 @@ function AddCarousel() {
     formData.append("vendor", vendorId);
     formData.append("title", title);
     formData.append("ads_image", image);
+    formData.append("latitude", latitude);
+    formData.append("longitude", longitude);
 
     const res = await addCarouselAd(formData);
     if (res?.status === 201) {
@@ -68,6 +140,8 @@ function AddCarousel() {
       setTitle("");
       setImage(null);
       setImagePreview("");
+      setlatitude("");
+      setLongitude("");
     } else {
       toast.error("Something went wrong.");
     }
@@ -103,6 +177,50 @@ function AddCarousel() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Latitude"
+            value={latitude}
+            onChange={(e) => setlatitude(e.target.value)}
+            type="number"
+            inputProps={{ step: "any" }}
+          />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Longitude"
+            value={longitude}
+            onChange={(e) => setLongitude(e.target.value)}
+            type="number"
+            inputProps={{ step: "any" }}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Button
+            variant="outlined"
+            onClick={handleManualLocationUpdate}
+            sx={{ mb: 2 }}
+          >
+            Update Map Location
+          </Button>
+          <Box
+            id="map"
+            sx={{
+              width: "100%",
+              height: "400px",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+            Click on the map or drag the marker to set location
+          </Typography>
         </Grid>
 
         <Grid item xs={12}>
