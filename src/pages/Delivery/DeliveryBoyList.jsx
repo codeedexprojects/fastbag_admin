@@ -144,46 +144,46 @@ const DeliveryBoyList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {deliveryBoys.map((boy, index) => (
-              <TableRow key={boy.id} hover>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{boy.name}</TableCell>
-                <TableCell>{boy.mobile_number}</TableCell>
-                <TableCell>{boy.email}</TableCell>
-                <TableCell>{boy.vehicle_number}</TableCell>
-                <TableCell>{boy.vehicle_type}</TableCell>
-                <TableCell>{boy.gender === 'M' ? 'Male' : boy.gender === 'F' ? 'Female' : 'Other'}</TableCell>
-                <TableCell>{boy.dob}</TableCell>
-                <TableCell>
-                  <Typography
-                    sx={{
-                      px: 1.3,
-                      py: 0.5,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      borderRadius: 2,
-                      color: boy.is_active ? '#1b5e20' : '#b71c1c',
-                      backgroundColor: boy.is_active ? '#c8e6c9' : '#ffcdd2',
-                      display: 'inline-block',
-                    }}
-                  >
-                    {boy.is_active ? 'Active' : 'Inactive'}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <IconButton color='primary' onClick={() => navigate(`/view-deliveryboydetails/${boy.id}`)} size="small">
-                    <Eye size={20} />
-                  </IconButton>
-                  <IconButton onClick={() => handleEdit(boy)} color="info" size="small">
-                    <Pencil size={20} />
-                  </IconButton>
-                  <IconButton onClick={() => handleDeleteConfirm(boy.id)} color="error" size="small">
-                    <Trash2 size={20} />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+          {deliveryBoys.map((boy, index) => (
+            <TableRow key={boy.id} hover>
+              <TableCell>{deliveryBoys.length - index}</TableCell>  {/* Changed this line */}
+              <TableCell>{boy.name}</TableCell>
+              <TableCell>{boy.mobile_number}</TableCell>
+              <TableCell>{boy.email}</TableCell>
+              <TableCell>{boy.vehicle_number}</TableCell>
+              <TableCell>{boy.vehicle_type}</TableCell>
+              <TableCell>{boy.gender === 'M' ? 'Male' : boy.gender === 'F' ? 'Female' : 'Other'}</TableCell>
+              <TableCell>{boy.dob}</TableCell>
+              <TableCell>
+                <Typography
+                  sx={{
+                    px: 1.3,
+                    py: 0.5,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    color: boy.is_active ? '#1b5e20' : '#b71c1c',
+                    backgroundColor: boy.is_active ? '#c8e6c9' : '#ffcdd2',
+                    display: 'inline-block',
+                  }}
+                >
+                  {boy.is_active ? 'Active' : 'Inactive'}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <IconButton color='primary' onClick={() => navigate(`/view-deliveryboydetails/${boy.id}`)} size="small">
+                  <Eye size={20} />
+                </IconButton>
+                <IconButton onClick={() => handleEdit(boy)} color="info" size="small">
+                  <Pencil size={20} />
+                </IconButton>
+                <IconButton onClick={() => handleDeleteConfirm(boy.id)} color="error" size="small">
+                  <Trash2 size={20} />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
         </Table>
       </TableContainer>
 

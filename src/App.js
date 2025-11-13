@@ -96,7 +96,9 @@ const App = () => {
                   <Route path="/add-category" element={<AddCategory />} />
                   <Route path="/customers-list" element={<CustomersList />} />
                   <Route path="/customer-details/:id" element={<CustomerDetails />} />
-                  <Route path="/view-vendors" element={<ViewVendors />} />
+                  <Route path="/view-vendors" element={<GoogleMapsWrapper>
+      <ViewVendors />
+    </GoogleMapsWrapper>} />
                   <Route path="/vendors/:vendorId" element={<VendorDetails />} />
                   <Route path="/add-vendor" element={<GoogleMapsWrapper><AddVendor /></GoogleMapsWrapper>} />
                   <Route path="/view-stores" element={<ViewStores />} />
@@ -121,7 +123,7 @@ const App = () => {
                   <Route path="/view-deliveryboyslist" element={<DeliveryBoyList />} />
                   <Route path="/view-deliveryboydetails/:id" element={<GoogleMapsWrapper><DeliveryBoyDetails /></GoogleMapsWrapper>} />
                   <Route path="/view-carousel" element={<CarouselList />} />
-                  <Route path="/add-carousel" element={<AddCarousel />} />
+                  <Route path="/add-carousel" element={<GoogleMapsWrapper><AddCarousel /></GoogleMapsWrapper>} />
                   <Route path="/vendor-commission" element={<VendorCommissionPage />} />
                   <Route path="/add-deliveryboy" element={<AddDeliveryBoy />} />
                   <Route path="/list-story" element={<StoryList />} />
