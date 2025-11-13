@@ -16,44 +16,62 @@ import {
   Button,
   TextField,
   Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import { getAllCarouselAds, updateCarouselAd, deleteCarouselAd } from "../../services/allApi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 function CarouselList() {
   const [ads, setAds] = useState([]);
+  const [filteredAds, setFilteredAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openEdit, setOpenEdit] = useState(false);
   const [editAd, setEditAd] = useState(null);
   const [formValues, setFormValues] = useState({ 
-    title: "", 
+    title: "",
+    place_name: "",
+    location_type: "point",
     latitude: "",
     longitude: "",
+    radius_km: 0,
     ads_image: null 
   });
   const [imagePreview, setImagePreview] = useState("");
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  
+  // Filter states
+  const [searchLocation, setSearchLocation] = useState("");
+  const [filterVendor, setFilterVendor] = useState("all"); // all, with_vendor, without_vendor
+  
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAds();
   }, []);
 
+  useEffect(() => {
+    filterAds();
+  }, [ads, searchLocation, filterVendor]);
+
   const fetchAds = async () => {
     try {
       const res = await getAllCarouselAds();
-      // Add proper null/undefined checking and array validation
       if (res && res.results && Array.isArray(res.results)) {
         setAds(res.results);
       } else if (res && Array.isArray(res)) {
-        // Handle case where API returns array directly
         setAds(res);
       } else {
         setAds([]);
@@ -61,11 +79,31 @@ function CarouselList() {
       }
     } catch (error) {
       console.error("Error fetching ads", error);
-      setAds([]); // Set to empty array on error
+      setAds([]);
       toast.error("Failed to fetch carousel ads");
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterAds = () => {
+    let filtered = [...ads];
+
+    // Filter by location search
+    if (searchLocation.trim()) {
+      filtered = filtered.filter(ad => 
+        ad.place_name?.toLowerCase().includes(searchLocation.toLowerCase())
+      );
+    }
+
+    // Filter by vendor
+    if (filterVendor === "with_vendor") {
+      filtered = filtered.filter(ad => ad.vendor !== null);
+    } else if (filterVendor === "without_vendor") {
+      filtered = filtered.filter(ad => ad.vendor === null);
+    }
+
+    setFilteredAds(filtered);
   };
 
   const handleAdd = () => {
@@ -75,22 +113,23 @@ function CarouselList() {
   const handleEdit = (ad) => {
     setEditAd(ad);
     setFormValues({ 
-      title: ad.title || "", 
+      title: ad.title || "",
+      place_name: ad.place_name || "",
+      location_type: ad.location_type || "point",
       latitude: ad.latitude || "",
       longitude: ad.longitude || "",
+      radius_km: ad.radius_km || 0,
       ads_image: null 
     });
-    setImagePreview(ad.ads_image); // Show old image initially
+    setImagePreview(ad.ads_image);
     setOpenEdit(true);
   };
 
-  // Open confirmation dialog on delete click
   const handleDelete = (id) => {
     setDeleteId(id);
     setOpenDeleteConfirm(true);
   };
 
-  // Confirm delete handler
   const confirmDelete = async () => {
     try {
       await deleteCarouselAd(deleteId);
@@ -130,13 +169,17 @@ function CarouselList() {
     try {
       const formData = new FormData();
       formData.append("title", formValues.title);
+      formData.append("place_name", formValues.place_name);
+      formData.append("location_type", formValues.location_type);
       
-      // Only append lat/long if they have values
       if (formValues.latitude) {
         formData.append("latitude", formValues.latitude);
       }
       if (formValues.longitude) {
         formData.append("longitude", formValues.longitude);
+      }
+      if (formValues.radius_km) {
+        formData.append("radius_km", formValues.radius_km);
       }
       
       if (formValues.ads_image) {
@@ -155,21 +198,33 @@ function CarouselList() {
   const handleCloseEdit = () => {
     setOpenEdit(false);
     setEditAd(null);
-    setFormValues({ title: "", latitude: "", longitude: "", ads_image: null });
+    setFormValues({ 
+      title: "", 
+      place_name: "",
+      location_type: "point",
+      latitude: "", 
+      longitude: "", 
+      radius_km: 0,
+      ads_image: null 
+    });
     setImagePreview("");
   };
 
-  // Helper function to get image URL with fallback
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
-    
-    // If it's already a full URL, return it
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return imageUrl;
     }
-    
-    // Otherwise, construct the full URL (adjust base URL as needed)
     return `https://fastbag.pythonanywhere.com${imageUrl}`;
+  };
+
+  const getLocationTypeLabel = (type) => {
+    const types = {
+      'point': 'Specific Point',
+      'radius': 'Point with Radius',
+      'district': 'District/Area'
+    };
+    return types[type] || type;
   };
 
   return (
@@ -177,11 +232,45 @@ function CarouselList() {
       {/* Top Bar */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Carousel Advertisements</Typography>
-        <Tooltip title="Add Carousel">
-          <Button variant="contained" onClick={handleAdd} startIcon={<AddIcon />}>
-            Add Carousel
-          </Button>
-        </Tooltip>
+        <Button variant="contained" onClick={handleAdd} startIcon={<AddIcon />}>
+          Add Carousel
+        </Button>
+      </Box>
+
+      {/* Filters */}
+      <Box mb={3}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              placeholder="Search by location name..."
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Filter by Vendor</InputLabel>
+              <Select
+                value={filterVendor}
+                label="Filter by Vendor"
+                onChange={(e) => setFilterVendor(e.target.value)}
+                startAdornment={<FilterListIcon sx={{ ml: 1, mr: 1 }} />}
+              >
+                <MenuItem value="all">All Carousels</MenuItem>
+                <MenuItem value="with_vendor">With Vendor</MenuItem>
+                <MenuItem value="without_vendor">Platform Ads (No Vendor)</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
       </Box>
 
       {/* Loading or Empty */}
@@ -189,13 +278,13 @@ function CarouselList() {
         <Box display="flex" justifyContent="center" mt={4}>
           <CircularProgress />
         </Box>
-      ) : !ads || ads.length === 0 ? (
+      ) : !filteredAds || filteredAds.length === 0 ? (
         <Typography variant="body1" mt={2}>
-          No ads found.
+          No ads found matching your filters.
         </Typography>
       ) : (
         <Grid container spacing={3}>
-          {ads.map((ad) => (
+          {filteredAds.map((ad) => (
             <Grid item xs={12} sm={6} md={4} key={ad.id}>
               <Card sx={{ height: "100%", position: "relative" }}>
                 {ad.ads_image && (
@@ -205,7 +294,6 @@ function CarouselList() {
                     image={getImageUrl(ad.ads_image)} 
                     alt={ad.title}
                     onError={(e) => {
-                      // Fallback for broken images
                       e.target.onerror = null;
                       e.target.src = 'https://via.placeholder.com/400x180?text=No+Image';
                     }}
@@ -233,28 +321,33 @@ function CarouselList() {
                   </Typography>
                   
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Vendor: {ad.vendor_name || "N/A"}
+                    Vendor: {ad.vendor_name || "Platform Ad"}
                   </Typography>
 
-                  {/* Coordinates Display */}
-                  {(ad.latitude || ad.longitude) && (
-                    <Box display="flex" gap={0.5} flexWrap="wrap" mb={1}>
-                      {ad.latitude && (
-                        <Chip 
-                          label={`Lat: ${ad.latitude}`} 
-                          size="small" 
-                          variant="outlined"
-                        />
-                      )}
-                      {ad.longitude && (
-                        <Chip 
-                          label={`Long: ${ad.longitude}`} 
-                          size="small" 
-                          variant="outlined"
-                        />
-                      )}
-                    </Box>
-                  )}
+                  {/* Location Display */}
+                  <Box display="flex" alignItems="center" gap={0.5} mb={1}>
+                    <LocationOnIcon fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      {ad.location_display || ad.place_name}
+                    </Typography>
+                  </Box>
+
+                  {/* Location Type Chip */}
+                  <Box display="flex" gap={0.5} flexWrap="wrap" mb={1}>
+                    <Chip 
+                      label={getLocationTypeLabel(ad.location_type)} 
+                      size="small" 
+                      color="primary"
+                      variant="outlined"
+                    />
+                    {ad.radius_km > 0 && (
+                      <Chip 
+                        label={`${ad.radius_km} km`} 
+                        size="small" 
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
 
                   {/* Edit & Delete Buttons */}
                   <Box display="flex" justifyContent="flex-end" mt={2}>
@@ -289,6 +382,31 @@ function CarouselList() {
             onChange={handleEditInputChange}
           />
 
+          <TextField
+            margin="dense"
+            label="Place Name"
+            name="place_name"
+            fullWidth
+            required
+            value={formValues.place_name}
+            onChange={handleEditInputChange}
+            helperText="e.g., Kozhikode, Beach Road, Downtown District"
+          />
+
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Location Type</InputLabel>
+            <Select
+              name="location_type"
+              value={formValues.location_type}
+              label="Location Type"
+              onChange={handleEditInputChange}
+            >
+              <MenuItem value="point">Specific Point</MenuItem>
+              <MenuItem value="radius">Point with Radius</MenuItem>
+              <MenuItem value="district">District/Area</MenuItem>
+            </Select>
+          </FormControl>
+
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
               <TextField
@@ -313,6 +431,20 @@ function CarouselList() {
               />
             </Grid>
           </Grid>
+
+          {(formValues.location_type === 'radius' || formValues.location_type === 'district') && (
+            <TextField
+              margin="dense"
+              label="Radius (km)"
+              name="radius_km"
+              type="number"
+              fullWidth
+              value={formValues.radius_km}
+              onChange={handleEditInputChange}
+              inputProps={{ min: 0, step: 0.1 }}
+              helperText="Coverage radius in kilometers"
+            />
+          )}
 
           {/* Image Upload */}
           <Box mt={2}>
