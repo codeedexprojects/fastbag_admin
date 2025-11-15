@@ -1113,6 +1113,24 @@ export const deleteBigBuyOrders = async (id ) => {
   }
 };
 
+
+export const detailBigBuyOrders = async (id ) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    const response = await commonApi("GET", `${BASE_URL}/users/admin/big-buy-order/${id}/`, "", headers);
+    return response;
+  } catch (error) {
+    console.error("Failed to delete big buy orders:", error);
+    throw error;
+  }
+};
+
 // add food product 
 export const addProduct = async (formData) => {
   try {
