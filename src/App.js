@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import {
   Route,
   Routes,
@@ -62,6 +62,7 @@ const App = () => {
 
   const isLoggedIn = localStorage.getItem("access_token");
   const isLoginPage = location.pathname === "/admin-login";
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (!isLoggedIn && !isLoginPage) {
@@ -71,13 +72,26 @@ const App = () => {
     }
   }, [isLoggedIn, isLoginPage, navigate]);
 
+  const handleSidebarToggle = () => {
+  setIsSidebarOpen(prev => !prev);
+};
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div style={appStyle}>
-        {!isLoginPage && <Sidebar />}
+        {!isLoginPage && (
+          <Sidebar 
+            isOpen={isSidebarOpen} 
+            onToggle={handleSidebarToggle} 
+          />
+        )}
         <div style={contentStyle}>
-          {!isLoginPage && <Header />}
+          {!isLoginPage && (
+            <Header 
+              onMenuClick={handleSidebarToggle}
+            />
+          )}
           <div style={mainStyle}>
             <Routes>
               {/* Auth Routes */}
@@ -166,9 +180,11 @@ const contentStyle = {
 
 const mainStyle = {
   padding: "20px",
+  paddingTop: "90px",
   flexGrow: 1,
   overflowY: "auto",
   backgroundColor: "#f5f5f5",
 };
+
 
 export default App;

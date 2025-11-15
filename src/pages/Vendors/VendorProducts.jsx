@@ -165,168 +165,113 @@ const Products = ({ vendorId }) => {
   };
 
   const renderVariantTable = (product) => {
-  const tableStyle = {
-    fontSize: 13,
-    '& .MuiTableCell-root': {
-      padding: '6px 4px',
+    const tableStyle = {
       fontSize: 13,
-      whiteSpace: 'nowrap',
-    },
-  };
+      '& .MuiTableCell-root': {
+        padding: '6px 4px',
+        fontSize: 13,
+        whiteSpace: 'nowrap',
+      },
+    };
 
-  const ScrollBox = ({ children }) => (
-    <Box sx={{ overflowX: 'auto', maxWidth: 330 }}>{children}</Box>
-  );
-
-  // Handle Fashion products with variants (new structure)
-  if (product.store_type === 'fashion' && product.variants) {
-    return (
-      <ScrollBox>
-        <Table size="small" sx={tableStyle}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Size</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Stock</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {product.variants.map((v, i) => (
-              <TableRow key={i}>
-                <TableCell>{v.name}</TableCell>
-                <TableCell>Rs.{v.price}</TableCell>
-                <TableCell sx={{ color: v.is_in_stock ? 'success.main' : 'error.main' }}>
-                  {v.is_in_stock ? 'Available' : 'Out of Stock'}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollBox>
+    const ScrollBox = ({ children }) => (
+      <Box sx={{ overflowX: 'auto', maxWidth: 330 }}>{children}</Box>
     );
-  }
 
-  // Handle Fashion products with colors (old structure - keep for backward compatibility)
-  if (product.store_type === 'Fashion' && product.colors) {
-    return (
-      <ScrollBox>
-        <Table size="small" sx={tableStyle}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Color</TableCell>
-              <TableCell>Size</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Offer Price</TableCell>
-              <TableCell>Stock</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {product.colors.map((color) =>
-              color.sizes.map((s, i) => (
-                <TableRow key={`${color.color_name}-${i}`}>
-                  <TableCell>{color.color_name}</TableCell>
-                  <TableCell>{s.size}</TableCell>
-                  <TableCell>Rs.{s.price}</TableCell>
-                  <TableCell>Rs.{s.offer_price}</TableCell>
-                  <TableCell sx={{ color: s.stock > 0 ? 'success.main' : 'error.main' }}>
-                    {s.stock > 0 ? `${s.stock} Available` : 'Out of Stock'}
+    // Handle Restaurant products with variants
+    if (product.store_type === 'Restaurant' && product.variants) {
+      return (
+        <ScrollBox>
+          <Table size="small" sx={tableStyle}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Variant</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Stock</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {product.variants.map((v, i) => (
+                <TableRow key={i}>
+                  <TableCell>{v.name}</TableCell>
+                  <TableCell>Rs.{v.price}</TableCell>
+                  <TableCell sx={{ color: v.is_available === 'in stock' ? 'success.main' : 'error.main' }}>
+                    {v.is_available === 'in stock' ? 'In Stock' : 'Out of Stock'}
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </ScrollBox>
-    );
-  }
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollBox>
+      );
+    }
 
-  if (product.store_type === 'grocery' && product.weights) {
-    return (
-      <ScrollBox>
-        <Table size="small" sx={tableStyle}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Weight</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Stock</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {product.weights.map((w, i) => (
-              <TableRow key={i}>
-                <TableCell>{w.weight}</TableCell>
-                <TableCell>Rs.{w.price}</TableCell>
-                <TableCell>{w.quantity}</TableCell>
-                <TableCell sx={{ color: w.is_in_stock ? 'success.main' : 'error.main' }}>
-                  {w.is_in_stock ? 'Available' : 'Out of Stock'}
-                </TableCell>
+    // Handle Grocery products with weights
+    if (product.store_type === 'Grocery' && product.weights) {
+      return (
+        <ScrollBox>
+          <Table size="small" sx={tableStyle}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Weight</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Quantity</TableCell>
+                <TableCell>Stock</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollBox>
-    );
-  }
+            </TableHead>
+            <TableBody>
+              {product.weights.map((w, i) => (
+                <TableRow key={i}>
+                  <TableCell>{w.weight}</TableCell>
+                  <TableCell>Rs.{w.price}</TableCell>
+                  <TableCell>{w.quantity}</TableCell>
+                  <TableCell sx={{ color: w.is_in_stock ? 'success.main' : 'error.main' }}>
+                    {w.is_in_stock ? 'Available' : 'Out of Stock'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollBox>
+      );
+    }
 
-  // Handle Grocery products with variants instead of weights
-  if (product.store_type === 'Grocery' && product.variants) {
-    return (
-      <ScrollBox>
-        <Table size="small" sx={tableStyle}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Variant</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Stock</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {product.variants.map((v, i) => (
-              <TableRow key={i}>
-                <TableCell>{v.name || '-'}</TableCell>
-                <TableCell>Rs.{v.price}</TableCell>
-                <TableCell sx={{ color: v.is_in_stock ? 'success.main' : 'error.main' }}>
-                  {v.is_in_stock ? 'Available' : 'Out of Stock'}
-                </TableCell>
+    // Handle Fashion products with colors and sizes
+    if (product.store_type === 'Fashion' && product.colors) {
+      return (
+        <ScrollBox>
+          <Table size="small" sx={tableStyle}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Color</TableCell>
+                <TableCell>Size</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Offer Price</TableCell>
+                <TableCell>Stock</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollBox>
-    );
-  }
+            </TableHead>
+            <TableBody>
+              {product.colors.map((color) =>
+                color.sizes.map((s, i) => (
+                  <TableRow key={`${color.color_name}-${i}`}>
+                    <TableCell>{color.color_name}</TableCell>
+                    <TableCell>{s.size}</TableCell>
+                    <TableCell>Rs.{s.price}</TableCell>
+                    <TableCell>Rs.{s.offer_price}</TableCell>
+                    <TableCell sx={{ color: s.stock > 0 ? 'success.main' : 'error.main' }}>
+                      {s.stock > 0 ? `${s.stock} Available` : 'Out of Stock'}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </ScrollBox>
+      );
+    }
 
-  if (product.store_type === 'restaurant' && product.variants) {
-    return (
-      <ScrollBox>
-        <Table size="small" sx={tableStyle}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Variant</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Stock</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {product.variants.map((v, i) => (
-              <TableRow key={i}>
-                <TableCell>{v.name}</TableCell>
-                <TableCell>Rs.{v.price}</TableCell>
-                <TableCell sx={{ color: v.is_in_stock ? 'success.main' : 'error.main' }}>
-                  {v.is_in_stock ? 'Available' : 'Out of Stock'}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollBox>
-    );
-  }
-
-  return <Typography variant="body2" color="text.secondary">-</Typography>;
-};
-
+    return <Typography variant="body2" color="text.secondary">-</Typography>;
+  };
 
   return (
     <Box sx={{ mt: 3 }}>
