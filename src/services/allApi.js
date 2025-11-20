@@ -1970,100 +1970,100 @@ export const approveSubcategoryRequest = async (id, action) => {
 };
 
 
-/**
- * Get delivery boy assigned to an order
- * @param {string} orderId - The order ID
- * @returns {Promise} Response with delivery boy data
- */
-export const getDeliveryBoyForOrder = async (orderId) => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
+// /**
+//  * Get delivery boy assigned to an order
+//  * @param {string} orderId - The order ID
+//  * @returns {Promise} Response with delivery boy data
+//  */
+// export const getDeliveryBoyForOrder = async (orderId) => {
+//   try {
+//     const token = localStorage.getItem("access_token");
+//     if (!token) {
+//       throw new Error("Authentication token is missing");
+//     }
     
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
+//     const headers = {
+//       Authorization: `Bearer ${token}`,
+//     };
     
-    const response = await commonApi(
-      "GET",
-      `${BASE_URL}/cart/orders/${orderId}/delivery-boy/`,
-      headers
-    );
+//     const response = await commonApi(
+//       "GET",
+//       `${BASE_URL}/cart/orders/${orderId}/delivery-boy/`,
+//       headers
+//     );
     
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching delivery boy:', error);
-    throw error;
-  }
-};
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error fetching delivery boy:', error);
+//     throw error;
+//   }
+// };
 
-/**
- * Assign a delivery boy to an order
- * @param {string} orderId - The order ID
- * @param {number} deliveryBoyId - The delivery boy ID
- * @param {string} message - Optional message
- * @returns {Promise} Response with assignment status
- */
-export const assignDeliveryBoy = async (orderId, deliveryBoyId, message = '') => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
+// /**
+//  * Assign a delivery boy to an order
+//  * @param {string} orderId - The order ID
+//  * @param {number} deliveryBoyId - The delivery boy ID
+//  * @param {string} message - Optional message
+//  * @returns {Promise} Response with assignment status
+//  */
+// export const assignDeliveryBoy = async (orderId, deliveryBoyId, message = '') => {
+//   try {
+//     const token = localStorage.getItem("access_token");
+//     if (!token) {
+//       throw new Error("Authentication token is missing");
+//     }
     
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
+//     const headers = {
+//       Authorization: `Bearer ${token}`,
+//       "Content-Type": "application/json",
+//     };
     
-    const body = JSON.stringify({
-      delivery_boy_id: deliveryBoyId,
-      message: message || `New order #${orderId} assigned to you`,
-    });
+//     const body = JSON.stringify({
+//       delivery_boy_id: deliveryBoyId,
+//       message: message || `New order #${orderId} assigned to you`,
+//     });
     
-    const response = await commonApi(
-      "POST",
-      `${BASE_URL}/cart/orders/${orderId}/assign-delivery-boy/`,
-      body,
-      { headers }
-    );
+//     const response = await commonApi(
+//       "POST",
+//       `${BASE_URL}/cart/orders/${orderId}/assign-delivery-boy/`,
+//       body,
+//       { headers }
+//     );
     
-    return response.data;
-  } catch (error) {
-    console.error('Error assigning delivery boy:', error);
-    throw error;
-  }
-};
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error assigning delivery boy:', error);
+//     throw error;
+//   }
+// };
 
-/**
- * Get list of available delivery boys
- * @returns {Promise} Response with available delivery boys
- */
-export const getAvailableDeliveryBoys = async () => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
+// /**
+//  * Get list of available delivery boys
+//  * @returns {Promise} Response with available delivery boys
+//  */
+// export const getAvailableDeliveryBoys = async () => {
+//   try {
+//     const token = localStorage.getItem("access_token");
+//     if (!token) {
+//       throw new Error("Authentication token is missing");
+//     }
     
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
+//     const headers = {
+//       Authorization: `Bearer ${token}`,
+//     };
     
-    const response = await commonApi(
-      "GET",
-      `${BASE_URL}/delivery/delivery-boys/available/`,
-      headers
-    );
+//     const response = await commonApi(
+//       "GET",
+//       `${BASE_URL}/delivery/delivery-boys/available/`,
+//       headers
+//     );
     
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching available delivery boys:', error);
-    throw error;
-  }
-};
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error fetching available delivery boys:', error);
+//     throw error;
+//   }
+// };
 
 
 
@@ -2294,6 +2294,116 @@ export const calculateDeliveryCharge = async (distance, isNight = false) => {
     return response.data || response;
   } catch (error) {
     console.error('Failed to calculate delivery charge', error);
+    throw error;
+  }
+};
+
+
+
+
+
+
+
+
+
+/**
+ * Get available delivery boys for an order based on location radius
+ * @param {string} orderId - The order ID
+ * @param {number} radius - Search radius in kilometers (optional, default: 10)
+ * @returns {Promise} - API response with available delivery boys
+ */
+export const getAvailableDeliveryBoys = async (orderId, radius = 10) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'GET',
+      `${BASE_URL}/delivery/orders/${orderId}/available-delivery-boys/?radius=${radius}`,
+      "",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error(`Failed to fetch available delivery boys for order ${orderId}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Assign a delivery boy to an order
+ * @param {string} orderId - The order ID
+ * @param {number} deliveryBoyId - The delivery boy ID to assign
+ * @param {string} message - Optional notification message
+ * @returns {Promise} - API response with assignment details
+ */
+export const assignDeliveryBoy = async (orderId, deliveryBoyId, message = null) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const payload = {
+      delivery_boy_id: deliveryBoyId,
+    };
+
+    if (message) {
+      payload.message = message;
+    }
+
+    const response = await commonApi(
+      'POST',
+      `${BASE_URL}/delivery/orders/${orderId}/assign-delivery-boy/`,
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error(`Failed to assign delivery boy to order ${orderId}`, error);
+    throw error;
+  }
+};
+
+/**
+ * Get the assigned delivery boy for a specific order
+ * @param {string} orderId - The order ID
+ * @returns {Promise} - API response with delivery boy details
+ */
+export const getDeliveryBoyForOrder = async (orderId) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("Authentication token is missing");
+    }
+
+    const response = await commonApi(
+      'GET',
+      `${BASE_URL}/delivery/orders/${orderId}/delivery-boy/`,
+      "",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response;
+  } catch (error) {
+    console.error(`Failed to fetch delivery boy for order ${orderId}`, error);
     throw error;
   }
 };

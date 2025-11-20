@@ -8,9 +8,6 @@ import {
   Paper,
   FormControl,
   FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   MenuItem,
   Select,
 } from "@mui/material";
@@ -18,61 +15,179 @@ import { CloudUploadOutlined } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { addsubCategory, viewCategory } from "../../services/allApi";
+import { useNavigate } from "react-router-dom";
 
 const AddSubCategory = () => {
+  const MAX_SUBCATEGORY_NAME_LENGTH = 50;
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: "",
     subcategory_image: null,
     category: "",
-    is_active: true,
   });
 
   const [categories, setCategories] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [nameError, setNameError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const categoryData = await viewCategory();
-      // Fix: Extract the results array from the paginated response
-      setCategories(categoryData.results || []);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      toast.error("Failed to load categories.");
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoryData = await viewCategory();
+        setCategories(categoryData.results || []);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories.");
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const validateSubcategoryName = (value) => {
+    // Check if empty
+    if (!value.trim()) {
+      setNameError("");
+      return false;
     }
+
+    // Check for numbers
+    if (/\d/.test(value)) {
+      setNameError("Subcategory name should not contain numbers");
+      return false;
+    }
+
+    // Check for special characters (allow only letters, spaces, hyphens, and apostrophes)
+    if (!/^[a-zA-Z\s'-]+$/.test(value)) {
+      setNameError("Subcategory name should only contain letters, spaces, hyphens, and apostrophes");
+      return false;
+    }
+
+    // Check max length
+    if (value.length > MAX_SUBCATEGORY_NAME_LENGTH) {
+      setNameError(`Subcategory name should not exceed ${MAX_SUBCATEGORY_NAME_LENGTH} characters`);
+      return false;
+    }
+
+    setNameError("");
+    return true;
   };
-  fetchCategories();
-}, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === "name") {
+      // Prevent input if it would exceed max length
+      if (value.length > MAX_SUBCATEGORY_NAME_LENGTH) {
+        return;
+      }
+      
+      // Validate the name
+      validateSubcategoryName(value);
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "is_active" ? value === "true" : value,
+      [name]: value,
     }));
   };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    setFormData((prev) => ({ ...prev, subcategory_image: file }));
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload a valid image file.");
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB.");
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, subcategory_image: file }));
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleCancel = () => {
+    navigate("/subcategory");
   };
 
   const handleSubmit = async () => {
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Please enter a subcategory name.");
+      setNameError("Subcategory name is required");
+      return;
+    }
+
+    // Validate subcategory name format
+    if (!validateSubcategoryName(formData.name)) {
+      toast.error("Please enter a valid subcategory name.");
+      return;
+    }
+
+    if (!formData.subcategory_image) {
+      toast.error("Please upload a subcategory image.");
+      return;
+    }
+
+    if (!formData.category) {
+      toast.error("Please select a category.");
+      return;
+    }
+
     try {
+      setLoading(true);
       const reqBody = new FormData();
-      reqBody.append("name", formData.name);
-      reqBody.append("subcategory_image", formData.subcategory_image);
+      reqBody.append("name", formData.name.trim());
+      reqBody.append("sub_category_image", formData.subcategory_image);
       reqBody.append("category", formData.category);
+      reqBody.append("is_active", true);
 
       const res = await addsubCategory(reqBody);
       console.log(res);
 
       toast.success("Subcategory added successfully!");
-      setFormData({ name: "", subcategory_image: null, category: "", is_active: true });
+      
+      // Redirect to subcategory listing page
+      navigate("/view-subcategory");
     } catch (error) {
       console.error("Error adding subcategory:", error);
-      toast.error("Failed to add subcategory.");
+      
+      // Handle duplicate subcategory error
+      if (error.response?.data?.non_field_errors) {
+        const errorMessage = error.response.data.non_field_errors[0];
+        if (errorMessage.includes("must make a unique set")) {
+          toast.error("This subcategory already exists in the selected category!");
+        } else {
+          toast.error(errorMessage);
+        }
+      } else if (error.response?.data?.name) {
+        // Handle name-specific errors
+        toast.error(error.response.data.name[0]);
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to add subcategory. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   return (
     <Box sx={{ px: 4, py: 4 }}>
@@ -102,7 +217,7 @@ useEffect(() => {
             <Box
               onClick={() => document.getElementById("image-upload").click()}
               sx={{
-                border: "2px dashed #ccc",
+                border: "2px dashed #c4c4c4",
                 borderRadius: 2,
                 height: 200,
                 display: "flex",
@@ -112,13 +227,13 @@ useEffect(() => {
                 cursor: "pointer",
                 transition: "border-color 0.3s",
                 "&:hover": {
-                  borderColor: "primary.main",
+                  borderColor: "#1976d2",
                 },
               }}
             >
-              {formData.subcategory_image ? (
+              {imagePreview ? (
                 <img
-                  src={URL.createObjectURL(formData.subcategory_image)}
+                  src={imagePreview}
                   alt="Thumbnail"
                   style={{
                     maxHeight: "100%",
@@ -169,22 +284,18 @@ useEffect(() => {
               variant="outlined"
               sx={{ mb: 3 }}
               placeholder="Type subcategory name here..."
+              required
+              error={!!nameError}
+              helperText={
+                nameError || 
+                `${formData.name.length}/${MAX_SUBCATEGORY_NAME_LENGTH} characters (only letters allowed)`
+              }
+              inputProps={{
+                maxLength: MAX_SUBCATEGORY_NAME_LENGTH,
+              }}
             />
 
-            <FormControl component="fieldset" sx={{ mb: 3 }}>
-              <FormLabel component="legend">Is Active</FormLabel>
-              <RadioGroup
-                name="is_active"
-                value={formData.is_active.toString()}
-                onChange={handleInputChange}
-                row
-              >
-                <FormControlLabel value="true" control={<Radio />} label="Yes" />
-                <FormControlLabel value="false" control={<Radio />} label="No" />
-              </RadioGroup>
-            </FormControl>
-
-            <FormControl fullWidth sx={{ mb: 3 }}>
+            <FormControl fullWidth sx={{ mb: 3 }} required>
               <FormLabel>Category</FormLabel>
               <Select
                 name="category"
@@ -208,11 +319,22 @@ useEffect(() => {
 
       {/* Footer Buttons */}
       <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
-        <Button variant="outlined" size="large">
+        <Button 
+          variant="outlined" 
+          size="large"
+          onClick={handleCancel}
+          disabled={loading}
+        >
           Cancel
         </Button>
-        <Button variant="contained" color="primary" size="large" onClick={handleSubmit}>
-          + Add Sub Category
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="large" 
+          onClick={handleSubmit}
+          disabled={loading || !!nameError}
+        >
+          {loading ? "Adding..." : "+ Add Sub Category"}
         </Button>
       </Box>
     </Box>
