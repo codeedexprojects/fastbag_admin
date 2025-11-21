@@ -28,6 +28,7 @@ import {
   ListItem,
   ListItemText,
   ListItemAvatar,
+  Alert,
 } from '@mui/material';
 import {
   Clock,
@@ -54,6 +55,9 @@ import {
 import html2pdf from 'html2pdf.js';
 import { IosShare } from '@mui/icons-material';
 
+// ✨ IMPORTANT: Replace with your actual Google Maps API Key
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
 const OrderDetails = () => {
   const [loading, setLoading] = useState(false);
   const { orderId } = useParams();
@@ -62,35 +66,71 @@ const OrderDetails = () => {
   const [deliveryBoy, setDeliveryBoy] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [availableDeliveryBoys, setAvailableDeliveryBoys] = useState([]);
   const [selectedDeliveryBoy, setSelectedDeliveryBoy] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const invoiceRef = useRef();
   const mapRef = useRef(null);
+
+  // ✨ Load Google Maps Script
+  useEffect(() => {
+    if (window.google && window.google.maps) {
+      setMapLoaded(true);
+      return;
+    }
+
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      const checkGoogleMaps = setInterval(() => {
+        if (window.google && window.google.maps) {
+          setMapLoaded(true);
+          clearInterval(checkGoogleMaps);
+        }
+      }, 100);
+      
+      setTimeout(() => clearInterval(checkGoogleMaps), 10000);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      console.log('Google Maps loaded successfully');
+      setMapLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load Google Maps');
+    };
+    document.head.appendChild(script);
+  }, []);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
         setLoading(true);
         const data = await viewSpecificOrder(orderId);
+        console.log('Order details:', data);
         setOrderDetails(data);
         
-        // Set vendors
         if (data.vendor_details) {
           setVendors(data.vendor_details);
         }
         
-        // Set user location
         if (data.user_location) {
+          console.log('User location from address:', data.user_location);
           setUserLocation(data.user_location);
         }
         
-        // Set delivery boy
-        if (data.delivery_boy) {
-          setDeliveryBoy(data.delivery_boy);
-        }
+        // Fetch delivery boy assignment
+        await fetchDeliveryBoy();
       } catch (error) {
         console.error('Error fetching order details:', error);
+        setErrorMessage('Failed to load order details');
       } finally {
         setLoading(false);
       }
@@ -98,81 +138,111 @@ const OrderDetails = () => {
     fetchOrderDetails();
   }, [orderId]);
 
+  const fetchDeliveryBoy = async () => {
+    try {
+      const response = await getDeliveryBoyForOrder(orderId);
+      if (response.success && response.delivery_boy) {
+        setDeliveryBoy(response.delivery_boy);
+      }
+    } catch (error) {
+      console.error('Error fetching delivery boy:', error);
+    }
+  };
+
   useEffect(() => {
     if (orderDetails.order_status) {
       setOrderStatus(orderDetails.order_status);
     }
   }, [orderDetails]);
 
-  // Initialize map when user location is available
   useEffect(() => {
-    if (userLocation && userLocation.latitude && userLocation.longitude) {
+    if (mapLoaded && userLocation && userLocation.latitude && userLocation.longitude) {
+      console.log('Initializing map with location:', userLocation);
       initializeMap();
     }
-  }, [userLocation, vendors, deliveryBoy]);
+  }, [mapLoaded, userLocation, vendors, deliveryBoy]);
 
   const initializeMap = () => {
-    // Check if Google Maps is loaded
-    if (!window.google) {
+    if (!window.google || !window.google.maps) {
       console.error('Google Maps not loaded');
       return;
     }
 
-    const mapOptions = {
-      zoom: 13,
-      center: {
-        lat: parseFloat(userLocation.latitude),
-        lng: parseFloat(userLocation.longitude),
-      },
-      mapTypeControl: true,
-    };
+    if (!mapRef.current) {
+      console.error('Map container not found');
+      return;
+    }
 
-    const map = new window.google.maps.Map(mapRef.current, mapOptions);
+    try {
+      const mapOptions = {
+        zoom: 13,
+        center: {
+          lat: parseFloat(userLocation.latitude),
+          lng: parseFloat(userLocation.longitude),
+        },
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControl: true,
+      };
 
-    // Add user location marker
-    new window.google.maps.Marker({
-      position: {
-        lat: parseFloat(userLocation.latitude),
-        lng: parseFloat(userLocation.longitude),
-      },
-      map: map,
-      title: 'User Location',
-      icon: {
-        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-      },
-    });
+      const map = new window.google.maps.Map(mapRef.current, mapOptions);
 
-    // Add vendor markers
-    vendors.forEach((vendor, index) => {
-      if (vendor.latitude && vendor.longitude) {
+      // Add user/delivery location marker (Blue)
+      new window.google.maps.Marker({
+        position: {
+          lat: parseFloat(userLocation.latitude),
+          lng: parseFloat(userLocation.longitude),
+        },
+        map: map,
+        title: 'Delivery Location',
+        icon: {
+          url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+        },
+      });
+
+      // Add vendor markers (Red)
+      if (vendors && vendors.length > 0) {
+        vendors.forEach((vendor, index) => {
+          if (vendor.latitude && vendor.longitude) {
+            new window.google.maps.Marker({
+              position: {
+                lat: parseFloat(vendor.latitude),
+                lng: parseFloat(vendor.longitude),
+              },
+              map: map,
+              title: vendor.business_name,
+              label: {
+                text: (index + 1).toString(),
+                color: 'white',
+                fontWeight: 'bold'
+              },
+              icon: {
+                url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+              },
+            });
+          }
+        });
+      }
+
+      // Add delivery boy marker if assigned (Green)
+      if (deliveryBoy && deliveryBoy.current_latitude && deliveryBoy.current_longitude) {
         new window.google.maps.Marker({
           position: {
-            lat: parseFloat(vendor.latitude),
-            lng: parseFloat(vendor.longitude),
+            lat: parseFloat(deliveryBoy.current_latitude),
+            lng: parseFloat(deliveryBoy.current_longitude),
           },
           map: map,
-          title: vendor.business_name,
-          label: (index + 1).toString(),
+          title: `Delivery Boy: ${deliveryBoy.name}`,
           icon: {
-            url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
           },
         });
       }
-    });
 
-    // Add delivery boy marker if assigned
-    if (deliveryBoy && deliveryBoy.current_latitude && deliveryBoy.current_longitude) {
-      new window.google.maps.Marker({
-        position: {
-          lat: parseFloat(deliveryBoy.current_latitude),
-          lng: parseFloat(deliveryBoy.current_longitude),
-        },
-        map: map,
-        title: `Delivery Boy: ${deliveryBoy.name}`,
-        icon: {
-          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-        },
-      });
+      console.log('Map initialized successfully');
+    } catch (error) {
+      console.error('Error initializing map:', error);
     }
   };
 
@@ -210,7 +280,6 @@ const OrderDetails = () => {
     lines.push([orderDetails.shipping_address || '']);
     lines.push(['']);
 
-    // Add vendor details
     if (vendors.length > 0) {
       lines.push(['Vendor Details']);
       vendors.forEach((vendor, index) => {
@@ -221,7 +290,6 @@ const OrderDetails = () => {
       lines.push(['']);
     }
 
-    // Add delivery boy details
     if (deliveryBoy) {
       lines.push(['Delivery Boy Details']);
       lines.push(['Name', deliveryBoy.name]);
@@ -292,22 +360,37 @@ const OrderDetails = () => {
       const res = await updateOrderStatus(reqBody, orderDetails.order_id);
       if (res.status === 200) {
         setOrderStatus(newValue);
+        setSuccessMessage('Order status updated successfully');
+        setTimeout(() => setSuccessMessage(''), 3000);
       }
     } catch (error) {
       console.error('Error updating order status:', error);
+      setErrorMessage('Failed to update order status');
+      setTimeout(() => setErrorMessage(''), 3000);
     }
   };
 
   const handleOpenAssignDialog = async () => {
     try {
       setLoading(true);
-      const response = await getAvailableDeliveryBoys();
+      setErrorMessage('');
+      
+      // Pass orderId to the API call
+      const response = await getAvailableDeliveryBoys(orderId);
+      
       if (response.success) {
-        setAvailableDeliveryBoys(response.delivery_boys);
-        setAssignDialogOpen(true);
+        if (response.delivery_boys && response.delivery_boys.length > 0) {
+          setAvailableDeliveryBoys(response.delivery_boys);
+          setAssignDialogOpen(true);
+        } else {
+          setErrorMessage('No delivery boys available within the delivery radius');
+        }
+      } else {
+        setErrorMessage(response.message || 'Failed to fetch available delivery boys');
       }
     } catch (error) {
       console.error('Error fetching delivery boys:', error);
+      setErrorMessage('Failed to fetch available delivery boys. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -318,19 +401,31 @@ const OrderDetails = () => {
 
     try {
       setLoading(true);
+      setErrorMessage('');
+      
       const response = await assignDeliveryBoy(
-        orderDetails.order_id,
+        orderId,
         selectedDeliveryBoy,
-        `New order #${orderDetails.order_id} assigned to you`
+        `New order #${orderId} assigned to you`
       );
 
       if (response.success) {
         setDeliveryBoy(response.delivery_boy);
         setAssignDialogOpen(false);
         setSelectedDeliveryBoy('');
+        setSuccessMessage('Delivery boy assigned successfully');
+        setTimeout(() => setSuccessMessage(''), 3000);
+        
+        // Refresh map
+        if (mapLoaded && userLocation) {
+          setTimeout(() => initializeMap(), 500);
+        }
+      } else {
+        setErrorMessage(response.message || 'Failed to assign delivery boy');
       }
     } catch (error) {
       console.error('Error assigning delivery boy:', error);
+      setErrorMessage('Failed to assign delivery boy. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -338,6 +433,18 @@ const OrderDetails = () => {
 
   return (
     <Box p={3}>
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
+          {successMessage}
+        </Alert>
+      )}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMessage('')}>
+          {errorMessage}
+        </Alert>
+      )}
+
       <Typography variant="h4" mb={3}>
         Order Details
       </Typography>
@@ -444,7 +551,7 @@ const OrderDetails = () => {
                   <Mail size={20} style={{ marginRight: 8 }} />
                   <Typography variant="body2">Email</Typography>
                   <Typography variant="body2" sx={{ ml: 'auto' }}>
-                    {orderDetails.user_name}
+                    {orderDetails.user_email}
                   </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" mt={2}>
@@ -540,7 +647,7 @@ const OrderDetails = () => {
           </Grid>
         )}
 
-        {/* Delivery Boy Section */}
+        {/* Delivery Boy and Map Section */}
         <Grid container spacing={3} mt={2}>
           <Grid item xs={12} md={6}>
             <Card sx={{ boxShadow: '0 1px 10px rgba(0, 0, 0, 0.1)' }}>
@@ -598,6 +705,11 @@ const OrderDetails = () => {
                       <strong>Vehicle:</strong> {deliveryBoy.vehicle_type} (
                       {deliveryBoy.vehicle_number})
                     </Typography>
+                    {deliveryBoy.place && (
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Location:</strong> {deliveryBoy.place}
+                      </Typography>
+                    )}
                   </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
@@ -616,7 +728,24 @@ const OrderDetails = () => {
                   <Navigation size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
                   Delivery Map
                 </Typography>
-                {userLocation && userLocation.latitude && userLocation.longitude ? (
+                {!mapLoaded ? (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 300,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" color="text.secondary" ml={2}>
+                      Loading map...
+                    </Typography>
+                  </Box>
+                ) : userLocation && userLocation.latitude && userLocation.longitude ? (
                   <Box
                     ref={mapRef}
                     sx={{
@@ -639,7 +768,7 @@ const OrderDetails = () => {
                     }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      User location not available
+                      Delivery location not available
                     </Typography>
                   </Box>
                 )}
@@ -648,7 +777,7 @@ const OrderDetails = () => {
                     <Box component="span" sx={{ color: '#4285F4' }}>
                       ● Blue
                     </Box>{' '}
-                    - User Location |{' '}
+                    - Delivery Location |{' '}
                     <Box component="span" sx={{ color: '#EA4335' }}>
                       ● Red
                     </Box>{' '}
@@ -743,45 +872,55 @@ const OrderDetails = () => {
           <Typography variant="body2" color="text.secondary" mb={2}>
             Select a delivery boy to assign to this order
           </Typography>
-          <List>
-            {availableDeliveryBoys.map((boy) => (
-              <ListItem
-                key={boy.id}
-                button
-                selected={selectedDeliveryBoy === boy.id}
-                onClick={() => setSelectedDeliveryBoy(boy.id)}
-                sx={{
-                  border: '1px solid',
-                  borderColor: selectedDeliveryBoy === boy.id ? 'primary.main' : 'divider',
-                  borderRadius: 1,
-                  mb: 1,
-                }}
-              >
-                <ListItemAvatar>
-                  <Avatar src={boy.profile_image} alt={boy.name} />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={boy.name}
-                  secondary={
-                    <>
-                      <Typography variant="body2" component="span">
-                        {boy.phone_number}
-                      </Typography>
-                      <br />
-                      <Typography variant="caption" component="span">
-                        {boy.vehicle_type} - {boy.vehicle_number}
-                      </Typography>
-                    </>
-                  }
-                />
-                <Chip
-                  label={boy.is_available ? 'Available' : 'Busy'}
-                  size="small"
-                  color={boy.is_available ? 'success' : 'warning'}
-                />
-              </ListItem>
-            ))}
-          </List>
+          {availableDeliveryBoys.length > 0 ? (
+            <List>
+              {availableDeliveryBoys.map((boy) => (
+                <ListItem
+                  key={boy.id}
+                  button
+                  selected={selectedDeliveryBoy === boy.id}
+                  onClick={() => setSelectedDeliveryBoy(boy.id)}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: selectedDeliveryBoy === boy.id ? 'primary.main' : 'divider',
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={boy.profile_image} alt={boy.name} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={boy.name}
+                    secondary={
+                      <>
+                        <Typography variant="body2" component="span">
+                          {boy.phone_number}
+                        </Typography>
+                        <br />
+                        <Typography variant="caption" component="span">
+                          {boy.vehicle_type} - {boy.vehicle_number}
+                        </Typography>
+                        <br />
+                        <Typography variant="caption" component="span" color="primary">
+                          Distance: {boy.distance_km} km
+                        </Typography>
+                      </>
+                    }
+                  />
+                  <Chip
+                    label={boy.is_available ? 'Available' : 'Busy'}
+                    size="small"
+                    color={boy.is_available ? 'success' : 'warning'}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
+              No delivery boys available within the delivery radius
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>

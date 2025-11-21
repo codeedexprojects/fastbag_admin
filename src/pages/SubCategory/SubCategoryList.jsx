@@ -317,7 +317,7 @@ useEffect(() => {
                     "&:hover": { backgroundColor: "#f1f1f1" },
                   }}
                 >
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                   <TableCell>
                     <img
                       src={subcategory.sub_category_image}

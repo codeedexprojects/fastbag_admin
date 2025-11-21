@@ -17,6 +17,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { addCategory, viewStores } from "../../services/allApi";
 
 const AddCategory = () => {
+  const MAX_CATEGORY_NAME_LENGTH = 50;
+  
   const [formData, setFormData] = useState({
     name: "",
     category_image: null,
@@ -26,6 +28,7 @@ const AddCategory = () => {
   const [storeTypes, setStoreTypes] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState("");
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -40,8 +43,48 @@ const AddCategory = () => {
     fetchStores();
   }, []);
 
+  const validateCategoryName = (value) => {
+    // Check if empty
+    if (!value.trim()) {
+      setNameError("");
+      return false;
+    }
+
+    // Check for numbers
+    if (/\d/.test(value)) {
+      setNameError("Category name should not contain numbers");
+      return false;
+    }
+
+    // Check for special characters (allow only letters, spaces, hyphens, and apostrophes)
+    if (!/^[a-zA-Z\s'-]+$/.test(value)) {
+      setNameError("Category name should only contain letters, spaces, hyphens, and apostrophes");
+      return false;
+    }
+
+    // Check max length
+    if (value.length > MAX_CATEGORY_NAME_LENGTH) {
+      setNameError(`Category name should not exceed ${MAX_CATEGORY_NAME_LENGTH} characters`);
+      return false;
+    }
+
+    setNameError("");
+    return true;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === "name") {
+      // Prevent input if it would exceed max length
+      if (value.length > MAX_CATEGORY_NAME_LENGTH) {
+        return;
+      }
+      
+      // Validate the name
+      validateCategoryName(value);
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -68,6 +111,7 @@ const AddCategory = () => {
   const handleCancel = () => {
     setFormData({ name: "", category_image: null, store_type: "" });
     setImagePreview(null);
+    setNameError("");
     // Reset file input
     const fileInput = document.getElementById("image-upload");
     if (fileInput) fileInput.value = "";
@@ -77,6 +121,13 @@ const AddCategory = () => {
     // Validation
     if (!formData.name.trim()) {
       toast.error("Please enter a category name.");
+      setNameError("Category name is required");
+      return;
+    }
+
+    // Validate category name format
+    if (!validateCategoryName(formData.name)) {
+      toast.error("Please enter a valid category name.");
       return;
     }
 
@@ -93,7 +144,7 @@ const AddCategory = () => {
     try {
       setLoading(true);
       const reqBody = new FormData();
-      reqBody.append("name", formData.name);
+      reqBody.append("name", formData.name.trim());
       reqBody.append("category_image", formData.category_image);
       reqBody.append("store_type", formData.store_type);
 
@@ -209,6 +260,14 @@ const AddCategory = () => {
               variant="outlined"
               sx={{ mb: 3 }}
               required
+              error={!!nameError}
+              helperText={
+                nameError || 
+                `${formData.name.length}/${MAX_CATEGORY_NAME_LENGTH} characters (only letters allowed)`
+              }
+              inputProps={{
+                maxLength: MAX_CATEGORY_NAME_LENGTH,
+              }}
             />
 
             <FormControl fullWidth required>
@@ -246,7 +305,7 @@ const AddCategory = () => {
           startIcon={<Add />} 
           size="large" 
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !!nameError}
         >
           {loading ? "Adding..." : "Add Category"}
         </Button>
