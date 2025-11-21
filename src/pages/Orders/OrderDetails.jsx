@@ -55,7 +55,6 @@ import {
 import html2pdf from 'html2pdf.js';
 import { IosShare } from '@mui/icons-material';
 
-// ✨ IMPORTANT: Replace with your actual Google Maps API Key
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 const OrderDetails = () => {
@@ -75,7 +74,7 @@ const OrderDetails = () => {
   const invoiceRef = useRef();
   const mapRef = useRef(null);
 
-  // ✨ Load Google Maps Script
+  // Load Google Maps Script
   useEffect(() => {
     if (window.google && window.google.maps) {
       setMapLoaded(true);
@@ -126,7 +125,6 @@ const OrderDetails = () => {
           setUserLocation(data.user_location);
         }
         
-        // Fetch delivery boy assignment
         await fetchDeliveryBoy();
       } catch (error) {
         console.error('Error fetching order details:', error);
@@ -139,15 +137,21 @@ const OrderDetails = () => {
   }, [orderId]);
 
   const fetchDeliveryBoy = async () => {
-    try {
-      const response = await getDeliveryBoyForOrder(orderId);
-      if (response.success && response.delivery_boy) {
-        setDeliveryBoy(response.delivery_boy);
-      }
-    } catch (error) {
-      console.error('Error fetching delivery boy:', error);
+  try {
+    const response = await getDeliveryBoyForOrder(orderId);
+    console.log('Fetch delivery boy response:', response);
+    
+    // Check if response is successful and has delivery_boy data
+    if (response && response.success && response.delivery_boy) {
+      setDeliveryBoy(response.delivery_boy);
+    } else if (response && response.success && !response.delivery_boy) {
+      // Successfully fetched but no delivery boy assigned
+      setDeliveryBoy(null);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching delivery boy:', error);
+  }
+};
 
   useEffect(() => {
     if (orderDetails.order_status) {
@@ -226,11 +230,11 @@ const OrderDetails = () => {
       }
 
       // Add delivery boy marker if assigned (Green)
-      if (deliveryBoy && deliveryBoy.current_latitude && deliveryBoy.current_longitude) {
+      if (deliveryBoy && deliveryBoy.base_latitude && deliveryBoy.base_longitude) {
         new window.google.maps.Marker({
           position: {
-            lat: parseFloat(deliveryBoy.current_latitude),
-            lng: parseFloat(deliveryBoy.current_longitude),
+            lat: parseFloat(deliveryBoy.base_latitude),
+            lng: parseFloat(deliveryBoy.base_longitude),
           },
           map: map,
           title: `Delivery Boy: ${deliveryBoy.name}`,
@@ -371,65 +375,80 @@ const OrderDetails = () => {
   };
 
   const handleOpenAssignDialog = async () => {
-    try {
-      setLoading(true);
-      setErrorMessage('');
-      
-      // Pass orderId to the API call
-      const response = await getAvailableDeliveryBoys(orderId);
-      
-      if (response.success) {
-        if (response.delivery_boys && response.delivery_boys.length > 0) {
-          setAvailableDeliveryBoys(response.delivery_boys);
-          setAssignDialogOpen(true);
-        } else {
-          setErrorMessage('No delivery boys available within the delivery radius');
-        }
+  try {
+    setLoading(true);
+    setErrorMessage('');
+    
+    const response = await getAvailableDeliveryBoys(orderId);
+    console.log('Available delivery boys response:', response);
+    
+    // Check if response exists and has the success property
+    if (response && response.success) {
+      // Check if delivery_boys array exists and has items
+      if (response.delivery_boys && Array.isArray(response.delivery_boys) && response.delivery_boys.length > 0) {
+        setAvailableDeliveryBoys(response.delivery_boys);
+        setAssignDialogOpen(true);
       } else {
-        setErrorMessage(response.message || 'Failed to fetch available delivery boys');
+        setErrorMessage('No delivery boys available within the delivery radius');
       }
-    } catch (error) {
-      console.error('Error fetching delivery boys:', error);
-      setErrorMessage('Failed to fetch available delivery boys. Please try again.');
-    } finally {
-      setLoading(false);
+    } else {
+      setErrorMessage(response?.message || 'Failed to fetch available delivery boys');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching delivery boys:', error);
+    setErrorMessage('Failed to fetch available delivery boys. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleAssignDeliveryBoy = async () => {
-    if (!selectedDeliveryBoy) return;
+  if (!selectedDeliveryBoy) {
+    setErrorMessage('Please select a delivery boy');
+    return;
+  }
 
-    try {
-      setLoading(true);
-      setErrorMessage('');
-      
-      const response = await assignDeliveryBoy(
-        orderId,
-        selectedDeliveryBoy,
-        `New order #${orderId} assigned to you`
-      );
+  try {
+    setLoading(true);
+    setErrorMessage('');
+    
+    const response = await assignDeliveryBoy(
+      orderId,
+      selectedDeliveryBoy,
+      `New order #${orderId} assigned to you`
+    );
 
-      if (response.success) {
+    console.log('Assign delivery boy response:', response);
+
+    if (response && response.success) {
+      // Update delivery boy state with the response data
+      if (response.delivery_boy) {
         setDeliveryBoy(response.delivery_boy);
-        setAssignDialogOpen(false);
-        setSelectedDeliveryBoy('');
-        setSuccessMessage('Delivery boy assigned successfully');
-        setTimeout(() => setSuccessMessage(''), 3000);
-        
-        // Refresh map
-        if (mapLoaded && userLocation) {
-          setTimeout(() => initializeMap(), 500);
-        }
-      } else {
-        setErrorMessage(response.message || 'Failed to assign delivery boy');
       }
-    } catch (error) {
-      console.error('Error assigning delivery boy:', error);
-      setErrorMessage('Failed to assign delivery boy. Please try again.');
-    } finally {
-      setLoading(false);
+      
+      // Close dialog and reset selection
+      setAssignDialogOpen(false);
+      setSelectedDeliveryBoy('');
+      setSuccessMessage('Delivery boy assigned successfully');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      
+      // Refresh delivery boy data from the API to ensure we have the latest info
+      await fetchDeliveryBoy();
+      
+      // Refresh map
+      if (mapLoaded && userLocation) {
+        setTimeout(() => initializeMap(), 500);
+      }
+    } else {
+      setErrorMessage(response?.message || 'Failed to assign delivery boy');
     }
-  };
+  } catch (error) {
+    console.error('Error assigning delivery boy:', error);
+    setErrorMessage('Failed to assign delivery boy. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box p={3}>
@@ -863,7 +882,11 @@ const OrderDetails = () => {
       {/* Assign Delivery Boy Dialog */}
       <Dialog
         open={assignDialogOpen}
-        onClose={() => setAssignDialogOpen(false)}
+        onClose={() => {
+          setAssignDialogOpen(false);
+          setSelectedDeliveryBoy('');
+          setErrorMessage('');
+        }}
         maxWidth="sm"
         fullWidth
       >
@@ -885,6 +908,10 @@ const OrderDetails = () => {
                     borderColor: selectedDeliveryBoy === boy.id ? 'primary.main' : 'divider',
                     borderRadius: 1,
                     mb: 1,
+                    backgroundColor: selectedDeliveryBoy === boy.id ? 'action.selected' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: selectedDeliveryBoy === boy.id ? 'action.selected' : 'action.hover',
+                    }
                   }}
                 >
                   <ListItemAvatar>
@@ -903,7 +930,7 @@ const OrderDetails = () => {
                         </Typography>
                         <br />
                         <Typography variant="caption" component="span" color="primary">
-                          Distance: {boy.distance_km} km
+                          Distance: {boy.distance_to_delivery_location_km} km
                         </Typography>
                       </>
                     }
@@ -923,13 +950,19 @@ const OrderDetails = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => {
+            setAssignDialogOpen(false);
+            setSelectedDeliveryBoy('');
+            setErrorMessage('');
+          }}>
+            Cancel
+          </Button>
           <Button
             onClick={handleAssignDeliveryBoy}
             variant="contained"
-            disabled={!selectedDeliveryBoy}
+            disabled={!selectedDeliveryBoy || loading}
           >
-            Assign
+            {loading ? 'Assigning...' : 'Assign'}
           </Button>
         </DialogActions>
       </Dialog>

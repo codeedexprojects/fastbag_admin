@@ -8,7 +8,7 @@ import { Upload, X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { addDeliveryBoy } from '../../services/allApi';
 import { toast } from 'react-toastify';
-import GoogleMapPicker from '../../components/LocationPicker';
+import GoogleMapPickerWithRadius from '../../components/GoogleMapPickerWithRadius';
 import GoogleMapsWrapper from '../../components/GoogleMapsWrapper';
 
 const AddDeliveryBoyForm = () => {
@@ -27,6 +27,7 @@ const AddDeliveryBoyForm = () => {
     latitude: '',
     longitude: '',
     place: '',
+    radius_km: 10, // Default 10km radius
   });
 
   const [files, setFiles] = useState({
@@ -130,6 +131,14 @@ const AddDeliveryBoyForm = () => {
       }
     }
 
+    if (!formData.radius_km || formData.radius_km <= 0) {
+      newErrors.radius_km = "Service radius must be greater than 0";
+    }
+
+    if (formData.radius_km > 100) {
+      newErrors.radius_km = "Service radius cannot exceed 100 km";
+    }
+
     if (!files.photo) newErrors.photo = "Photo is required";
     if (!files.aadhar_card_image) newErrors.aadhar_card_image = "Aadhar card image is required";
     if (!files.driving_license_image) newErrors.driving_license_image = "Driving license image is required";
@@ -166,8 +175,9 @@ const AddDeliveryBoyForm = () => {
     if (truncatedLat) reqBody.append('latitude', truncatedLat);
     if (truncatedLng) reqBody.append('longitude', truncatedLng);
     
-    // Place field is required by backend
+    // Place and radius fields
     reqBody.append('place', placeValue);
+    reqBody.append('radius_km', formData.radius_km);
     
     if (files.photo) reqBody.append('photo', files.photo);
     if (files.aadhar_card_image) reqBody.append('aadhar_card_image', files.aadhar_card_image);
@@ -217,6 +227,7 @@ const AddDeliveryBoyForm = () => {
       latitude: '',
       longitude: '',
       place: '',
+      radius_km: 10,
     });
     setFiles({
       photo: null,
@@ -435,36 +446,49 @@ const AddDeliveryBoyForm = () => {
               />
             </Grid>
 
-            {/* Location Selection */}
+            {/* Location Selection with Radius */}
             <Grid item xs={12}>
               <Typography variant="h6" fontWeight={600} mt={2} mb={1}>
-                Location *
+                Service Location & Coverage Area *
               </Typography>
-              <GoogleMapPicker
-                vendorData={formData}
-                setVendorData={setFormData}
+              <Typography variant="body2" color="text.secondary" mb={2}>
+                Select the base location and service radius for this delivery boy. 
+                They will only receive orders within their service radius.
+              </Typography>
+              
+              <GoogleMapPickerWithRadius
+                formData={formData}
+                setFormData={setFormData}
               />
               
               {Number.isFinite(Number(formData.latitude)) &&
                 Number.isFinite(Number(formData.longitude)) && (
-                  <Typography mt={2} fontSize="14px" color="text.secondary">
-                    📍 <strong>Selected Location:</strong>
-                    <br />
+                  <Box mt={2} p={2} bgcolor="#f5f5f5" borderRadius={2}>
+                    <Typography fontSize="14px" color="text.primary">
+                      📍 <strong>Base Location:</strong>
+                    </Typography>
                     {formData.place && (
-                      <>
+                      <Typography fontSize="14px" mt={0.5}>
                         <strong>Place:</strong> {formData.place}
-                        <br />
-                      </>
+                      </Typography>
                     )}
-                    <strong>Coordinates:</strong>{" "}
-                    {truncateToDecimalPlaces(formData.latitude, 10)},{" "}
-                    {truncateToDecimalPlaces(formData.longitude, 10)}
-                  </Typography>
+                    <Typography fontSize="14px" mt={0.5}>
+                      <strong>Coordinates:</strong>{" "}
+                      {truncateToDecimalPlaces(formData.latitude, 10)},{" "}
+                      {truncateToDecimalPlaces(formData.longitude, 10)}
+                    </Typography>
+                    <Typography fontSize="14px" mt={0.5} color="primary.main" fontWeight={600}>
+                      <strong>Service Radius:</strong> {formData.radius_km} km
+                    </Typography>
+                    <Typography fontSize="12px" mt={1} color="text.secondary">
+                      This delivery boy will receive orders within {formData.radius_km} km from their base location.
+                    </Typography>
+                  </Box>
                 )}
               
-              {(errors.location || errors.latitude || errors.longitude) && (
+              {(errors.location || errors.latitude || errors.longitude || errors.radius_km) && (
                 <Typography color="error" fontSize="12px" mt={1}>
-                  {errors.location || errors.latitude || errors.longitude}
+                  {errors.location || errors.latitude || errors.longitude || errors.radius_km}
                 </Typography>
               )}
             </Grid>
@@ -608,5 +632,3 @@ const AddDeliveryBoy = () => {
 };
 
 export default AddDeliveryBoy;
-
-

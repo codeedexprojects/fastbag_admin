@@ -36,6 +36,8 @@ const AddVendor = () => {
     store_logo: null,
     display_image: null,
     license: null,
+    passbook_image: null,
+    commission: "",
     latitude: "",
     longitude: "",
     address: "",
@@ -149,6 +151,16 @@ const AddVendor = () => {
       newErrors.contact_number = "Invalid contact number format (should be 10 digits)";
     }
 
+    // Commission validation
+    if (vendorData.commission) {
+      const commissionValue = parseFloat(vendorData.commission);
+      if (isNaN(commissionValue)) {
+        newErrors.commission = "Commission must be a valid number";
+      } else if (commissionValue < 0 || commissionValue > 100) {
+        newErrors.commission = "Commission must be between 0 and 100";
+      }
+    }
+
     // Latitude and longitude validation
     if (vendorData.latitude) {
       const lat = parseFloat(vendorData.latitude);
@@ -173,7 +185,7 @@ const AddVendor = () => {
 
     // File size validation (max 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB
-    ['store_logo', 'fssai_certificate', 'display_image', 'license'].forEach(field => {
+    ['store_logo', 'fssai_certificate', 'display_image', 'license', 'passbook_image'].forEach(field => {
       if (vendorData[field] && vendorData[field].size > maxSize) {
         newErrors[field] = "File size must be less than 5MB";
       }
@@ -181,7 +193,7 @@ const AddVendor = () => {
 
     // File type validation (images only)
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    ['store_logo', 'fssai_certificate', 'display_image', 'license'].forEach(field => {
+    ['store_logo', 'fssai_certificate', 'display_image', 'license', 'passbook_image'].forEach(field => {
       if (vendorData[field] && !validImageTypes.includes(vendorData[field].type)) {
         newErrors[field] = "Only image files (JPEG, PNG, GIF, WEBP) are allowed";
       }
@@ -296,6 +308,8 @@ const AddVendor = () => {
       store_logo: null,
       display_image: null,
       license: null,
+      passbook_image: null,
+      commission: "",
       latitude: "",
       longitude: "",
       address: "",
@@ -392,11 +406,27 @@ const AddVendor = () => {
           </TextField>
         </Grid>
 
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Commission (%)"
+            name="commission"
+            type="number"
+            value={vendorData.commission}
+            onChange={handleInputChange}
+            fullWidth
+            variant="outlined"
+            inputProps={{ min: 0, max: 100, step: 0.01 }}
+            error={!!errors.commission}
+            helperText={errors.commission || "Enter commission percentage (0-100)"}
+          />
+        </Grid>
+
         {[
           { label: "FSSAI Certificate", name: "fssai_certificate", required: false },
           { label: "Store Logo", name: "store_logo", required: true },
           { label: "Display Image", name: "display_image", required: false },
           { label: "License", name: "license", required: true },
+          { label: "Passbook Image", name: "passbook_image", required: false },
         ].map((field, index) => (
           <Grid item xs={12} sm={6} key={index}>
             <InputLabel required={field.required}>{field.label}</InputLabel>
