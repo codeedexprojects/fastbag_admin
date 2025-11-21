@@ -2306,33 +2306,20 @@ export const calculateDeliveryCharge = async (distance, isNight = false) => {
 
 
 
-/**
- * Get available delivery boys for an order based on location radius
- * @param {string} orderId - The order ID
- * @param {number} radius - Search radius in kilometers (optional, default: 10)
- * @returns {Promise} - API response with available delivery boys
- */
-export const getAvailableDeliveryBoys = async (orderId, radius = 10) => {
+export const getAvailableDeliveryBoys = async (orderId) => {
   try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
-
-    const response = await commonApi(
-      'GET',
-      `${BASE_URL}/delivery/orders/${orderId}/available-delivery-boys/?radius=${radius}`,
-      "",
+    const response = await axios.get(
+      `${BASE_URL}/delivery/orders/${orderId}/available-delivery-boys/`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
       }
     );
-
-    return response;
+    
+    return response.data; // Make sure you're returning response.data, not just response
   } catch (error) {
-    console.error(`Failed to fetch available delivery boys for order ${orderId}`, error);
+    console.error('API Error:', error);
     throw error;
   }
 };
@@ -2378,32 +2365,20 @@ export const assignDeliveryBoy = async (orderId, deliveryBoyId, message = null) 
   }
 };
 
-/**
- * Get the assigned delivery boy for a specific order
- * @param {string} orderId - The order ID
- * @returns {Promise} - API response with delivery boy details
- */
 export const getDeliveryBoyForOrder = async (orderId) => {
   try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("Authentication token is missing");
-    }
-
-    const response = await commonApi(
-      'GET',
+    const response = await axios.get(
       `${BASE_URL}/delivery/orders/${orderId}/delivery-boy/`,
-      "",
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
       }
     );
-
-    return response;
+    
+    return response.data; // Make sure you return response.data, not response
   } catch (error) {
-    console.error(`Failed to fetch delivery boy for order ${orderId}`, error);
+    console.error('API Error:', error);
     throw error;
   }
 };
