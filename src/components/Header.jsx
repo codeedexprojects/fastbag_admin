@@ -249,15 +249,6 @@ const Header = ({ onMenuClick }) => {
           </Typography>
         </Box>
         <Divider sx={{ borderColor: '#e2e8f0' }} />
-        <MenuItem onClick={handleClose}>
-          <PersonIcon sx={{ mr: 1.5, fontSize: '20px' }} />
-          Profile
-        </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <SettingsIcon sx={{ mr: 1.5, fontSize: '20px' }} />
-          Settings
-        </MenuItem>
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
         <MenuItem onClick={handleLogout} sx={{ color: '#dc2626 !important' }}>
           <LogoutIcon sx={{ mr: 1.5, fontSize: '20px' }} />
           Logout

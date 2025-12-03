@@ -45,6 +45,7 @@ const exportToCSV = (data, filename = 'orders.csv') => {
 
 const OrderList = () => {
   const [activeButton, setActiveButton] = useState('All Time');
+  // Keep selectedDate as a dayjs object (or null) so MUI DatePicker receives the expected value type
   const [selectedDate, setSelectedDate] = useState(null);
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,7 +63,14 @@ const OrderList = () => {
   // Fetch orders from backend with pagination
   useEffect(() => {
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, orderStatusFilter, activeButton, selectedDate]);
+
+  const formatDateForAPI = (date) => {
+    // date is expected to be a dayjs object
+    // Change this format to match your backend expectation. ISO-like 'YYYY-MM-DD' is common.
+    return date.format('YYYY-MM-DD');
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -73,25 +81,26 @@ const OrderList = () => {
       const now = dayjs();
 
       if (selectedDate) {
-        // If specific date is selected, use that
-        startDate = selectedDate.format('YYYY-MM-DD');
-        endDate = selectedDate.format('YYYY-MM-DD');
+        // selectedDate is a dayjs object now
+        const formattedDate = formatDateForAPI(selectedDate);
+        startDate = formattedDate;
+        endDate = formattedDate;
       } else if (activeButton !== 'All Time') {
         // Calculate date range based on filter
-        endDate = now.format('YYYY-MM-DD');
-        
+        endDate = formatDateForAPI(now);
+
         switch (activeButton) {
           case '12 Months':
-            startDate = now.subtract(12, 'month').format('YYYY-MM-DD');
+            startDate = formatDateForAPI(now.subtract(12, 'month'));
             break;
           case '30 Days':
-            startDate = now.subtract(30, 'day').format('YYYY-MM-DD');
+            startDate = formatDateForAPI(now.subtract(30, 'day'));
             break;
           case '7 Days':
-            startDate = now.subtract(7, 'day').format('YYYY-MM-DD');
+            startDate = formatDateForAPI(now.subtract(7, 'day'));
             break;
           case '24 Hour':
-            startDate = now.startOf('day').format('YYYY-MM-DD');
+            startDate = formatDateForAPI(now.subtract(1, 'day'));
             break;
         }
       }
@@ -117,7 +126,7 @@ const OrderList = () => {
       console.log('Fetching orders with params:', params); // Debug log
 
       const response = await viewOrders(params);
-      
+
       console.log('API Response:', response); // Debug log
 
       // Handle paginated response
@@ -127,13 +136,16 @@ const OrderList = () => {
         setTotalPages(Math.ceil(response.count / pageSize));
       } else {
         // Fallback for non-paginated response
-        setOrders(response);
-        setTotalCount(response.length);
-        setTotalPages(Math.ceil(response.length / pageSize));
+        setOrders(Array.isArray(response) ? response : []);
+        setTotalCount(Array.isArray(response) ? response.length : 0);
+        setTotalPages(Math.ceil((Array.isArray(response) ? response.length : 0) / pageSize));
       }
     } catch (error) {
       toast.error('Failed to load orders');
       console.error('Error fetching orders:', error);
+      setOrders([]);
+      setTotalCount(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -152,10 +164,13 @@ const OrderList = () => {
   };
 
   const handleDateChange = (newValue) => {
-    console.log('Date changed to:', newValue); // Debug log
-    setSelectedDate(newValue);
-    setActiveButton('All Time');
-    setCurrentPage(1); // Reset to first page
+    // Keep the actual dayjs object for MUI DatePicker
+    console.log('Date changed to (dayjs):', newValue);
+    setSelectedDate(newValue); // newValue is a dayjs object (or null)
+    if (newValue) {
+      setActiveButton('All Time');
+    }
+    setCurrentPage(1);
   };
 
   const handleStatusFilterChange = (e) => {
@@ -204,33 +219,38 @@ const OrderList = () => {
 
       // Add date filters if active
       if (selectedDate) {
-        params.start_date = selectedDate.format('YYYY-MM-DD');
-        params.end_date = selectedDate.format('YYYY-MM-DD');
+        const formattedDate = formatDateForAPI(selectedDate);
+        params.start_date = formattedDate;
+        params.end_date = formattedDate;
       } else if (activeButton !== 'All Time') {
         const now = dayjs();
-        params.end_date = now.format('YYYY-MM-DD');
-        
+        params.end_date = formatDateForAPI(now);
+
         switch (activeButton) {
           case '12 Months':
-            params.start_date = now.subtract(12, 'month').format('YYYY-MM-DD');
+            params.start_date = formatDateForAPI(now.subtract(12, 'month'));
             break;
           case '30 Days':
-            params.start_date = now.subtract(30, 'day').format('YYYY-MM-DD');
+            params.start_date = formatDateForAPI(now.subtract(30, 'day'));
             break;
           case '7 Days':
-            params.start_date = now.subtract(7, 'day').format('YYYY-MM-DD');
+            params.start_date = formatDateForAPI(now.subtract(7, 'day'));
             break;
           case '24 Hour':
-            params.start_date = now.startOf('day').format('YYYY-MM-DD');
+            params.start_date = formatDateForAPI(now.subtract(1, 'day'));
             break;
         }
       }
 
       const response = await viewOrders(params);
       const allOrders = response.results || response;
-      
-      exportToCSV(allOrders);
-      toast.success('Orders exported successfully');
+
+      if (Array.isArray(allOrders) && allOrders.length > 0) {
+        exportToCSV(allOrders);
+        toast.success(`${allOrders.length} orders exported successfully`);
+      } else {
+        toast.info('No orders to export');
+      }
     } catch (error) {
       toast.error('Failed to export orders');
       console.error('Export error:', error);
@@ -275,6 +295,7 @@ const OrderList = () => {
             startIcon={<IosShare />} 
             sx={{ marginRight: 2 }} 
             onClick={exportAllOrders}
+            disabled={loading}
           >
             Export
           </Button>
@@ -282,6 +303,7 @@ const OrderList = () => {
             onClick={handleDeleteClick} 
             variant="containedError" 
             startIcon={<Trash2 size={20} />}
+            disabled={loading}
           >
             Delete All
           </Button>
@@ -295,6 +317,7 @@ const OrderList = () => {
               <Button
                 key={option}
                 onClick={() => handleFilterChange(option)}
+                disabled={loading}
                 sx={{
                   borderRadius: 3,
                   fontWeight: 600,
@@ -318,6 +341,7 @@ const OrderList = () => {
             size="small"
             value={orderStatusFilter}
             onChange={handleStatusFilterChange}
+            disabled={loading}
             SelectProps={{
               IconComponent: ChevronDown,
             }}
@@ -357,10 +381,13 @@ const OrderList = () => {
         </Grid>
       </Grid>
 
-      {/* Debug info - Remove this in production */}
+      {/* Debug info */}
       <Box sx={{ mb: 2, p: 2, bgcolor: '#f0f0f0', borderRadius: 2, fontSize: '12px' }}>
-        <Typography variant="caption">
-          Debug Info: Page {currentPage} | Total: {totalCount} | Total Pages: {totalPages} | Orders on page: {orders.length}
+        <Typography variant="caption" component="div">
+          <strong>Debug Info:</strong> Page {currentPage} | Total: {totalCount} | Total Pages: {totalPages} | Orders on page: {orders.length}
+        </Typography>
+        <Typography variant="caption" component="div">
+          <strong>Active Filters:</strong> Time: {activeButton} | Status: {orderStatusFilter} | Date: {selectedDate ? selectedDate.format('YYYY-MM-DD') : 'None'}
         </Typography>
       </Box>
 
@@ -387,7 +414,6 @@ const OrderList = () => {
             {orders.map((order, index) => (
               <TableRow key={order.id} hover>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  {/* Use serial_number from backend, or fallback to calculated value */}
                   {order.serial_number || (totalCount - ((currentPage - 1) * pageSize) - index)}
                 </TableCell>
                 <TableCell>{order.order_id}</TableCell>
@@ -441,7 +467,9 @@ const OrderList = () => {
             {orders.length === 0 && !loading && (
               <TableRow>
                 <TableCell colSpan={9} align="center">
-                  No orders found
+                  <Typography variant="body2" sx={{ py: 3 }}>
+                    No orders found matching your filters
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -455,6 +483,7 @@ const OrderList = () => {
           page={currentPage}
           onChange={handlePageChange}
           color="primary"
+          disabled={loading || totalPages === 0}
         />
       </Box>
 

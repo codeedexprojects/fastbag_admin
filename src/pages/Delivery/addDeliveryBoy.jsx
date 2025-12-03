@@ -97,55 +97,70 @@ const AddDeliveryBoyForm = () => {
   };
 
   const validateForm = () => {
-    const newErrors = {};
+  const newErrors = {};
 
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.mobile_number.trim()) newErrors.mobile_number = "Mobile number is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!formData.address.trim()) newErrors.address = "Address is required";
-    if (!formData.vehicle_type) newErrors.vehicle_type = "Vehicle type is required";
-    if (!formData.vehicle_number.trim()) newErrors.vehicle_number = "Vehicle number is required";
-    if (!formData.gender) newErrors.gender = "Gender is required";
-    if (!formData.dob) newErrors.dob = "Date of birth is required";
+  if (!formData.name.trim()) newErrors.name = "Name is required";
+  if (!formData.mobile_number.trim()) newErrors.mobile_number = "Mobile number is required";
+  if (!formData.email.trim()) newErrors.email = "Email is required";
+  if (!formData.address.trim()) newErrors.address = "Address is required";
+  if (!formData.vehicle_type) newErrors.vehicle_type = "Vehicle type is required";
+  if (!formData.vehicle_number.trim()) newErrors.vehicle_number = "Vehicle number is required";
+  if (!formData.gender) newErrors.gender = "Gender is required";
+  if (!formData.dob) newErrors.dob = "Date of birth is required";
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (formData.email && !emailRegex.test(formData.email)) {
+    newErrors.email = "Invalid email format";
+  }
+
+  const phoneRegex = /^\d{10}$/;
+  if (formData.mobile_number && !phoneRegex.test(formData.mobile_number.replace(/[\s\-\(\)]/g, ''))) {
+    newErrors.mobile_number = "Invalid mobile number (should be 10 digits)";
+  }
+
+  if (formData.dob) {
+    const birthDate = new Date(formData.dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
     }
-
-    const phoneRegex = /^\d{10}$/;
-    if (formData.mobile_number && !phoneRegex.test(formData.mobile_number.replace(/[\s\-\(\)]/g, ''))) {
-      newErrors.mobile_number = "Invalid mobile number (should be 10 digits)";
+    
+    if (age < 18) {
+      newErrors.dob = "Delivery boy must be at least 18 years old";
     }
+  }
 
-    if (!formData.latitude || !formData.longitude) {
-      newErrors.location = "Please select location on map";
-    } else {
-      const lat = parseFloat(formData.latitude);
-      const lng = parseFloat(formData.longitude);
-      if (isNaN(lat) || lat < -90 || lat > 90) {
-        newErrors.latitude = "Invalid latitude value";
-      }
-      if (isNaN(lng) || lng < -180 || lng > 180) {
-        newErrors.longitude = "Invalid longitude value";
-      }
+  if (!formData.latitude || !formData.longitude) {
+    newErrors.location = "Please select location on map";
+  } else {
+    const lat = parseFloat(formData.latitude);
+    const lng = parseFloat(formData.longitude);
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      newErrors.latitude = "Invalid latitude value";
     }
-
-    if (!formData.radius_km || formData.radius_km <= 0) {
-      newErrors.radius_km = "Service radius must be greater than 0";
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      newErrors.longitude = "Invalid longitude value";
     }
+  }
 
-    if (formData.radius_km > 100) {
-      newErrors.radius_km = "Service radius cannot exceed 100 km";
-    }
+  if (!formData.radius_km || formData.radius_km <= 0) {
+    newErrors.radius_km = "Service radius must be greater than 0";
+  }
 
-    if (!files.photo) newErrors.photo = "Photo is required";
-    if (!files.aadhar_card_image) newErrors.aadhar_card_image = "Aadhar card image is required";
-    if (!files.driving_license_image) newErrors.driving_license_image = "Driving license image is required";
+  if (formData.radius_km > 100) {
+    newErrors.radius_km = "Service radius cannot exceed 100 km";
+  }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  if (!files.photo) newErrors.photo = "Photo is required";
+  if (!files.aadhar_card_image) newErrors.aadhar_card_image = "Aadhar card image is required";
+  if (!files.driving_license_image) newErrors.driving_license_image = "Driving license image is required";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();

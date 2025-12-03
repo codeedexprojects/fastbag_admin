@@ -226,8 +226,24 @@ const BigBuyOrders = () => {
       </Box>
 
       {/* Compact Horizontal Order Cards */}
-      <Stack spacing={2}>
-        {orders.map((order, index) => {
+      {orders.length === 0 ? (
+        <Paper
+          elevation={0}
+          style={{
+            padding: "40px",
+            textAlign: "center",
+            borderRadius: "12px",
+            background: "#f5f5f5",
+            color: "#777",
+            fontSize: "1.1rem",
+            fontWeight: 600,
+          }}
+        >
+          No orders yet
+        </Paper>
+      ) : (
+        <Stack spacing={2}>
+          {orders.map((order, index) => {
           const serialNumber = orders.length - index;
           
           return (
@@ -380,6 +396,7 @@ const BigBuyOrders = () => {
           );
         })}
       </Stack>
+      )}
 
       {/* Detail Drawer */}
       <Drawer

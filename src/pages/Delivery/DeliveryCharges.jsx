@@ -60,63 +60,63 @@ const DeliveryCharges = () => {
   }, []);
 
   const fetchDeliveryCharges = async () => {
-  try {
-    setLoading(true);
-    console.log('Calling getAllDeliveryCharges...');
-    
-    const response = await getAllDeliveryCharges();
-    
-    console.log('=== FULL RESPONSE ===');
-    console.log('Response:', response);
-    console.log('Type:', typeof response);
-    console.log('Is Array?', Array.isArray(response));
-    console.log('Has success?', response?.success);
-    console.log('Has data?', response?.data);
-    console.log('Data is Array?', Array.isArray(response?.data));
-    console.log('Data length:', response?.data?.length);
-    console.log('First item:', response?.data?.[0]);
-    console.log('==================');
-    
-    // Handle different response structures
-    let chargesData = [];
-    
-    // Check if response.data.data exists (nested structure)
-    if (response?.data?.data && Array.isArray(response.data.data)) {
-      console.log('✅ Using response.data.data');
-      chargesData = response.data.data;
+    try {
+      setLoading(true);
+      console.log('Calling getAllDeliveryCharges...');
+      
+      const response = await getAllDeliveryCharges();
+      
+      console.log('=== FULL RESPONSE ===');
+      console.log('Response:', response);
+      console.log('Type:', typeof response);
+      console.log('Is Array?', Array.isArray(response));
+      console.log('Has success?', response?.success);
+      console.log('Has data?', response?.data);
+      console.log('Data is Array?', Array.isArray(response?.data));
+      console.log('Data length:', response?.data?.length);
+      console.log('First item:', response?.data?.[0]);
+      console.log('==================');
+      
+      // Handle different response structures
+      let chargesData = [];
+      
+      // Check if response.data.data exists (nested structure)
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        console.log('✅ Using response.data.data');
+        chargesData = response.data.data;
+      }
+      // Check if response.data is an array
+      else if (response?.data && Array.isArray(response.data)) {
+        console.log('✅ Using response.data');
+        chargesData = response.data;
+      }
+      // Check if response itself is an array
+      else if (Array.isArray(response)) {
+        console.log('✅ Using response directly');
+        chargesData = response;
+      }
+      // Check if response has success and data properties (your API format)
+      else if (response?.success && response?.data && Array.isArray(response.data)) {
+        console.log('✅ Using response.data (API format)');
+        chargesData = response.data;
+      }
+      else {
+        console.error('❌ Unexpected response structure:', response);
+        toast.error('Unexpected data format received');
+      }
+      
+      console.log('✅ Setting charges with data:', chargesData);
+      console.log('✅ Charges count:', chargesData.length);
+      setCharges(chargesData);
+      
+    } catch (error) {
+      console.error('❌ Error fetching delivery charges:', error);
+      toast.error('Error loading delivery charges');
+      setCharges([]);
+    } finally {
+      setLoading(false);
     }
-    // Check if response.data is an array
-    else if (response?.data && Array.isArray(response.data)) {
-      console.log('✅ Using response.data');
-      chargesData = response.data;
-    }
-    // Check if response itself is an array
-    else if (Array.isArray(response)) {
-      console.log('✅ Using response directly');
-      chargesData = response;
-    }
-    // Check if response has success and data properties (your API format)
-    else if (response?.success && response?.data && Array.isArray(response.data)) {
-      console.log('✅ Using response.data (API format)');
-      chargesData = response.data;
-    }
-    else {
-      console.error('❌ Unexpected response structure:', response);
-      toast.error('Unexpected data format received');
-    }
-    
-    console.log('✅ Setting charges with data:', chargesData);
-    console.log('✅ Charges count:', chargesData.length);
-    setCharges(chargesData);
-    
-  } catch (error) {
-    console.error('❌ Error fetching delivery charges:', error);
-    toast.error('Error loading delivery charges');
-    setCharges([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // Log when charges state changes
   useEffect(() => {
@@ -252,7 +252,38 @@ const DeliveryCharges = () => {
     } catch (error) {
       console.error('❌ Error saving delivery charge:', error);
       console.error('Error details:', error.response?.data);
-      toast.error(error?.response?.data?.message || 'Error saving delivery charge');
+      
+      // Handle validation errors from backend
+      if (error?.response?.data?.errors) {
+        const backendErrors = error.response.data.errors;
+        console.log('Backend errors:', backendErrors);
+        
+        // Check for distance_range overlap error (array format)
+        if (backendErrors.distance_range) {
+          const errorMsg = Array.isArray(backendErrors.distance_range) 
+            ? backendErrors.distance_range[0] 
+            : backendErrors.distance_range;
+          toast.error(errorMsg);
+        } 
+        // Check for non_field_errors (general validation errors)
+        else if (backendErrors.non_field_errors) {
+          const errorMsg = Array.isArray(backendErrors.non_field_errors)
+            ? backendErrors.non_field_errors[0]
+            : backendErrors.non_field_errors;
+          toast.error(errorMsg);
+        }
+        // Handle other field-specific errors
+        else if (typeof backendErrors === 'object') {
+          const firstErrorKey = Object.keys(backendErrors)[0];
+          const firstError = backendErrors[firstErrorKey];
+          const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+          toast.error(errorMsg);
+        } else {
+          toast.error('Validation error occurred');
+        }
+      } else {
+        toast.error(error?.response?.data?.message || 'Error saving delivery charge');
+      }
     }
   };
 
@@ -339,13 +370,6 @@ const DeliveryCharges = () => {
           Add Delivery Charge
         </Button>
       </Box>
-
-      {/* Debug info - remove this after fixing */}
-      <Paper sx={{ padding: 2, marginBottom: 2, backgroundColor: '#f5f5f5' }}>
-        <Typography variant="body2">
-          <strong>Debug Info:</strong> Found {charges.length} charge(s)
-        </Typography>
-      </Paper>
 
       {charges.length === 0 ? (
         <Paper sx={{ padding: 4, textAlign: 'center' }}>
